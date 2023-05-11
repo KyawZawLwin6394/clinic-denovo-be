@@ -6,10 +6,10 @@ const config = {
   development: {
     root: rootPath,
     app: {
-      name: 'Cherry-K',
+      name: 'Clinic-Denovo',
     },
     //db: 'mongodb://127.0.0.1:3221', 
-    db: 'mongodb+srv://projectDev-01:O9YGEyPQvKyA3Q48@kwintechinstances.usgwoxy.mongodb.net/Cherry-K?retryWrites=true&w=majority',
+    db: 'mongodb+srv://projectDev-01:O9YGEyPQvKyA3Q48@kwintechinstances.usgwoxy.mongodb.net/Clinic-Denovo?retryWrites=true&w=majority',
     //db: 'mongodb+srv://dbuser:P7qBNveg8bVO1d2z@cluster0.85ozwwv.mongodb.net/cherry-k?retryWrites=true&w=majority', 
     uploadsURI:['./uploads/cherry-k/img','./uploads/cherry-k/history','./uploads/cherry-k/phistory'],
     dbName:'cherry-k',
@@ -23,11 +23,11 @@ const config = {
   production: {
     root: rootPath,
     app: {
-      name: 'Cherry-K',
+      name: 'Clinic-Denovo',
     },
     //db: 'mongodb://127.0.0.1:3221', 
      //db: 'mongodb+srv://dbuser:P7qBNveg8bVO1d2z@cluster0.85ozwwv.mongodb.net/cherry-k?retryWrites=true&w=majority',
-    db: 'mongodb+srv://projectDev-01:O9YGEyPQvKyA3Q48@kwintechinstances.usgwoxy.mongodb.net/Cherry-K?retryWrites=true&w=majority',
+    db: 'mongodb+srv://projectDev-01:O9YGEyPQvKyA3Q48@kwintechinstances.usgwoxy.mongodb.net/Clinic-Denovo?retryWrites=true&w=majority',
     uploadsURI:['./uploads/cherry-k/img','./uploads/cherry-k/history','./uploads/cherry-k/phistory'],
     dbName:'cherry-k',
     maxLoginAttempts: 5,
