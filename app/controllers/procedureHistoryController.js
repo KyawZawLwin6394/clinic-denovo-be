@@ -54,7 +54,7 @@ exports.getRelatedProcedureHistory = async (req, res) => {
 exports.uploadImage = async (req, res) => {
   let data = req.body
   let files = req.files
-  if (files.phistory.length ==0) return res.status(500).send({error:true, message:'Undefined Image!'})
+  if (files.phistory.length == 0) return res.status(500).send({ error: true, message: 'Undefined Image!' })
   try {
     console.log(req.files.phistory)
     let imgPath = files.phistory[0].path.split('cherry-k')[1];
@@ -67,10 +67,10 @@ exports.uploadImage = async (req, res) => {
     const attachResult = await newAttachment.save();
     const result = await ProcedureHistory.findOneAndUpdate(
       { _id: data.id },
-      {pHistory:attachResult._id.toString()},
+      { pHistory: attachResult._id.toString() },
       { new: true },
     )
-    return res.status(200).send({success:true,data:result})
+    return res.status(200).send({ success: true, data: result })
     //prepare img and save it into attachment schema
   } catch (error) {
     console.log(error)
@@ -79,20 +79,36 @@ exports.uploadImage = async (req, res) => {
 }
 
 exports.createProcedureHistory = async (req, res, next) => {
+  let data = req.body;
+  data = { ...data, pHistory: [] };
+  let files = req.files;
   try {
-    const newBody = req.body;
-    const newProcedureHistory = new ProcedureHistory(newBody);
-    const result = await newProcedureHistory.save();
+    if (files.phistory.length > 0) {
+      for (const element of files.phistory) {
+        let imgPath = element.path.split('cherry-k')[1];
+        const attachData = {
+          fileName: element.originalname,
+          imgUrl: imgPath,
+          image: imgPath.split('\\')[2]
+        };
+        const attachResult = await Attachment.create(attachData);
+        console.log('attach', attachResult._id.toString());
+        data.pHistory.push(attachResult._id.toString());
+      }
+    }
+    const result = await ProcedureHistory.create(data);
+
     res.status(200).send({
       message: 'ProcedureHistory create success',
       success: true,
       data: result
     });
   } catch (error) {
-    console.log(error)
-    return res.status(500).send({ "error": true, message: error.message })
+    console.log(error);
+    return res.status(500).send({ "error": true, message: error.message });
   }
 };
+
 
 exports.updateProcedureHistory = async (req, res, next) => {
   try {

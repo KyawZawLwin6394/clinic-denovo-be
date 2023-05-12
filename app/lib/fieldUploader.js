@@ -77,7 +77,7 @@ exports.upload = multer({
         },
         {
             name: 'phistory',
-            maxCount: 1
+            maxCount: 2
         }
 
 

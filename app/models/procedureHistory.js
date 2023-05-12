@@ -6,57 +6,6 @@ const Schema = mongoose.Schema;
 
 
 let ProcedureHistorySchema = new Schema({
-    skinCareAndCosmetic: [{
-        item: String,
-        remark: String
-    }],
-    drugHistory: {
-        type: String
-    },
-    medicalHistory: {
-        type: String
-    },
-    allergyHistory: {
-        type: String
-    },
-    treatmentHistory: {
-        type: String
-    },
-    complaint: {
-        type: String,
-    },
-    skinType: [{
-        item: String,
-        remark: String
-    }],
-    acne: [{
-        item: String,
-        remark: String
-    }],
-    melasmaAndBlackSpot: [{
-        item: String,
-        remark: String
-    }],
-    mesoFat: [{
-        item: String,
-        remark: String
-    }],
-    facialDesign: [{
-        item: String,
-        remark: String
-    }],
-    otherPhysicalExamination: {
-        type: String
-    },
-    consultationCharges: {
-        type: String
-    },
-    serviceCharges: {
-        type: String
-    },
-    nextAppointment: {
-        type: Date
-    },
     diagnosis: {
         type: String
     },
@@ -79,7 +28,7 @@ let ProcedureHistorySchema = new Schema({
     treatmentPackages: [{
         item_id: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'TreatmentUnits'
+            ref: 'Treatments'
         },
         qty: Number,
         price: Number,
@@ -89,37 +38,33 @@ let ProcedureHistorySchema = new Schema({
     customTreatmentPackages: {
         item_id:{
             type:mongoose.Schema.Types.ObjectId,
-            ref:'TreatmentUnits'
+            ref:'Treatments'
         }
     },
-    attachments:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Attachments'
+    status:{
+        type:String,
+        enum:['Finished']
     },
     isDeleted: {
         type: Boolean,
         required: true,
         default: false
     },
-    relatedPatient:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Patients'
-    },
     date: {
         type:Date,
         default:Date.now()
     },
     pHistory: {
-        type:mongoose.Schema.Types.ObjectId,
+        type:[mongoose.Schema.Types.ObjectId],
         ref:'Attachments'
     },
     relatedAppointment:{
         type:mongoose.Schema.Types.ObjectId,
         ref:'Appointments'
     },
-    relatedTreatment:{
+    relatedTreatmentSelection:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:'Treatments'
+        ref:'TreatmentSelection'
     }
 });
 
