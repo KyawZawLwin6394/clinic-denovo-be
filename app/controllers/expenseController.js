@@ -61,7 +61,8 @@ exports.createExpense = async (req, res, next) => {
             "relatedTreatment": newBody.relatedTreatment,
             "treatmentFlag": false,
             "relatedTransaction": null,
-            "relatedAccounting": newBody.relatedAccounting
+            "relatedAccounting": newBody.relatedAccounting,
+            "relatedExpense" : result._id
         }
         const newTrans = new Transaction(firstTransaction)
         const fTransResult = await newTrans.save();
@@ -78,6 +79,7 @@ exports.createExpense = async (req, res, next) => {
                 "treatmentFlag": false,
                 "relatedTransaction": fTransResult._id,
                 "relatedAccounting": newBody.relatedAccounting,
+                "relatedExpense" : result._id,
                 "relatedCredit":newBody.relatedCredit
             }
             const secTrans = new Transaction(secondTransaction)
@@ -85,19 +87,23 @@ exports.createExpense = async (req, res, next) => {
             console.log(secTransResult)
         } else {
             //bank or cash
-            const secondTransaction = {
-                "initialExchangeRate": newBody.initialExchangeRate,
-                "amount": newBody.finalAmount,
-                "date": newBody.date,
-                "remark": newBody.remark,
-                "type": "Credit",
-                "relatedTreatment": newBody.relatedTreatment,
-                "treatmentFlag": false,
-                "relatedTransaction": fTransResult._id,
-                "relatedAccounting": newBody.relatedAccounting,
-                "relatedBank": newBody.relatedBank,
-                "relatedCash": newBody.relatedCash
-            }
+            
+                const secondTransaction = {
+                    "initialExchangeRate": newBody.initialExchangeRate,
+                    "amount": newBody.finalAmount,
+                    "date": newBody.date,
+                    "remark": newBody.remark,
+                    "type": "Credit",
+                    "relatedTreatment": newBody.relatedTreatment,
+                    "treatmentFlag": false,
+                    "relatedTransaction": fTransResult._id,
+                    "relatedAccounting": (newBody.relatedBankAccount) ? newBody.relatedBankAccount : newBody.relatedCashAccount,
+                    "relatedExpense" : result._id,
+                    "relatedBank": newBody.relatedBankAccount,
+                    "relatedCash": newBody.relatedCashAccount
+                }
+            
+
             const secTrans = new Transaction(secondTransaction)
             var secTransResult = await secTrans.save();
             console.log(secTransResult)

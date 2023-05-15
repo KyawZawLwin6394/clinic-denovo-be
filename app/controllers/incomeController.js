@@ -51,11 +51,11 @@ exports.createIncome = async (req, res, next) => {
     const newIncome = new Income(newBody);
     const result = await newIncome.save();
     const populatedResult = await Income.find({_id:result._id}).populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
-    const bankResult = await Bank.findOneAndUpdate(
-      { _id: req.body.id },
-      { $inc: { balance: 50 } },
-      { new: true },
-    ).populate('relatedAccounting');
+    // const bankResult = await Bank.findOneAndUpdate(
+    //   { _id: req.body.id },
+    //   { $inc: { balance: 50 } },
+    //   { new: true },
+    // ).populate('relatedAccounting');
     const firstTransaction =
     {
       "initialExchangeRate": newBody.initialExchangeRate,
@@ -66,7 +66,8 @@ exports.createIncome = async (req, res, next) => {
       "relatedTreatment": newBody.relatedTreatment,
       "treatmentFlag": false,
       "relatedTransaction": null,
-      "relatedAccounting": newBody.relatedAccounting
+      "relatedAccounting": newBody.relatedAccounting,
+      "relatedIncome" : result._id
     }
     const newTrans = new Transaction(firstTransaction)
     const fTransResult = await newTrans.save();
@@ -82,6 +83,7 @@ exports.createIncome = async (req, res, next) => {
         "treatmentFlag": false,
         "relatedTransaction": fTransResult._id,
         "relatedAccounting": newBody.relatedAccounting,
+        "relatedIncome" : result._id,
         "relatedCredit": newBody.relatedCredit
       }
       const secTrans = new Transaction(secondTransaction)
@@ -98,9 +100,10 @@ exports.createIncome = async (req, res, next) => {
         "relatedTreatment": newBody.relatedTreatment,
         "treatmentFlag": false,
         "relatedTransaction": fTransResult._id,
-        "relatedAccounting": newBody.relatedAccounting,
-        "relatedBank": newBody.relatedBank,
-        "relatedCash": newBody.relatedCash
+        "relatedAccounting": (newBody.relatedBankAccount) ? newBody.relatedBankAccount : newBody.relatedCashAccount,
+        "relatedIncome" : result._id,
+        "relatedBank": newBody.relatedBankAccount,
+        "relatedCash": newBody.relatedCashAccount
       }
       const secTrans = new Transaction(secondTransaction)
       var secTransResult = await secTrans.save();
