@@ -15,7 +15,7 @@ exports.listAllAccountingLists = async (req, res) => {
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await AccountingList.find(query).skip(skip).populate('relatedDoctor').populate('relatedTherapist').populate('relatedPatient').populate('procedureMedicine.item_id').populate('relatedType').populate('relatedHeader')
+        let result = await AccountingList.find(query).skip(skip).populate('relatedType relatedHeader relatedTreatment relatedBank')
         console.log(result)
         count = await AccountingList.find(query).count();
         const division = count / limit;
@@ -38,7 +38,7 @@ exports.listAllAccountingLists = async (req, res) => {
 };
 
 exports.getAccountingList = async (req, res) => {
-    const result = await AccountingList.find({ _id: req.params.id, isDeleted: false }).populate('relatedDoctor').populate('relatedTherapist').populate('relatedPatient').populate('procedureMedicine.item_id').populate('relatedType').populate('relatedHeader')
+    const result = await AccountingList.find({ _id: req.params.id, isDeleted: false }).populate('relatedType relatedHeader relatedTreatment relatedBank')
     if (!result)
         return res.status(500).json({ error: true, message: 'No Record Found' });
     return res.status(200).send({ success: true, data: result });
@@ -66,7 +66,7 @@ exports.updateAccountingList = async (req, res, next) => {
             { _id: req.body.id },
             req.body,
             { new: true },
-        ).populate('relatedDoctor').populate('relatedTherapist').populate('relatedPatient').populate('procedureMedicine.item_id').populate('relatedType').populate('relatedHeader')
+        ).populate('relatedPatient').populate('procedureMedicine.item_id').populate('relatedType relatedHeader relatedTreatment relatedBank')
         return res.status(200).send({ success: true, data: result });
     } catch (error) {
         return res.status(500).send({ "error": true, "message": error.message })
