@@ -15,7 +15,7 @@ exports.listAllAccessoryItems = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await AccessoryItem.find(query).limit(limit).skip(skip).populate('name').populate('relatedCategory').populate('relatedBrand').populate('relatedSubCategory')
+    let result = await AccessoryItem.find(query).limit(limit).skip(skip).populate('name')
     count = await AccessoryItem.find(query).count();
     const division = count / limit;
     page = Math.ceil(division);
@@ -37,14 +37,14 @@ exports.listAllAccessoryItems = async (req, res) => {
 };
 
 exports.getAccessoryItem = async (req, res) => {
-  const result = await AccessoryItem.find({ _id: req.params.id,isDeleted:false }).populate('name').populate('relatedCategory').populate('relatedBrand').populate('relatedSubCategory')
+  const result = await AccessoryItem.find({ _id: req.params.id,isDeleted:false }).populate('name')
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
 };
 
 exports.getRelatedAccessoryItem = async (req, res) => {
-    const result = await AccessoryItem.find({ name: req.params.id,isDeleted:false }).populate('name').populate('relatedCategory').populate('relatedBrand').populate('relatedSubCategory')
+    const result = await AccessoryItem.find({ name: req.params.id,isDeleted:false }).populate('name')
     if (!result)
       return res.status(500).json({ error: true, message: 'No Record Found' });
     return res.status(200).send({ success: true, data: result });
@@ -72,7 +72,7 @@ exports.updateAccessoryItem = async (req, res, next) => {
       { _id: req.body.id },
       req.body,
       { new: true },
-    ).populate('name').populate('relatedCategory').populate('relatedBrand').populate('relatedSubCategory')
+    ).populate('name')
     return res.status(200).send({ success: true, data: result });
   } catch (error) {
     return res.status(500).send({ "error": true, "message": error.message })

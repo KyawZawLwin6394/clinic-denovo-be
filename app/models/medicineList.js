@@ -15,11 +15,6 @@ let MedicineListSchema = new Schema({
     type: String,
     required: true,
   },
-  relatedBrand: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Brands',
-    required:true,
-  },
   description: {
     type:String,
     required:true,
@@ -31,6 +26,18 @@ let MedicineListSchema = new Schema({
     type:Boolean,
     required:true,
     default:false
+  },
+  relatedCategory: {
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'Categories'
+  },
+  relatedBrand: {
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'Brands'
+  },
+  relatedSubCategory: {
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'SubCategories'
   }
 });
 

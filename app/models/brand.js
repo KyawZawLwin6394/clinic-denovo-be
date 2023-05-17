@@ -17,13 +17,11 @@ let BrandSchema = new Schema({
   },
   category: {
     type:mongoose.Schema.Types.ObjectId,
-    ref:'Categories',
-    required:true,
+    ref:'Categories'
   },
   subCategory: {
     type:mongoose.Schema.Types.ObjectId,
-    ref:'SubCategories',
-    required:true,
+    ref:'SubCategories'
   },
   description: {
     type:String,

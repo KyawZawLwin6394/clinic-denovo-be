@@ -15,7 +15,7 @@ exports.listAllMedicineLists = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await MedicineList.find(query).limit(limit).skip(skip).populate('relatedBrand');
+    let result = await MedicineList.find(query).limit(limit).skip(skip).populate('relatedCategory relatedBrand relatedSubCategory');
     console.log(result)
     count = await MedicineList.find(query).count();
     const division = count / limit;
@@ -39,7 +39,7 @@ exports.listAllMedicineLists = async (req, res) => {
 };
 
 exports.getMedicineList = async (req, res) => {
-  const result = await MedicineList.find({ _id: req.params.id,isDeleted:false }).populate('relatedBrand');
+  const result = await MedicineList.find({ _id: req.params.id,isDeleted:false }).populate('relatedCategory relatedBrand relatedSubCategory');
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
@@ -65,7 +65,7 @@ exports.updateMedicineList = async (req, res, next) => {
       { _id: req.body.id },
       req.body,
       { new: true },
-    ).populate('relatedBrand');
+    ).populate('relatedCategory relatedBrand relatedSubCategory');
     return res.status(200).send({ success: true, data: result });
   } catch (error) {
     return res.status(500).send({ "error": true, "message": error.message })
@@ -101,7 +101,7 @@ exports.activateMedicineList = async (req, res, next) => {
 
 exports.searchMedicineLists = async (req, res, next) => {
   try {
-    const result = await MedicineList.find({ $text: { $search: req.body.search } })
+    const result = await MedicineList.find({ $text: { $search: req.body.search } }).populate('relatedCategory relatedBrand relatedSubCategory');
     if (result.length===0) return res.status(404).send({error:true, message:'No Record Found!'})
     return res.status(200).send({ success: true, data: result })
   } catch (err) {

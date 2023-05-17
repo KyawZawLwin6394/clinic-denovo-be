@@ -1,6 +1,7 @@
 'use strict';
 const ProcedureHistory = require('../models/procedureHistory');
 const Attachment = require('../models/attachment');
+const procedureHistory = require('../models/procedureHistory');
 
 exports.listAllProcedureHistorys = async (req, res) => {
   let { keyword, role, limit, skip } = req.query;
@@ -54,9 +55,7 @@ exports.getRelatedProcedureHistory = async (req, res) => {
 exports.uploadImage = async (req, res) => {
   let data = req.body
   let files = req.files
-  if (files.phistory.length == 0) return res.status(500).send({ error: true, message: 'Undefined Image!' })
   try {
-    console.log(req.files.phistory)
     let imgPath = files.phistory[0].path.split('cherry-k')[1];
     const attachData = {
       fileName: files.phistory[0].originalname,
@@ -96,7 +95,7 @@ exports.createProcedureHistory = async (req, res, next) => {
         data.pHistory.push(attachResult._id.toString());
       }
     }
-    const result = await ProcedureHistory.create(data);
+    const result = await procedureHistory.create(data);
 
     res.status(200).send({
       message: 'ProcedureHistory create success',

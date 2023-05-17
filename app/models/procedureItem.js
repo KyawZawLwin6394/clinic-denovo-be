@@ -53,18 +53,6 @@ let procedureItemSchema = new Schema({
   },
   perUnitQuantity:{
     type:Number
-  },
-  relatedCategory: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Categories'
-  },
-  relatedBrand: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Brands'
-  },
-  relatedSubCategory: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'SubCategories'
   }
 });
 

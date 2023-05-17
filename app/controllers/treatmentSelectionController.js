@@ -148,13 +148,6 @@ exports.createTreatmentSelection = async (req, res, next) => {
             "relatedTransaction": fTransResult._id
         });
         data = { ...data, relatedTransaction: [fTransResult._id, secTransResult] } //adding relatedTransactions to treatmentSelection model
-        //prepare TS-ID
-        const latestDocument = await TreatmentSelection.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
-        if (latestDocument[0].seq === undefined) data = { ...data, seq: 1, patientID: "TS-1" } // if seq is undefined set initial patientID and seq
-        if (latestDocument[0].seq) {
-            const increment = latestDocument[0].seq + 1
-            data = { ...data, patientID: "TS-" + increment, seq: increment }
-        }
         const result = await TreatmentSelection.create(data)
         const populatedResult = await TreatmentSelection.find({ _id: result._id }).populate('relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentUnit').populate({
             path: 'relatedTreatment',
@@ -333,11 +326,11 @@ exports.getRelatedTreatmentSelections = async (req, res) => {
 
 exports.searchTreatmentSelections = async (req, res, next) => {
     try {
-      let {search, relatedPatient} = req.body
-      const result = await TreatmentSelection.find({ $text: { $search: search }, isDeleted:false, relatedPatient:relatedPatient })
-      if (result.length === 0) return res.status(404).send({ error: true, message: 'No Record Found!' })
-      return res.status(200).send({ success: true, data: result })
+        let { search, relatedPatient } = req.body
+        const result = await TreatmentSelection.find({ $text: { $search: search }, isDeleted: false, relatedPatient: relatedPatient })
+        if (result.length === 0) return res.status(404).send({ error: true, message: 'No Record Found!' })
+        return res.status(200).send({ success: true, data: result })
     } catch (err) {
-      return res.status(500).send({ error: true, message: err.message })
+        return res.status(500).send({ error: true, message: err.message })
     }
-  }
+}

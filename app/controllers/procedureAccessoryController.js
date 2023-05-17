@@ -15,7 +15,7 @@ exports.listAllProcedureAccessorys = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await ProcedureAccessory.find(query).limit(limit).skip(skip).populate('relatedAccounting relatedBrand');
+    let result = await ProcedureAccessory.find(query).limit(limit).skip(skip).populate('relatedCategory relatedBrand relatedSubCategory');
     count = await ProcedureAccessory.find(query).count();
     const division = count / limit;
     page = Math.ceil(division);
@@ -37,7 +37,7 @@ exports.listAllProcedureAccessorys = async (req, res) => {
 };
 
 exports.getProcedureAccessory = async (req, res) => {
-  const result = await ProcedureAccessory.find({ _id: req.params.id,isDeleted:false }).populate('relatedAccounting relatedBrand')
+  const result = await ProcedureAccessory.find({ _id: req.params.id,isDeleted:false }).populate('relatedCategory relatedBrand relatedSubCategory');
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
@@ -65,7 +65,7 @@ exports.updateProcedureAccessory = async (req, res, next) => {
       { _id: req.body.id },
       req.body,
       { new: true },
-    ).populate('relatedAccounting relatedBrand');
+    ).populate('relatedCategory relatedBrand relatedSubCategory');
     return res.status(200).send({ success: true, data: result });
   } catch (error) {
     return res.status(500).send({ "error": true, "message": error.message })
@@ -101,7 +101,7 @@ exports.activateProcedureAccessory = async (req, res, next) => {
 
 exports.searchProcedureAccessories = async (req, res, next) => {
   try {
-    const result = await ProcedureAccessory.find({ $text: { $search: req.body.search } }).populate('relatedAccounting relatedBrand')
+    const result = await ProcedureAccessory.find({ $text: { $search: req.body.search } }).populate('relatedCategory relatedBrand relatedSubCategory');
     if (result.length===0) return res.status(404).send({error:true, message:'No Record Found!'})
     return res.status(200).send({ success: true, data: result })
   } catch (err) {

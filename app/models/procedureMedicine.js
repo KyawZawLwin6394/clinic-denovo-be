@@ -14,10 +14,17 @@ let ProcedureMedicine = new Schema({
     type: String,
     required: true,
   },
+  relatedCategory: {
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'Categories'
+  },
   relatedBrand: {
     type:mongoose.Schema.Types.ObjectId,
-    ref:'Brands',
-    required:true,
+    ref:'Brands'
+  },
+  relatedSubCategory: {
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'SubCategories'
   },
   description: {
     type:String,

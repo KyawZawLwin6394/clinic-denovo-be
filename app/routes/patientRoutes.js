@@ -23,4 +23,6 @@ module.exports = (app) => {
 
     app.route('/api/patients-search')
         .post(catchError(patient.searchPatients))
+    
+    app.route('/api/patients/history-and-patient/:id').get(catchError(patient.getHistoryAndPhysicalExamination))
 };

@@ -1,6 +1,9 @@
 'use strict';
 const Patient = require('../models/patient');
 const Attachment = require('../models/attachment');
+const Physical = require('../models/physicalExamination');
+const History = require('../models/history')
+
 function formatDateAndTime(dateString) { // format mongodb ISO 8601 date format into two readable var {date, time}.
   const date = new Date(dateString);
   const year = date.getFullYear();
@@ -15,6 +18,17 @@ function formatDateAndTime(dateString) { // format mongodb ISO 8601 date format 
   return [formattedDate, formattedTime];
 }
 
+exports.getHistoryAndPhysicalExamination = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const PhysicalResult = await Physical.find({ relatedPatient: id, isDeleted: false }).populate('relatedPatient');
+    const result = await History.find({ relatedPatient: req.params.id,isDeleted:false }).populate('relatedPatient')
+    return res.status(200).send({ success: true, PhysicalResult: PhysicalResult, HistoryResult: result })
+  } catch (error) {
+    return res.status(500).send({ error: true, message: error.message })
+  }
+}
+
 exports.listAllPatients = async (req, res) => {
   let { keyword, role, limit, skip } = req.query;
   let count = 0;
@@ -22,7 +36,7 @@ exports.listAllPatients = async (req, res) => {
   try {
     limit = +limit <= 100 ? +limit : 10; //limit
     skip = +skip || 0;
-    let query = {isDeleted:false},
+    let query = { isDeleted: false },
       regexKeyword;
     role ? (query['role'] = role.toUpperCase()) : '';
     keyword && /\w/.test(keyword)
@@ -52,10 +66,21 @@ exports.listAllPatients = async (req, res) => {
 };
 
 exports.getPatient = async (req, res) => {
-  const result = await Patient.find({ _id: req.params.id, isDeleted:false }).populate('img');
+  const result = await Patient.find({ _id: req.params.id, isDeleted: false }).populate('img').populate({
+    path: 'relatedTreatmentSelection',
+    model: 'TreatmentSelections',
+    populate: {
+      path: 'relatedAppointments',
+      model: 'Appointments',
+      populate: {
+        path: 'relatedDoctor',
+        model: 'Doctors'
+      }
+    }
+  });
   if (!result)
     return res.status(500).json({ error: true, message: 'Query Failed!' });
-  if (result.length === 0) return res.status(404).send({error:true, message: 'No Record Found!'})
+  if (result.length === 0) return res.status(404).send({ error: true, message: 'No Record Found!' })
   return res.status(200).send({ success: true, data: result[0] });
 };
 
@@ -64,15 +89,15 @@ exports.createPatient = async (req, res, next) => {
   let files = req.files;
   try {
     //prepare CUS-ID
-    const latestDocument =await Patient.find({},{seq:1}).sort({_id: -1}).limit(1).exec();
+    const latestDocument = await Patient.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
     console.log(latestDocument)
-    if (latestDocument.length === 0) data= {...data, seq:'1', patientID:"CUS-1"} // if seq is undefined set initial patientID and seq
+    if (latestDocument.length === 0) data = { ...data, seq: '1', patientID: "CUS-1" } // if seq is undefined set initial patientID and seq
     console.log(data)
     if (latestDocument.length) {
-      const increment = latestDocument[0].seq+1
-      data = {...data, patientID:"CUS-"+increment, seq:increment}
+      const increment = latestDocument[0].seq + 1
+      data = { ...data, patientID: "CUS-" + increment, seq: increment }
     }
-    console.log(files.img,'files.img')
+    console.log(files.img, 'files.img')
     if (files.img) {
       let imgPath = files.img[0].path.split('cherry-k')[1];
       const attachData = {
@@ -82,11 +107,11 @@ exports.createPatient = async (req, res, next) => {
       };
       const newAttachment = new Attachment(attachData);
       const attachResult = await newAttachment.save();
-      data = { ...data, img: attachResult._id.toString()};
+      data = { ...data, img: attachResult._id.toString() };
     } //prepare img and save it into attachment schema
 
     const newPatient = new Patient(data);
-    const result = await newPatient.save(); 
+    const result = await newPatient.save();
     res.status(200).send({
       message: 'Patient create success',
       success: true,
@@ -100,10 +125,10 @@ exports.createPatient = async (req, res, next) => {
 
 exports.updatePatient = async (req, res, next) => {
   let data = req.body;
-  let files = req.files;  
+  let files = req.files;
   try {
     if (files.img) {
-      console.log(files.img,'files.img')
+      console.log(files.img, 'files.img')
       let imgPath = files.img[0].path.split('cherry-k')[1];
       const attachData = {
         fileName: files.img[0].originalname,
@@ -112,12 +137,12 @@ exports.updatePatient = async (req, res, next) => {
       };
       const newAttachment = new Attachment(attachData);
       const attachResult = await newAttachment.save();
-      data = { ...data, img: attachResult._id.toString()};
+      data = { ...data, img: attachResult._id.toString() };
     } //prepare img and save it into attachment schema
 
     const result = await Patient.findOneAndUpdate(
       { _id: req.body.id },
-      {$set: data},
+      { $set: data },
       { new: true },
     ).populate('img');
     return res.status(200).send({ success: true, data: result });
@@ -173,7 +198,7 @@ exports.filterPatients = async (req, res, next) => {
 exports.searchPatients = async (req, res, next) => {
   try {
     const result = await Patient.find({ $text: { $search: req.body.search } })
-    if (result.length===0) return res.status(404).send({error:true, message:'No Record Found!'})
+    if (result.length === 0) return res.status(404).send({ error: true, message: 'No Record Found!' })
     return res.status(200).send({ success: true, data: result })
   } catch (err) {
     return res.status(500).send({ error: true, message: err.message })

@@ -15,7 +15,7 @@ exports.listAllAccountHeaders = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await AccountHeader.find(query).limit(limit).skip(skip).populate('relatedAccounting').populate('relatedAccountType');
+    let result = await AccountHeader.find(query).limit(limit).skip(skip).populate('relatedAccountType')
     count = await AccountHeader.find(query).count();
     const division = count / limit;
     page = Math.ceil(division);
