@@ -31,7 +31,6 @@ let MedicineSaleSchema = new Schema({
   },
   totalAmount: {
     type:Number,
-    required:true,
   },
   discount: {
     type: Number
@@ -48,7 +47,6 @@ let MedicineSaleSchema = new Schema({
   paymentMethod: {
     type:String,
     enum:["Cash Down","Bank Transition"],
-    required:true
   },
   relatedBank: {
     type:mongoose.Schema.Types.ObjectId,

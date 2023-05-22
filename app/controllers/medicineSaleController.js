@@ -17,7 +17,7 @@ exports.listAllMedicineSales = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await MedicineSale.find(query).limit(limit).skip(skip).populate('relatedPatient').populate('relatedAppointment').populate('medicineItems.item_id').populate('relatedTreatment').populate('createdBy').populate({
+    let result = await MedicineSale.find(query).populate('relatedPatient').populate('relatedAppointment').populate('medicineItems.item_id').populate('relatedTreatment').populate('createdBy').populate({
       path: 'relatedTransaction',
       populate: [{
         path: 'relatedAccounting',
@@ -74,7 +74,7 @@ exports.createMedicineSale = async (req, res, next) => {
       "amount": data.payAmount,
       "date": Date.now(),
       "remark": req.body.remark,
-      "relatedAccounting": "6423eb395fb841d5566db36d",
+      "relatedAccounting": "646739c059a9bc811d97fa8b", //Sales (Medicines)
       "type": "Credit"
     })
     const fTransResult = await fTransaction.save()

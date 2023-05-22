@@ -15,7 +15,7 @@ exports.listAllSubHeaders = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await SubHeader.find(query).limit(limit).skip(skip).populate('relatedAccounting');
+    let result = await SubHeader.find(query).populate('relatedAccounting');
     console.log(result)
     count = await SubHeader.find(query).count();
     const division = count / limit;

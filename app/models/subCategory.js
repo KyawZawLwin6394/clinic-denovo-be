@@ -9,20 +9,16 @@ const validator = require('validator');
 let SubCategorySchema = new Schema({
   code: {
     type: String,
-    required: true
   },
   name: {
     type: String,
-    required: true,
   },
   description: {
     type:String,
-    required:true
   },
   relatedCategory: {
     type:mongoose.Schema.Types.ObjectId,
     ref:'Categories',
-    required:true,
   },
   createdAt: {
     type: Date,

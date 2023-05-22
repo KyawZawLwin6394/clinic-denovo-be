@@ -17,7 +17,7 @@ exports.listAllVouchers = async (req, res) => {
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await Voucher.find(query).limit(limit).skip(skip);
+        let result = await Voucher.find(query);
         console.log(result)
         count = await Voucher.find(query).count();
         const division = count / limit;

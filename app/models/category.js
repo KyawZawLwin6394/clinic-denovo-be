@@ -8,16 +8,13 @@ const validator = require('validator');
 
 let CategorySchema = new Schema({
   code: {
-    type: String,
-    required: true
+    type: String
   },
   name: {
-    type: String,
-    required: true,
+    type: String
   },
   description: {
     type:String,
-    required:true
   },
   createdAt: {
     type: Date,

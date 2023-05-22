@@ -9,11 +9,9 @@ let TreatmentHistorySchema = new Schema({
   relatedAppointment: {
     type: mongoose.Schema.Types.ObjectId,
     ref:'Appointments',
-    required: true
   },
   diagnosis: {
     type: String,
-    required: true,
   },
   doctorRemark: {
     type:String

@@ -16,7 +16,7 @@ exports.listAllSellEnds = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await SellEnd.find(query).limit(limit).skip(skip)
+    let result = await SellEnd.find(query)
     console.log(result)
     count = await SellEnd.find(query).count();
     const division = count / limit;

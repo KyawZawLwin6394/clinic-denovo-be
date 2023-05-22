@@ -1,5 +1,6 @@
 'use strict';
 const TreatmentList = require('../models/treatmentList');
+const Treatment = require('../models/treatment');
 
 exports.listAllTreatmentLists = async (req, res) => {
   let { keyword, role, limit, skip } = req.query;
@@ -8,14 +9,14 @@ exports.listAllTreatmentLists = async (req, res) => {
   try {
     limit = +limit <= 100 ? +limit : 10; //limit
     skip = +skip || 0;
-    let query = {isDeleted:false},
+    let query = { isDeleted: false },
       regexKeyword;
     role ? (query['role'] = role.toUpperCase()) : '';
     keyword && /\w/.test(keyword)
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await TreatmentList.find(query).limit(limit).skip(skip);
+    let result = await TreatmentList.find(query)
     console.log(result)
     count = await TreatmentList.find(query).count();
     const division = count / limit;
@@ -39,11 +40,19 @@ exports.listAllTreatmentLists = async (req, res) => {
 };
 
 exports.getTreatmentList = async (req, res) => {
-  const result = await TreatmentList.find({ _id: req.params.id,isDeleted:false });
+  const result = await TreatmentList.find({ _id: req.params.id, isDeleted: false })
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
 };
+
+exports.getRelatedTreatments = async (req, res) => {
+  // .populate('treatmentName relatedDoctor relatedTherapist procedureMedicine.item_id medicineLists.item_id procedureAccessory.item_id machine.item_id relatedPatient relatedAppointment')
+  console.log(req.params.id)  
+  const result = await Treatment.find({ treatmentName: req.params.id })
+  if (result.length === 0) return res.status(404).send({ error: true, message: "No Record Found" });
+  return res.status(200).send({ success: true, data: result });
+}
 
 exports.createTreatmentList = async (req, res, next) => {
   try {
@@ -102,10 +111,10 @@ exports.activateTreatmentList = async (req, res, next) => {
 exports.filterTreatmentLists = async (req, res, next) => {
   try {
     let query = {}
-    const { name,code } = req.query
+    const { name, code } = req.query
     if (name) query.name = name
     if (code) query.code = code
-    if (Object.keys(query).length === 0) return res.status(404).send({error:true, message: 'Please Specify A Query To Use This Function'})
+    if (Object.keys(query).length === 0) return res.status(404).send({ error: true, message: 'Please Specify A Query To Use This Function' })
     const result = await TreatmentList.find(query)
     if (result.length === 0) return res.status(404).send({ error: true, message: "No Record Found!" })
     res.status(200).send({ success: true, data: result })
@@ -118,7 +127,7 @@ exports.searchTreatmentLists = async (req, res, next) => {
   try {
     console.log(req.body.search)
     const result = await TreatmentList.find({ $text: { $search: req.query.search } })
-    if (result.length===0) return res.status(404).send({error:true, message:'No Record Found!'})
+    if (result.length === 0) return res.status(404).send({ error: true, message: 'No Record Found!' })
     return res.status(200).send({ success: true, data: result })
   } catch (err) {
     return res.status(500).send({ error: true, message: err.message })

@@ -8,11 +8,9 @@ const Schema = mongoose.Schema;
 let SubHeaderSchema = new Schema({
     code: {
         type: String,
-        required: true
     },
     name: {
         type: String,
-        required: true,
     },
     createdAt: {
         type: Date,

@@ -47,7 +47,7 @@ exports.getAccountingList = async (req, res) => {
 exports.createAccountingList = async (req, res, next) => {
     try {
         const newBody = req.body;
-        const newAccountingList = new AccountingList(newBody);
+        const newAccountingList = await new AccountingList(newBody).populate('relatedType relatedHeader');
         const result = await newAccountingList.save();
         res.status(200).send({
             message: 'AccountingList create success',
@@ -66,7 +66,7 @@ exports.updateAccountingList = async (req, res, next) => {
             { _id: req.body.id },
             req.body,
             { new: true },
-        ).populate('relatedPatient').populate('procedureMedicine.item_id').populate('relatedType relatedHeader relatedTreatment relatedBank')
+        ).populate('relatedType relatedHeader relatedTreatment relatedBank')
         return res.status(200).send({ success: true, data: result });
     } catch (error) {
         return res.status(500).send({ "error": true, "message": error.message })

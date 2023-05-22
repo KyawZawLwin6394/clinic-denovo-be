@@ -15,7 +15,7 @@ exports.listAllCurrencys = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await Currency.find(query).limit(limit).skip(skip);
+    let result = await Currency.find(query);
     console.log(result)
     count = await Currency.find(query).count();
     const division = count / limit;

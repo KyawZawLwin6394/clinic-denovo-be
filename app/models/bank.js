@@ -7,31 +7,25 @@ const Schema = mongoose.Schema;
 
 let BankSchema = new Schema({
   bankName: {
-    type: String,
-    required: true
+    type: String
   },
   accountNumber: {
-    type: Number,
-    required: true,
+    type: String
   },
   accountHolderName: {
-    type:String,
-    required:true
+    type:String
   },
   bankContact: {
-    type: String,
-    required:true,
+    type: String
   },
   openingDate: {
-    type: Date,
-    required:true,
+    type: Date
   },
   balance: {
     type: Number,
   },
   bankAddress: {
-    type: String,
-    required:true,
+    type: String
   },
   isDeleted: {
     type:Boolean,

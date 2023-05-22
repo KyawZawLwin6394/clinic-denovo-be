@@ -17,7 +17,7 @@ exports.listAllTreatmentHistorys = async (req, res) => {
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
     console.log(limit)
-    let result = await TreatmentHistory.find(query).limit(limit).skip(skip).populate('attachments').populate('relatedAppointment');
+    let result = await TreatmentHistory.find(query).populate('attachments').populate('relatedAppointment');
     count = await TreatmentHistory.find(query).count();
     const division = count / limit;
     page = Math.ceil(division);

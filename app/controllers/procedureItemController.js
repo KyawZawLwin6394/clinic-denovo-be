@@ -15,7 +15,7 @@ exports.listAllProcedureItems = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await ProcedureItem.find(query).limit(limit).skip(skip).populate('name')
+    let result = await ProcedureItem.find(query).populate('name')
     const division = count / limit;
     page = Math.ceil(division);
 

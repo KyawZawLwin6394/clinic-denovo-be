@@ -15,7 +15,7 @@ exports.listAllProcedureAccessorys = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await ProcedureAccessory.find(query).limit(limit).skip(skip).populate('relatedCategory relatedBrand relatedSubCategory');
+    let result = await ProcedureAccessory.find(query).populate('relatedCategory relatedBrand relatedSubCategory');
     count = await ProcedureAccessory.find(query).count();
     const division = count / limit;
     page = Math.ceil(division);

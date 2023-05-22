@@ -15,7 +15,7 @@ exports.listAllFixedAssets = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await FixedAsset.find(query).limit(limit).skip(skip).populate('relatedAccounting');
+    let result = await FixedAsset.find(query).populate('relatedAccount');
     console.log(result)
     count = await FixedAsset.find(query).count();
     const division = count / limit;
@@ -38,7 +38,7 @@ exports.listAllFixedAssets = async (req, res) => {
 };
 
 exports.getFixedAsset = async (req, res) => {
-  const result = await FixedAsset.find({ _id: req.params.id,isDeleted:false }).populate('relatedAccounting')
+  const result = await FixedAsset.find({ _id: req.params.id,isDeleted:false }).populate('relatedAccount')
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
@@ -66,7 +66,7 @@ exports.updateFixedAsset = async (req, res, next) => {
       { _id: req.body.id },
       req.body,
       { new: true },
-    ).populate('relatedAccounting');
+    ).populate('relatedAccount');
     return res.status(200).send({ success: true, data: result });
   } catch (error) {
     return res.status(500).send({ "error": true, "message": error.message })

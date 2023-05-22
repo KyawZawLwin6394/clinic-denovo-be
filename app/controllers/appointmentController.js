@@ -33,9 +33,9 @@ exports.listAllAppointments = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await Appointment.find(query).limit(limit).skip(skip).populate('relatedPatient').populate('relatedDoctor').populate('relatedTherapist').populate('relatedTreatmentSelection').populate('relatedTreatmentSelection.relatedAppointments');
+    let result = await Appointment.find(query).populate('relatedPatient').populate('relatedDoctor').populate('relatedTherapist').populate('relatedTreatmentSelection').populate('relatedTreatmentSelection.relatedAppointments');
     console.log(result)
-    count = await Appointment.find(query).limit(limit).skip(skip).count();
+    count = await Appointment.find(query).count();
     const division = count / limit;
     page = Math.ceil(division);
 
@@ -178,7 +178,7 @@ exports.filterAppointments = async (req, res, next) => {
     let query = {isDeleted:false}
     const { start, end, token, phone } = req.query
     console.log(start, end)
-    if (start && end) query.createdAt = { $gte: start, $lte: end }
+    if (start && end) query.originalDate = { $gte: start, $lte: end }
     if (token) query.token = token
     if (phone) query.phone = phone
     if (Object.keys(query).length === 0) return res.status(404).send({ error: true, message: 'Please Specify A Query To Use This Function' })

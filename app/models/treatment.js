@@ -64,7 +64,8 @@ let TreatmentSchema = new Schema({
         ref:'FixedAssets'
     },
     quantity:Number,
-    perUsageQTY:Number
+    perUsageQTY:Number,
+    unit:String
   }],
   estimateTotalPrice:{
     type: Number,
@@ -96,6 +97,10 @@ let TreatmentSchema = new Schema({
   },
   status: {
     type:Boolean,
+  },
+  relatedAccount:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'AccountingLists'
   }
 });
 

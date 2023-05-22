@@ -22,4 +22,6 @@ module.exports = (app) => {
 
     app.route('/api/treatment-lists-search')
         .post(catchError(treatmentList.searchTreatmentLists))
+        
+    app.route('/api/treatment-lists/treatment/:id').get(catchError(treatmentList.getRelatedTreatments))
 };

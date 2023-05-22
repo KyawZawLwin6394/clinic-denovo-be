@@ -14,15 +14,14 @@ let DeferSchema = new Schema({
   },
   leftOverAmount: {
     type:Number,
-    required:true
+
   },
   deferredAmount: {
-    type:Number,
-    required:true
+    type:Number
   },
   deferredDate: {
     type:Date,
-    required:true
+
   },
   remark: {
     type:String

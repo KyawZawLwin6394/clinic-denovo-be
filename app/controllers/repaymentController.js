@@ -17,7 +17,7 @@ exports.listAllRepayments = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await Repayment.find(query).limit(limit).skip(skip).populate('relatedPateintTreatment');
+    let result = await Repayment.find(query).populate('relatedPateintTreatment');
     console.log(result)
     count = await Repayment.find(query).count();
     const division = count / limit;

@@ -16,7 +16,7 @@ exports.listAllDefers = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await Defer.find(query).limit(limit).skip(skip).populate('relatedMedicineSale')
+    let result = await Defer.find(query).populate('relatedMedicineSale')
     console.log(result)
     count = await Defer.find(query).count();
     const division = count / limit;

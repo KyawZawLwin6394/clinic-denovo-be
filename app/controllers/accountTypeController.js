@@ -15,7 +15,7 @@ exports.listAllAccountTypes = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await AccountType.find(query).limit(limit).skip(skip)
+    let result = await AccountType.find(query)
     console.log(result)
     count = await AccountType.find(query).count();
     const division = count / limit;

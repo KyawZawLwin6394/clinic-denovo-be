@@ -9,16 +9,13 @@ const validator = require('validator');
 let SupplierSchema = new Schema({
   name: {
     type: String,
-    required: true
   },
   phone:{
     type: String,
     unique: true,
-    required: [true, 'Phone Number Required!'],
   },
   address: {
     type:String,
-    required:true
   },
   creditAmount: {
     type: Number,

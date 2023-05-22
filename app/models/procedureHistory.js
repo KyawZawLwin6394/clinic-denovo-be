@@ -25,16 +25,16 @@ let ProcedureHistorySchema = new Schema({
         SIG: String,
         subSIG: String
     }],
-    treatmentPackages: [{
-        item_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Treatments'
-        },
-        qty: Number,
-        price: Number,
-        totalPrice: Number,
-        SIG: String
-    }],
+    // treatmentPackages: [{
+    //     item_id: {
+    //         type: mongoose.Schema.Types.ObjectId,
+    //         ref: 'Treatments'
+    //     },
+    //     qty: Number,
+    //     price: Number,
+    //     totalPrice: Number,
+    //     SIG: String
+    // }],
     customTreatmentPackages: {
         item_id:{
             type:mongoose.Schema.Types.ObjectId,

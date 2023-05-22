@@ -8,11 +8,9 @@ const Schema = mongoose.Schema;
 let TreatmentUnitSchema = new Schema({
   code: {
     type: String,
-    required: true
   },
   name: {
     type:String,
-    required:true,
   },
   procedureMedicine: {
     type:[mongoose.Schema.Types.ObjectId],
@@ -26,7 +24,6 @@ let TreatmentUnitSchema = new Schema({
   },
   sellingPrice: {
     type:Number,
-    required:true,
   },
   description: {
     type:String,

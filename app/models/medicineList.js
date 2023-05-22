@@ -9,15 +9,12 @@ const validator = require('validator');
 let MedicineListSchema = new Schema({
   code: {
     type: String,
-    required: true
   },
   name: {
     type: String,
-    required: true,
   },
   description: {
     type:String,
-    required:true,
   },
   updatedAt: {
     type: Date

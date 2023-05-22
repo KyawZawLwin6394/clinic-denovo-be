@@ -16,7 +16,7 @@ exports.listAllSuppliers = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await Supplier.find(query).limit(limit).skip(skip)
+    let result = await Supplier.find(query)
     console.log(result)
     count = await Supplier.find(query).count();
     const division = count / limit;

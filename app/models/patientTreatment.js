@@ -18,11 +18,9 @@ let PatientTreatmentSchema = new Schema({
   },
   leftOverAmount: {
     type:Number,
-    required:true
   },
   paidAmount: {
     type: Number,
-    required:true,
   },
   relatedTreatmentSelection: {
     type:mongoose.Schema.Types.ObjectId,
@@ -31,7 +29,6 @@ let PatientTreatmentSchema = new Schema({
   },
   fullyPaid: {
     type: Boolean,
-    required:true
   },
   finishedAppointments: {
     type:[mongoose.Schema.Types.ObjectId],

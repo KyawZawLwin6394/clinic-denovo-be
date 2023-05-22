@@ -28,8 +28,7 @@ let AccountingListSchema = new Schema({
         ref:'Treatments',
     },
     amount: {
-        type: Number,
-        required: true,
+        type: Number
     },
     openingBalance: {
         type: Number

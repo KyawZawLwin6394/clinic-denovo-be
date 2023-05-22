@@ -16,7 +16,7 @@ exports.listAllSystemSettings = async (req, res) => {
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
     console.log(query)
-    let result = await SystemSetting.find(query).limit(limit).skip(skip);
+    let result = await SystemSetting.find(query);
     console.log(result)
     count = await SystemSetting.find(query).count();
     const division = count / limit;

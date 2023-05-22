@@ -12,11 +12,9 @@ let TransactionSchema = new Schema({
   },
   amount: {
     type: String,
-    required: true,
   },
   date: {
     type:Date,
-    required:true
   },
   remark: {
     type: String

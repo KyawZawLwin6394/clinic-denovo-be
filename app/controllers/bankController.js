@@ -16,7 +16,7 @@ exports.listAllBanks = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await Bank.find(query).limit(limit).skip(skip).populate('relatedAccounting');
+    let result = await Bank.find(query).populate('relatedAccounting');
     count = await Bank.find(query).count();
     const division = count / limit;
     page = Math.ceil(division);

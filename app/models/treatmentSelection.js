@@ -11,7 +11,7 @@ let TreatmentSelectionSchema = new Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['Credit','Cash Down','Bank']
+    enum: ['Credit','Cash Down']
   },
   paidAmount: {
     type: Number,
@@ -21,7 +21,6 @@ let TreatmentSelectionSchema = new Schema({
   },
   totalAmount: {
     type: Number,
-    required: true,
   },
   createdAt: {
     type: Date,
@@ -37,18 +36,15 @@ let TreatmentSelectionSchema = new Schema({
   },
   relatedTreatment: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
     ref: 'Treatments'
   },
-  relatedTreatmentUnit:{
+  relatedTreatmentList:{
     type:mongoose.Schema.Types.ObjectId,
-    required:true,
-    ref:'TreatmentUnits'
+    ref:'TreatmentLists'
   },
   relatedAppointments: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'Appointments',
-    required: true
   },
   selectionStatus: {
     type: String,
@@ -56,7 +52,6 @@ let TreatmentSelectionSchema = new Schema({
   },
   relatedPatient: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
     ref: 'Patients'
   },
   finishedAppointments: {
@@ -77,7 +72,6 @@ let TreatmentSelectionSchema = new Schema({
   bodyParts: {
     type: String,
     enum: ['Face', 'Body', 'Body Injection'],
-    required: true,
   },
   treatmentTimes: {
     type:Number

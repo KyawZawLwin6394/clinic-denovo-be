@@ -15,7 +15,7 @@ exports.listAllCashes = async (req, res) => {
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await Cash.find(query).limit(limit).skip(skip).populate('relatedAccounting');
+        let result = await Cash.find(query).populate('relatedAccounting');
         console.log(result)
         count = await Cash.find(query).count();
         const division = count / limit;

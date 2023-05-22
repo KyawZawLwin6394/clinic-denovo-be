@@ -22,7 +22,7 @@ exports.listAllTreatmentSelections = async (req, res) => {
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await TreatmentSelection.find(query).limit(limit).skip(skip).populate('relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentUnit').populate({
+        let result = await TreatmentSelection.find(query).populate('relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentUnit').populate({
             path: 'relatedTreatment',
             model: 'Treatments',
             populate: {
@@ -52,12 +52,22 @@ exports.listAllTreatmentSelections = async (req, res) => {
 exports.getTreatmentSelection = async (req, res) => {
     const result = await TreatmentSelection.find({ _id: req.params.id, isDeleted: false }).populate('relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentUnit').populate({
         path: 'relatedTreatment',
-        model: 'Treatments',
-        populate: {
+        populate: [{
             path: 'relatedDoctor',
             model: 'Doctors'
-        }
-    })
+        }, {
+            path: 'procedureMedicine.item_id',
+            model: 'ProcedureItems'
+        },
+        {
+            path: 'procedureAccessory.item_id',
+            model: 'AccessoryItems'
+        },
+        {
+            path: 'machine.item_id',
+            model: 'FixedAssets'
+        }]
+    });
     if (!result)
         return res.status(500).json({ error: true, message: 'No Record Found' });
     return res.status(200).send({ success: true, data: result });
@@ -88,8 +98,8 @@ exports.createTreatmentSelectionCode = async (req, res) => {
             data = { ...data, code: "TS-" + increment, seq: increment }
         }
         return res.status(200).send({
-            success:true,
-            data:data
+            success: true,
+            data: data
         })
     } catch (error) {
         return res.status(500).send({ error: true, message: error.message })
@@ -134,7 +144,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
             "amount": req.body.paidAmount,
             "date": Date.now(),
             "remark": null,
-            "relatedAccounting": "6458a7ede6bbaf516d2f0da7", //Treatment Sale Revenue
+            "relatedAccounting": "6467379159a9bc811d97f4d2", //Advance received from customer
             "type": "Credit"
         })
         //sec transaction
@@ -212,7 +222,7 @@ exports.updateTreatmentSelection = async (req, res, next) => {
 exports.treatmentPayment = async (req, res, next) => {
     let data = req.body;
     try {
-        let { paidAmount } = data;
+        let { paidAmount, paymentMethod } = data;
         const treatmentSelectionQuery = await TreatmentSelection.find({ _id: req.body.id, isDeleted: false }).populate('relatedTreatment').populate('relatedAppointments');
         if (treatmentSelectionQuery[0].leftOverAmount <= 0) return res.status(500).send({ error: true, message: 'Fully Paid!' })
         const result = await TreatmentSelection.findOneAndUpdate(
@@ -220,21 +230,69 @@ exports.treatmentPayment = async (req, res, next) => {
             { $inc: { leftOverAmount: -paidAmount }, paidAmount: paidAmount },
             { new: true },
         ).populate('relatedTreatment');
-        const treatmentVoucherResult = await TreatmentVoucher.create(
-            {
-                "relatedTreatment": req.body.relatedTreatment,
-                "relatedAppointment": req.body.relatedAppointment,
-                "relatedPatient": req.body.relatedPatient,
-                "paymentMethod": req.body.paymentMethod, //enum: ['by Appointment','Lapsum','Total','Advanced']
-                "amount": paidAmount,
-                "relatedBank": req.body.relatedBank, //must be bank acc from accounting accs
-                "paymentType": req.body.paymentType, //enum: ['Bank','Cash']
-                "relatedCash": req.body.relatedCash //must be cash acc from accounting accs
-            }
-        )
+        if (result.paymentMethod === 'Credit') { //
+            const treatmentVoucherResult = await TreatmentVoucher.create(
+                {
+                    "relatedTreatment": req.body.relatedTreatment,
+                    "relatedAppointment": req.body.relatedAppointment,
+                    "relatedPatient": req.body.relatedPatient,
+                    "paymentMethod": req.body.paymentMethod, //enum: ['by Appointment','Lapsum','Total','Advanced']
+                    "amount": paidAmount,
+                    "relatedBank": req.body.relatedBank, //must be bank acc from accounting accs
+                    "paymentType": req.body.paymentType, //enum: ['Bank','Cash']
+                    "relatedCash": req.body.relatedCash //must be cash acc from accounting accs
+                }
+            )
+            //transaction
+            const fTransResult = await Transaction.create({
+                "amount": req.body.paidAmount,
+                "date": Date.now(),
+                "remark": null,
+                "relatedAccounting": result.relatedTreatment.relatedAccount, 
+                "type": "Credit"
+            })
+            //sec transaction
+            const secTransResult = await Transaction.create({
+                "amount": req.body.paidAmount,
+                "date": Date.now(),
+                "remark": null,
+                "relatedBank": req.body.relatedBank,
+                "relatedCash": req.body.relatedCash,
+                "type": "Debit",
+                "relatedTransaction": fTransResult._id
+            });
+        } else if (result.paymentMethod === 'Cash Down') { //byAppointment
+            const treatmentVoucherResult = await TreatmentVoucher.create(
+                {
+                    "relatedTreatment": req.body.relatedTreatment,
+                    "relatedAppointment": req.body.relatedAppointment,
+                    "relatedPatient": req.body.relatedPatient,
+                    "paymentMethod": 'by Appointment', //enum: ['by Appointment','Lapsum','Total','Advanced']
+                    "amount": paidAmount,
+                }
+            )
+            //transaction
+            const fTransResult = await Transaction.create({
+                "amount": req.body.paidAmount,
+                "date": Date.now(),
+                "remark": null,
+                "relatedAccounting": result.relatedTreatment.relatedAccount, 
+                "type": "Debit"
+            })
+            //sec transaction
+            const secTransResult = await Transaction.create({
+                "amount": req.body.paidAmount,
+                "date": Date.now(),
+                "remark": null,
+                "relatedBank": req.body.relatedBank,
+                "relatedCash": req.body.relatedCash,
+                "type": "Credit",
+                "relatedTransaction": fTransResult._id
+            })
+        }
+
         return res.status(200).send({
-            success: true, data: result,
-            treatmentVoucherResult: treatmentVoucherResult
+            success: true, data: result
         });
     } catch (error) {
         return res.status(500).send({ "error": true, "message": error.message })

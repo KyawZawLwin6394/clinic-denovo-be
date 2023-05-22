@@ -16,7 +16,7 @@ exports.listAllExpenses = async (req, res) => {
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await Expense.find(query).limit(limit).skip(skip).populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
+        let result = await Expense.find(query).populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
         console.log(result)
         count = await Expense.find(query).count();
         const division = count / limit;

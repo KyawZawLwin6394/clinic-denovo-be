@@ -13,23 +13,18 @@ let IncomeSchema = new Schema({
     },
     date: {
         type: Date,
-        required: true,
     },
     remark: {
         type: String,
-        required: true
     },
     initialAmount: {
         type: Number,
-        required: true,
     },
     initialCurrency: {
         type: String,
-        required: true,
     },
     finalAmount: {
         type: Number,
-        required: true,
     },
     finalCurrency: {
         type: String

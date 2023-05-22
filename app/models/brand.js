@@ -8,12 +8,10 @@ const validator = require('validator');
 
 let BrandSchema = new Schema({
   code: {
-    type: String,
-    required: true
+    type: String
   },
   name: {
-    type: String,
-    required: true,
+    type: String
   },
   category: {
     type:mongoose.Schema.Types.ObjectId,
@@ -24,8 +22,7 @@ let BrandSchema = new Schema({
     ref:'SubCategories'
   },
   description: {
-    type:String,
-    required:true,
+    type:String
   },
   createdAt: {
     type: Date,

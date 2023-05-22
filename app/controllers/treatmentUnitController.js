@@ -15,7 +15,7 @@ exports.listAllTreatmentUnits = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await TreatmentUnit.find(query).limit(limit).skip(skip).populate('procedureMedicine');
+    let result = await TreatmentUnit.find(query).populate('procedureMedicine');
     count = await TreatmentUnit.find(query).count();
     const division = count / limit;
     page = Math.ceil(division);

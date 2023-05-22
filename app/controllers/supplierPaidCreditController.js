@@ -15,7 +15,7 @@ exports.listAllSupplierPaidCredits = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await SupplierPaidCredit.find(query).limit(limit).skip(skip).populate('relatedAccounting');
+    let result = await SupplierPaidCredit.find(query).populate('relatedAccounting');
     console.log(result)
     count = await SupplierPaidCredit.find(query).count();
     const division = count / limit;

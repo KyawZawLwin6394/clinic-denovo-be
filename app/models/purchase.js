@@ -8,16 +8,13 @@ const Schema = mongoose.Schema;
 let PurchaseSchema = new Schema({
     purchaseDate: {
         type: Date,
-        required: true
     },
     supplierName: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Suppliers',
-        required: true,
     },
     remark: {
         type: String,
-        required: true
     },
     medicineItems: [{
         item_id: {
@@ -48,11 +45,9 @@ let PurchaseSchema = new Schema({
     }],
     totalQTY: {
         type: Number,
-        required: true,
     },
     totalPrice: {
         type: Number,
-        required:true
     },
     isDeleted: {
         type: Boolean,

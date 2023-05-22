@@ -17,12 +17,10 @@ let CashSchema = new Schema({
     required: true
   },
   name: {
-    type: String,
-    required: true,
+    type: String
   },
   amount: {
-    type:Number,
-    required:true
+    type:Number
   },
   isDeleted: {
     type:Boolean,
