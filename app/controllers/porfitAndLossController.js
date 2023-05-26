@@ -61,9 +61,86 @@ exports.getWeek = async (req, res) => {
         let query = { isDeleted: false }
         if (weekName) query.createdAt = { $gte: startDate, $lte: endDate }
 
-        const meidicineSaleWeek = await MedicineSale.find(query);
-        const treatmentVoucherWeek = await TreatmentVoucher.find(query);
-        const expenseWeek = await Expense.find({date:{ $gte: startDate, $lte: endDate }, isDeleted:false});
+        const meidicineSaleWeek = await MedicineSale.find(query).populate('relatedPatient relatedAppointment medicineItems.item_id relatedTreatment').populate({
+            path: 'relatedTransaction',
+            populate: [{
+              path: 'relatedAccounting',
+              model: 'AccountingLists'
+            }, {
+              path: 'relatedBank',
+              model: 'AccountingLists'
+            }, {
+              path: 'relatedCash',
+              model: 'AccountingLists'
+            }]
+          });
+        const treatmentVoucherWeek = await TreatmentVoucher.find(query).populate('relatedTreatment relatedAppointment relatedPatient')
+        const expenseWeek = await Expense.find({date:{ $gte: startDate, $lte: endDate }, isDeleted:false}).populate('relatedAccounting relatedBankAccount relatedCashAccount')
+
+        res.status(200).send({
+            succes: true,
+            data: {
+                meidicineSaleWeek: meidicineSaleWeek,
+                treatmentVoucherWeek: treatmentVoucherWeek,
+                expenseWeek: expenseWeek
+            }
+        })
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
+exports.getMonth = async (req, res) => {
+    // Get the current month and year
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    let startDate, endDate;
+    let { weekName, monthName } = req.body;
+    // Determine the start and end dates based on the weekName
+    switch (weekName) {
+        case 'First Week':
+            startDate = new Date(year, month, 1);
+            endDate = new Date(year, month, 7);
+            break;
+        case 'Second Week':
+            startDate = new Date(year, month, 8);
+            endDate = new Date(year, month, 14);
+            break;
+        case 'Third Week':
+            startDate = new Date(year, month, 15);
+            endDate = new Date(year, month, 21);
+            break;
+        case 'Fourth Week':
+            startDate = new Date(year, month, 22);
+            endDate = new Date(year, month, getLastDayOfMonth(year, month));
+            break;
+        default:
+            res.status(400).json({ error: 'Invalid week name' });
+            return;
+    }
+
+    try {
+        //preparing query
+        let query = { isDeleted: false }
+        if (weekName) query.createdAt = { $gte: startDate, $lte: endDate }
+
+        const meidicineSaleWeek = await MedicineSale.find(query).populate('relatedPatient relatedAppointment medicineItems.item_id relatedTreatment').populate({
+            path: 'relatedTransaction',
+            populate: [{
+              path: 'relatedAccounting',
+              model: 'AccountingLists'
+            }, {
+              path: 'relatedBank',
+              model: 'AccountingLists'
+            }, {
+              path: 'relatedCash',
+              model: 'AccountingLists'
+            }]
+          });
+        const treatmentVoucherWeek = await TreatmentVoucher.find(query).populate('relatedTreatment relatedAppointment relatedPatient')
+        const expenseWeek = await Expense.find({date:{ $gte: startDate, $lte: endDate }, isDeleted:false}).populate('relatedAccounting relatedBankAccount relatedCashAccount')
 
         res.status(200).send({
             succes: true,

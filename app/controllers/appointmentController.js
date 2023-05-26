@@ -61,12 +61,29 @@ exports.getTodaysAppointment = async (req, res) => {
     var end = new Date();
     start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
-    const result = await Appointment.find({ originalDate: { $gte: start, $lt: end } })
+    const result = await Appointment.find({ originalDate: { $gte: start, $lt: end } }).populate('relatedDoctor').populate('relatedTherapist').populate('relatedTreatmentSelection').populate({
+      path: 'relatedPatient',
+      populate: [{
+        path: 'img',
+        model: 'Attachments'
+      }]
+    }).populate({
+      path: 'relatedTreatmentSelection',
+      model: 'TreatmentSelections',
+      populate: {
+        path: 'relatedAppointments',
+        model: 'Appointments',
+        populate: {
+          path: 'relatedDoctor',
+          model: 'Doctors'
+        }
+      }
+    })
     console.log(result)
     if (result.length === 0) return res.status(404).json({ error: true, message: 'No Record Found!' })
     return res.status(200).send({ success: true, data: result })
   } catch (error) {
-    return res.status(500).send({error:true, message:error.message})
+    return res.status(500).send({ error: true, message: error.message })
   }
 }
 
@@ -82,14 +99,14 @@ exports.getAppointment = async (req, res) => {
       path: 'relatedTreatmentSelection',
       model: 'TreatmentSelections',
       populate: {
-          path: 'relatedAppointments',
-          model: 'Appointments',
-          populate:{
-            path:'relatedDoctor',
-            model:'Doctors'
-          }
+        path: 'relatedAppointments',
+        model: 'Appointments',
+        populate: {
+          path: 'relatedDoctor',
+          model: 'Doctors'
+        }
       }
-  })
+    })
     console.log(result)
     if (!result) return res.status(500).json({ error: true, message: 'No Record Found' });
     //const relateTreatment = await Treatment.find({ _id: result[0].relatedTreatmentSelection[0].relatedTreatment }).populate('relatedDoctor').populate('relatedTherapist').populate('relatedPatient').populate('procedureMedicine').populate('relatedAppointment')
@@ -175,7 +192,7 @@ exports.activateAppointment = async (req, res, next) => {
 
 exports.filterAppointments = async (req, res, next) => {
   try {
-    let query = {isDeleted:false}
+    let query = { isDeleted: false }
     const { start, end, token, phone } = req.query
     console.log(start, end)
     if (start && end) query.originalDate = { $gte: start, $lte: end }
@@ -193,7 +210,7 @@ exports.filterAppointments = async (req, res, next) => {
 exports.searchAppointment = async (req, res, next) => {
   try {
     console.log(req.body.search)
-    const result = await Appointment.find({ $text: { $search: req.body.search }, isDeleted:false })
+    const result = await Appointment.find({ $text: { $search: req.body.search }, isDeleted: false })
     if (result.length === 0) return res.status(404).send({ error: true, message: 'No Record Found!' })
     return res.status(200).send({ success: true, data: result })
   } catch (err) {
