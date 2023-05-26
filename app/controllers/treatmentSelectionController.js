@@ -22,7 +22,7 @@ exports.listAllTreatmentSelections = async (req, res) => {
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await TreatmentSelection.find(query).populate('relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentUnit').populate({
+        let result = await TreatmentSelection.find(query).populate('relatedTreatmentList relatedAppointments relatedPatient finishedAppointments remainingAppointments relatedTransaction').populate({
             path: 'relatedTreatment',
             model: 'Treatments',
             populate: {
@@ -50,7 +50,7 @@ exports.listAllTreatmentSelections = async (req, res) => {
 };
 
 exports.getTreatmentSelection = async (req, res) => {
-    const result = await TreatmentSelection.find({ _id: req.params.id, isDeleted: false }).populate('relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentUnit').populate({
+    const result = await TreatmentSelection.find({ _id: req.params.id, isDeleted: false }).populate('relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentList').populate({
         path: 'relatedTreatment',
         populate: [{
             path: 'relatedDoctor',
@@ -74,7 +74,7 @@ exports.getTreatmentSelection = async (req, res) => {
 };
 
 exports.getTreatementSelectionByTreatmentID = async (req, res) => {
-    const result = await TreatmentSelection.find({ relatedTreatment: req.params.id, isDeleted: false }).populate('relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentUnit').populate({
+    const result = await TreatmentSelection.find({ relatedTreatment: req.params.id, isDeleted: false }).populate('relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentList').populate({
         path: 'relatedTreatment',
         model: 'Treatments',
         populate: {
@@ -109,6 +109,7 @@ exports.createTreatmentSelectionCode = async (req, res) => {
 exports.createTreatmentSelection = async (req, res, next) => {
     let data = req.body;
     let relatedAppointments = []
+    let tvcCreate = false;
     try {
         if (req.body.originalDate === undefined) return res.status(500).send({ error: true, message: 'Original Date is required' })
         const appointmentConfig = {
@@ -140,26 +141,52 @@ exports.createTreatmentSelection = async (req, res, next) => {
         if (data.paidAmount === 0) data = { ...data, leftOverAmount: data.totalAmount }
 
         //first transaction 
-        const fTransResult = await Transaction.create({
-            "amount": req.body.paidAmount,
-            "date": Date.now(),
-            "remark": null,
-            "relatedAccounting": "6467379159a9bc811d97f4d2", //Advance received from customer
-            "type": "Credit"
-        })
-        //sec transaction
-        const secTransResult = await Transaction.create({
-            "amount": req.body.paidAmount,
-            "date": Date.now(),
-            "remark": null,
-            "relatedBank": req.body.relatedBank,
-            "relatedCash": req.body.relatedCash,
-            "type": "Debit",
-            "relatedTransaction": fTransResult._id
-        });
-        data = { ...data, relatedTransaction: [fTransResult._id, secTransResult] } //adding relatedTransactions to treatmentSelection model
+        if (req.body.paymentMethod === 'Cash Down') {
+            var fTransResult = await Transaction.create({
+                "amount": req.body.paidAmount,
+                "date": Date.now(),
+                "remark": null,
+                "relatedAccounting": "6467379159a9bc811d97f4d2", //Advance received from customer
+                "type": "Credit"
+            })
+            //sec transaction
+            var secTransResult = await Transaction.create({
+                "amount": req.body.paidAmount,
+                "date": Date.now(),
+                "remark": null,
+                "relatedBank": req.body.relatedBank,
+                "relatedCash": req.body.relatedCash,
+                "type": "Debit",
+                "relatedTransaction": fTransResult._id
+            });
+            tvcCreate = true;
+        }
+        if (fTransResult && secTransResult) { data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id] } } //adding relatedTransactions to treatmentSelection model
+        if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id } }
         const result = await TreatmentSelection.create(data)
-        const populatedResult = await TreatmentSelection.find({ _id: result._id }).populate('relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentUnit').populate({
+        if (tvcCreate === true) {
+            //--> treatment voucher create
+            let dataTVC = {
+                "relatedTreatmentSelection": result._id,
+                "relatedTreatment": req.body.relatedTreatment,
+                "relatedAppointment": req.body.relatedAppointment,
+                "relatedPatient": req.body.relatedPatient,
+                "paymentMethod": "Advanced", //enum: ['by Appointment','Lapsum','Total','Advanced']
+                "amount": req.body.paidAmount,
+                "relatedBank": req.body.relatedBank, //must be bank acc from accounting accs
+                "paymentType": req.body.paymentType, //enum: ['Bank','Cash']
+                "relatedCash": req.body.relatedCash //must be cash acc from accounting accs
+            }
+            let today = new Date().toISOString()
+            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
+            if (latestDocument[0].seq === undefined) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
+            if (latestDocument[0].seq) {
+                const increment = latestDocument[0].seq + 1
+                dataTVC = { ...dataTVC, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-" + increment, seq: increment }
+            }
+            var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
+        }
+        const populatedResult = await TreatmentSelection.find({ _id: result._id }).populate('relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentList').populate({
             path: 'relatedTreatment',
             model: 'Treatments',
             populate: {
@@ -187,16 +214,21 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 { new: true }
             )
         }
-        res.status(200).send({
+        let response = {
             message: 'Treatment Selection create success',
             success: true,
             data: populatedResult,
             appointmentAutoGenerate: appointmentResult,
-            fTransResult: fTransResult,
-            secTransResult: secTransResult
-        });
+            // fTransResult: fTransResult,
+            // secTransResult: secTransResult,
+            // treatmentVoucherResult:treatmentVoucherResult
+        }
+        if (treatmentVoucherResult) response.treatmentVoucherResult = treatmentVoucherResult
+        if (fTransResult) response.fTransResult = fTransResult
+        if (fTransResult) response.secTransResult = secTransResult
+        res.status(200).send(response);
     } catch (error) {
-        // console.log(error)
+        console.log(error)
         return res.status(500).send({ "error": true, message: error.message })
     }
 };
@@ -224,35 +256,41 @@ exports.treatmentPayment = async (req, res, next) => {
     try {
         let { paidAmount, paymentMethod } = data;
         const treatmentSelectionQuery = await TreatmentSelection.find({ _id: req.body.id, isDeleted: false }).populate('relatedTreatment').populate('relatedAppointments');
-        if (treatmentSelectionQuery[0].leftOverAmount <= 0) return res.status(500).send({ error: true, message: 'Fully Paid!' })
         const result = await TreatmentSelection.findOneAndUpdate(
             { _id: req.body.id },
             { $inc: { leftOverAmount: -paidAmount }, paidAmount: paidAmount },
             { new: true },
         ).populate('relatedTreatment');
         if (result.paymentMethod === 'Credit') { //
-            const treatmentVoucherResult = await TreatmentVoucher.create(
-                {
-                    "relatedTreatment": req.body.relatedTreatment,
-                    "relatedAppointment": req.body.relatedAppointment,
-                    "relatedPatient": req.body.relatedPatient,
-                    "paymentMethod": req.body.paymentMethod, //enum: ['by Appointment','Lapsum','Total','Advanced']
-                    "amount": paidAmount,
-                    "relatedBank": req.body.relatedBank, //must be bank acc from accounting accs
-                    "paymentType": req.body.paymentType, //enum: ['Bank','Cash']
-                    "relatedCash": req.body.relatedCash //must be cash acc from accounting accs
-                }
-            )
+            let dataTVC = {
+                "relatedTreatmentSelection": result._id,
+                "relatedTreatment": req.body.relatedTreatment,
+                "relatedAppointment": req.body.relatedAppointment,
+                "relatedPatient": req.body.relatedPatient,
+                "paymentMethod": 'by Appointment', //enum: ['by Appointment','Lapsum','Total','Advanced']
+                "amount": paidAmount,
+                "relatedBank": req.body.relatedBank, //must be bank acc from accounting accs
+                "paymentType": req.body.paymentType, //enum: ['Bank','Cash']
+                "relatedCash": req.body.relatedCash //must be cash acc from accounting accs
+            }
+            let today = new Date().toISOString()
+            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
+            if (latestDocument[0].seq === undefined) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
+            if (latestDocument[0].seq) {
+                const increment = latestDocument[0].seq + 1
+                dataTVC = { ...dataTVC, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-" + increment, seq: increment }
+            }
+            var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
             //transaction
-            const fTransResult = await Transaction.create({
+            var fTransResult = await Transaction.create({
                 "amount": req.body.paidAmount,
                 "date": Date.now(),
                 "remark": null,
-                "relatedAccounting": result.relatedTreatment.relatedAccount, 
+                "relatedAccounting": result.relatedTreatment.relatedAccount,
                 "type": "Credit"
             })
             //sec transaction
-            const secTransResult = await Transaction.create({
+            var secTransResult = await Transaction.create({
                 "amount": req.body.paidAmount,
                 "date": Date.now(),
                 "remark": null,
@@ -262,40 +300,46 @@ exports.treatmentPayment = async (req, res, next) => {
                 "relatedTransaction": fTransResult._id
             });
         } else if (result.paymentMethod === 'Cash Down') { //byAppointment
-            const treatmentVoucherResult = await TreatmentVoucher.create(
-                {
-                    "relatedTreatment": req.body.relatedTreatment,
-                    "relatedAppointment": req.body.relatedAppointment,
-                    "relatedPatient": req.body.relatedPatient,
-                    "paymentMethod": 'by Appointment', //enum: ['by Appointment','Lapsum','Total','Advanced']
-                    "amount": paidAmount,
-                }
-            )
+            // const treatmentVoucherResult = await TreatmentVoucher.create(
+            //     {
+            //         "relatedTreatment": req.body.relatedTreatment,
+            //         "relatedAppointment": req.body.relatedAppointment,
+            //         "relatedPatient": req.body.relatedPatient,
+            //         "paymentMethod": 'by Appointment', //enum: ['by Appointment','Lapsum','Total','Advanced']
+            //         "amount": paidAmount,
+            //     }
+            // )
             //transaction
-            const fTransResult = await Transaction.create({
+            var fTransResult = await Transaction.create({
                 "amount": req.body.paidAmount,
                 "date": Date.now(),
                 "remark": null,
-                "relatedAccounting": result.relatedTreatment.relatedAccount, 
+                "relatedAccounting": "6467379159a9bc811d97f4d2", //Advance received from customer
                 "type": "Debit"
             })
             //sec transaction
-            const secTransResult = await Transaction.create({
+            var secTransResult = await Transaction.create({
                 "amount": req.body.paidAmount,
                 "date": Date.now(),
                 "remark": null,
-                "relatedBank": req.body.relatedBank,
-                "relatedCash": req.body.relatedCash,
+                "relatedAccounting": result.relatedTreatment.relatedAccount,
                 "type": "Credit",
                 "relatedTransaction": fTransResult._id
             })
         }
-
-        return res.status(200).send({
-            success: true, data: result
-        });
+        let response = {
+            success: true,
+            data: result,
+            //appointmentAutoGenerate: appointmentResult,
+            // fTransResult: fTransResult,
+            // secTransResult: secTransResult,
+            // treatmentVoucherResult:treatmentVoucherResult
+        }
+        if (treatmentVoucherResult) response.treatmentVoucherResult = treatmentVoucherResult;
+        return res.status(200).send(response);
     } catch (error) {
-        return res.status(500).send({ "error": true, "message": error.message })
+        console.log(error)
+        // return res.status(500).send({ "error": true, "message": error.message })
     }
 };
 
@@ -362,10 +406,11 @@ exports.createTreatmentTransaction = async (req, res) => {
 exports.getRelatedTreatmentSelections = async (req, res) => {
     try {
         let query = { isDeleted: false };
-        let { relatedPatient, start, end } = req.body
+        let { relatedPatient, start, end, relatedAppointments } = req.body
         if (start && end) query.createdAt = { $gte: start, $lte: end }
         if (relatedPatient) query.relatedPatient = relatedPatient
-        const result = await TreatmentSelection.find(query).populate('relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentUnit').populate({
+        if (relatedAppointments) query.relatedAppointments = {$in:relatedAppointments}
+        const result = await TreatmentSelection.find(query).populate('relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentList').populate({
             path: 'relatedTreatment',
             model: 'Treatments',
             populate: {
@@ -373,10 +418,11 @@ exports.getRelatedTreatmentSelections = async (req, res) => {
                 model: 'Doctors'
             }
         })
-        if (!result)
+        if (result.length===0)
             return res.status(404).json({ error: true, message: 'No Record Found' });
         return res.status(200).send({ success: true, data: result });
     } catch (error) {
+
         return res.status(500).send({ error: true, message: 'An Error Occured While Fetching Related Treatment Selections' })
     }
 };

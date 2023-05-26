@@ -78,6 +78,10 @@ let TreatmentSelectionSchema = new Schema({
   },
   seq:{
     type:Number
+  },
+  relatedTreatmentVoucher:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TreatmentVouchers'
   }
 
 });

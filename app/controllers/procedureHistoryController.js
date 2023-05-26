@@ -18,7 +18,7 @@ exports.listAllProcedureHistorys = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    let result = await ProcedureHistory.find(query).populate('relatedAccounting').populate('relatedPatient').populate('treatmentPackages.item_id').populate('medicineItems.item_id').populate('pHistory')
+    let result = await ProcedureHistory.find(query).populate('medicineItems.item_id customTreatmentPackages.item_id pHistory relatedAppointment relatedTreatmentSelection')
     count = await ProcedureHistory.find(query).count();
     const division = count / limit;
     page = Math.ceil(division);
@@ -40,7 +40,7 @@ exports.listAllProcedureHistorys = async (req, res) => {
 };
 
 exports.getProcedureHistory = async (req, res) => {
-  const result = await ProcedureHistory.find({ _id: req.params.id, isDeleted: false }).populate('relatedAccounting').populate('relatedPatient').populate('treatmentPackages.item_id').populate('medicineItems.item_id').populate('pHistory')
+  const result = await ProcedureHistory.find({ _id: req.params.id, isDeleted: false }).populate('medicineItems.item_id customTreatmentPackages.item_id pHistory relatedAppointment relatedTreatmentSelection')
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
@@ -48,7 +48,7 @@ exports.getProcedureHistory = async (req, res) => {
 
 exports.getRelatedProcedureHistory = async (req, res) => {
   let { relatedAppointment, relatedTreatmentSelection } = req.query
-  const result = await ProcedureHistory.find({ relatedTreatmentSelection: relatedTreatmentSelection, relatedAppointment: relatedAppointment, isDeleted: false }).populate('relatedAccounting').populate('relatedPatient').populate('treatmentPackages.item_id').populate('medicineItems.item_id').populate('pHistory')
+  const result = await ProcedureHistory.find({ relatedTreatmentSelection: relatedTreatmentSelection, relatedAppointment: relatedAppointment, isDeleted: false }).populate('medicineItems.item_id customTreatmentPackages.item_id pHistory relatedAppointment relatedTreatmentSelection')
   if (result.length===0)
     return res.status(404).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
@@ -99,7 +99,7 @@ exports.createProcedureHistory = async (req, res, next) => {
     }
     console.log(data)
     const result = await procedureHistory.create(data);
-    const populate = await procedureHistory.find({ _id: result._id }).populate('relatedAccounting').populate('relatedPatient').populate('treatmentPackages.item_id').populate('medicineItems.item_id').populate('pHistory');
+    const populate = await procedureHistory.find({ _id: result._id }).populate('medicineItems.item_id customTreatmentPackages.item_id pHistory relatedAppointment relatedTreatmentSelection')
     res.status(200).send({
       message: 'ProcedureHistory create success',
       success: true,
@@ -118,7 +118,7 @@ exports.updateProcedureHistory = async (req, res, next) => {
       { _id: req.body.id },
       req.body,
       { new: true },
-    ).populate('relatedAccounting').populate('relatedPatient').populate('treatmentPackages.item_id').populate('medicineItems.item_id').populate('pHistory')
+    ).populate('medicineItems.item_id customTreatmentPackages.item_id pHistory relatedAppointment relatedTreatmentSelection')
     return res.status(200).send({ success: true, data: result });
   } catch (error) {
     return res.status(500).send({ "error": true, "message": error.message })

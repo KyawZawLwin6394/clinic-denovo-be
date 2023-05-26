@@ -22,7 +22,8 @@ let UsageSchema = new Schema({
             ref:'ProcedureItems'
         },
         stock:Number,
-        actual:Number
+        actual:Number,
+        remark:String
       }],
       procedureAccessory: [{
         item_id:{
@@ -30,7 +31,8 @@ let UsageSchema = new Schema({
             ref:'AccessoryItems'
         },
         stock:Number,
-        actual:Number
+        actual:Number,
+        remark:String
       }],
       machine:[{
         item_id:{
@@ -38,7 +40,8 @@ let UsageSchema = new Schema({
             ref:'FixedAssets'
         },
         stock:Number,
-        actual:Number
+        actual:Number,
+        remark:String
       }],
       isDeleted: {
         type:Boolean, 

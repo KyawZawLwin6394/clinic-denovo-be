@@ -13,7 +13,7 @@ let LogSchema = new Schema({
     },
     relatedAppointment: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'TreatmentSelections',
+        ref: 'Appointments',
         required: true
     },
     date: {

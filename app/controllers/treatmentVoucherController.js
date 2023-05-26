@@ -46,11 +46,12 @@ exports.getTreatmentVoucher = async (req, res) => {
 exports.getRelatedTreatmentVoucher = async (req, res) => {
     try {
         let query = { isDeleted: false };
-        let { relatedPatient, relatedTreatment, start, end } = req.body
+        let { relatedPatient, relatedTreatment, start, end,treatmentSelection } = req.body
         if (start && end) query.createdAt = { $gte: start, $lte: end }
         if (relatedPatient) query.relatedPatient = relatedPatient
         if (relatedTreatment) query.relatedTreatment = relatedTreatment
-        const result = await TreatmentVoucher.find(query).populate('relatedTreatment relatedAppointment relatedPatient')
+        if (treatmentSelection) query.relatedTreatmentSelection = treatmentSelection
+        const result = await TreatmentVoucher.find(query).populate('relatedTreatment relatedAppointment relatedPatient relatedTreatmentSelection')
         if (!result)
             return res.status(404).json({ error: true, message: 'No Record Found' });
         return res.status(200).send({ success: true, data: result });
@@ -73,7 +74,6 @@ exports.searchTreatmentVoucher = async (req, res, next) => {
 exports.getCode = async (req,res) => {
     let data = {}
     try {
-        console.log('here')
         let today = new Date().toISOString()
         const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
         if (latestDocument[0].seq === undefined) data = { ...data, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
@@ -142,3 +142,24 @@ exports.activateTreatmentVoucher = async (req, res, next) => {
         return res.status(500).send({ "error": true, "message": error.message })
     }
 };
+
+exports.getTodaysTreatmentVoucher = async (req, res) => {
+  try {
+    var start = new Date();
+    var end = new Date();
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+    const result = await TreatmentVoucher.find({ originalDate: { $gte: start, $lt: end } }).populate('relatedAppointment relatedPatient').populate({
+        path: 'relatedTreatment',
+        model: 'Treatments',
+        populate: {
+            path: 'treatmentName',
+            model: 'TreatmentLists'
+        }
+    })
+    if (result.length === 0) return res.status(404).json({ error: true, message: 'No Record Found!' })
+    return res.status(200).send({ success: true, data: result })
+  } catch (error) {
+    return res.status(500).send({error:true, message:error.message})
+  }
+}
