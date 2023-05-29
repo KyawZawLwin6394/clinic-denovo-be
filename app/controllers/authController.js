@@ -56,7 +56,8 @@ exports.login = (req, res) => {
               role: user.role,
               name: user.givenName,
               email: user.email,
-              phone: user.phone
+              phone: user.phone,
+              branch:user.branch
             }
           };
           if (

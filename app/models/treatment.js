@@ -23,16 +23,16 @@ let TreatmentSchema = new Schema({
   relatedDoctor: {
     type:mongoose.Schema.Types.ObjectId,
     ref:'Doctors',
-    required: function() {
-        return !this.relatedTherapist; // therapist is required if field2 is not provided
-      }
+    // required: function() {
+    //     return !this.relatedTherapist; // therapist is required if field2 is not provided
+    //   }
   },
   relatedTherapist: {
     type:mongoose.Schema.Types.ObjectId,
     ref:'Therapists',
-    required: function() {
-        return !this.relatedDoctor; // doctor is required if field2 is not provided
-      }
+    // required: function() {
+    //     return !this.relatedDoctor; // doctor is required if field2 is not provided
+    //   }
   },
   procedureMedicine: [{
     item_id:{
