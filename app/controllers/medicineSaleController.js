@@ -234,3 +234,17 @@ exports.createCode = async (req, res, next) => {
     })
   }
 }
+
+exports.filterMedicineSales = async (req, res, next) => {
+  try {
+    let query = {}
+    const { start, end } = req.query
+    if (start && end) query.originalDate = { $gte: start, $lte: end }
+    if (Object.keys(query).length === 0) return res.status(404).send({ error: true, message: 'Please Specify A Query To Use This Function' })
+    const result = await MedicineSale.find(query).populate('relatedPatient relatedTransaction').populate('relatedAppointment').populate('medicineItems.item_id').populate('relatedTreatment').populate('createdBy');
+    if (result.length === 0) return res.status(404).send({ error: true, message: "No Record Found!" })
+    res.status(200).send({ success: true, data: result })
+  } catch (err) {
+    return res.status(500).send({ error: true, message: err.message })
+  }
+}
