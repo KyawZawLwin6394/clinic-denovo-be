@@ -121,28 +121,6 @@ exports.createMedicineSale = async (req, res, next) => {
 
 exports.createMedicineSaleTransaction = async (req, res, next) => {
   try {
-    //first transaction 
-    const fTransaction = new Transaction({
-      "amount": req.body.amount,
-      "date": req.body.date,
-      "remark": req.body.remark,
-      "relatedAccounting": "6423eb395fb841d5566db36d",
-      "type": "Credit"
-    })
-    const fTransResult = await fTransaction.save()
-    //sec transaction
-    const secTransaction = new Transaction(
-      {
-        "amount": req.body.amount,
-        "date": req.body.date,
-        "remark": req.body.remark,
-        "relatedBank": req.body.relatedBank,
-        "relatedCash": req.body.relatedCash,
-        "type": "Debit",
-        "relatedTransaction": fTransResult._id
-      }
-    )
-    const secTransResult = await secTransaction.save();
     let objID = ''
     if (req.body.relatedBank) objID = req.body.relatedBank
     if (req.body.relatedCash) objID = req.body.relatedCash
@@ -245,6 +223,36 @@ exports.filterMedicineSales = async (req, res, next) => {
     if (result.length === 0) return res.status(404).send({ error: true, message: "No Record Found!" })
     res.status(200).send({ success: true, data: result })
   } catch (err) {
+    return res.status(500).send({ error: true, message: err.message })
+  }
+}
+
+exports.confirmTransaction = async (req, res, next) => {
+  try {
+    //first transaction 
+    const fTransaction = new Transaction({
+      "amount": req.body.amount,
+      "date": Date.now(),
+      "remark": req.body.remark,
+      "relatedAccounting": req.body.relatedAccounting,
+      "type": "Credit"
+    })
+    const fTransResult = await fTransaction.save()
+    //sec transaction
+    const secTransaction = new Transaction(
+      {
+        "amount": req.body.amount,
+        "date": Date.now(),
+        "remark": req.body.remark,
+        "relatedBank": req.body.relatedBank,
+        "relatedCash": req.body.relatedCash,
+        "type": "Debit",
+        "relatedTransaction": fTransResult._id
+      }
+    )
+    const secTransResult = await secTransaction.save();
+    return res.status(200).send({ success: true, fTransResult: fTransResult, secTransResult: secTransResult })
+  } catch (error) {
     return res.status(500).send({ error: true, message: err.message })
   }
 }
