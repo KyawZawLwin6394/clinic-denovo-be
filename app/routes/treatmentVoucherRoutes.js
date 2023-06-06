@@ -22,4 +22,5 @@ module.exports = (app) => {
         .post(catchError(treatmentVoucher.getRelatedTreatmentVoucher))
     app.route('/api/treatment-vouchers/code').get(catchError(treatmentVoucher.getCode))
     app.route('/api/treatment-vouchers/today').get(catchError(treatmentVoucher.getTodaysTreatmentVoucher))
+    app.route('/api/treatment-vouchers/confirm').post(catchError(treatmentVoucher.confirmTransaction))
 };

@@ -1,5 +1,6 @@
 'use strict';
 const TreatmentVoucher = require('../models/treatmentVoucher');
+const Transaction = require('../models/transaction');
 
 exports.listAllTreatmentVouchers = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -163,3 +164,33 @@ exports.getTodaysTreatmentVoucher = async (req, res) => {
     return res.status(500).send({error:true, message:error.message})
   }
 }
+
+exports.confirmTransaction = async (req, res, next) => {
+    try {
+      //first transaction 
+      const fTransaction = new Transaction({
+        "amount": req.body.amount,
+        "date": Date.now(),
+        "remark": req.body.remark,
+        "relatedAccounting": req.body.relatedAccounting,
+        "type": "Credit"
+      })
+      const fTransResult = await fTransaction.save()
+      //sec transaction
+      const secTransaction = new Transaction(
+        {
+          "amount": req.body.amount,
+          "date": Date.now(),
+          "remark": req.body.remark,
+          "relatedBank": req.body.relatedBank,
+          "relatedCash": req.body.relatedCash,
+          "type": "Debit",
+          "relatedTransaction": fTransResult._id
+        }
+      )
+      const secTransResult = await secTransaction.save();
+      return res.status(200).send({ success: true, fTransResult: fTransResult, secTransResult: secTransResult })
+    } catch (error) {
+      return res.status(500).send({ error: true, message: err.message })
+    }
+  }
