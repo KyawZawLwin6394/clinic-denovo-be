@@ -1,4 +1,5 @@
 'use strict';
+const { catchError } = require('../lib/errorHandler');
 const AccountingList = require('../models/accountingList');
 
 exports.listAllAccountingLists = async (req, res) => {
@@ -99,3 +100,13 @@ exports.activateAccountingList = async (req, res, next) => {
         return res.status(500).send({ "error": true, "message": error.message })
     }
 };
+
+exports.getRelatedAccountingListByHeader = async (req, res) => {
+    try {
+        console.log('here',req.params.id)
+        const result = await AccountingList.find({ relatedHeader: req.params.id })
+        return res.status(200).send({ success: true, data: result })
+    } catch (error) {
+        return res.status(500).send({ error: true, message: error.message })
+    }
+}

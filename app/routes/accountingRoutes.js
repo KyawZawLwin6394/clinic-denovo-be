@@ -9,11 +9,12 @@ module.exports = (app) => {
     app.route('/api/accounting-list')
         .post(catchError(accountingList.createAccountingList))
         .put(catchError(accountingList.updateAccountingList))
-        
+
     app.route('/api/accounting-list/:id')
         .get(catchError(accountingList.getAccountingList))
-        .delete(catchError(accountingList.deleteAccountingList)) 
+        .delete(catchError(accountingList.deleteAccountingList))
         .post(catchError(accountingList.activateAccountingList))
 
-    app.route('/api/accounting-lists').get( catchError(accountingList.listAllAccountingLists))
+    app.route('/api/accounting-lists').get(catchError(accountingList.listAllAccountingLists))
+    app.route('/api/accounting-lists/header/:id').get(catchError(accountingList.getRelatedAccountingListByHeader))
 };
