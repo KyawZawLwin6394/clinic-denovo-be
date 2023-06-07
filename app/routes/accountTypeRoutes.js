@@ -7,13 +7,13 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/account-type')
-        .post(verifyToken, catchError(accountType.createAccountType))
-        .put(verifyToken, catchError(accountType.updateAccountType))
+        .post( catchError(accountType.createAccountType))
+        .put( catchError(accountType.updateAccountType))
 
     app.route('/api/account-type/:id')
-        .get(verifyToken, catchError(accountType.getAccountType))
-        .delete(verifyToken, catchError(accountType.deleteAccountType))
-        .post(verifyToken, catchError(accountType.activateAccountType))
+        .get( catchError(accountType.getAccountType))
+        .delete( catchError(accountType.deleteAccountType))
+        .post( catchError(accountType.activateAccountType))
 
-    app.route('/api/account-types').get(verifyToken, catchError(accountType.listAllAccountTypes))
+    app.route('/api/account-types').get( catchError(accountType.listAllAccountTypes))
 };
