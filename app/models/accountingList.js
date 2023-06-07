@@ -50,7 +50,11 @@ let AccountingListSchema = new Schema({
     relatedBank: {
         type:mongoose.Schema.Types.ObjectId,
         ref:'Banks'
-    }
+    },
+    relatedBranch: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branches'
+      },
 });
 
 module.exports = mongoose.model('AccountingLists', AccountingListSchema);

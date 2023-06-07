@@ -16,7 +16,6 @@ exports.listAllAccountTypes = async (req, res) => {
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
     let result = await AccountType.find(query)
-    console.log(result)
     count = await AccountType.find(query).count();
     const division = count / limit;
     page = Math.ceil(division);
@@ -55,7 +54,7 @@ exports.createAccountType = async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    console.log(error )
+    // console.log(error )
     return res.status(500).send({ "error": true, message: error.message })
   }
 };

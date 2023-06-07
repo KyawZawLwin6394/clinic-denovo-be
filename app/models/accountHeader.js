@@ -28,7 +28,11 @@ let AccountHeaderSchema = new Schema({
         type:mongoose.Schema.Types.ObjectId,
         required:true,
         ref:'AccountTypes'
-    }
+    },
+    relatedBranch: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branches'
+      },
 });
 
 module.exports = mongoose.model('AccountHeaders', AccountHeaderSchema);

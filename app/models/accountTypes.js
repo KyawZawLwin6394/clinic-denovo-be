@@ -25,6 +25,10 @@ let AccountTypeSchema = new Schema({
     updatedAt: {
         type: Date,
     },
+    relatedBranch: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branches'
+      },
 });
 
 module.exports = mongoose.model('AccountTypes', AccountTypeSchema);

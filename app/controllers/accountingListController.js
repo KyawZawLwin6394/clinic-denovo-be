@@ -1,5 +1,4 @@
 'use strict';
-const { catchError } = require('../lib/errorHandler');
 const AccountingList = require('../models/accountingList');
 
 exports.listAllAccountingLists = async (req, res) => {
@@ -17,7 +16,6 @@ exports.listAllAccountingLists = async (req, res) => {
             : '';
         regexKeyword ? (query['name'] = regexKeyword) : '';
         let result = await AccountingList.find(query).skip(skip).populate('relatedType relatedHeader relatedTreatment relatedBank')
-        console.log(result)
         count = await AccountingList.find(query).count();
         const division = count / limit;
         page = Math.ceil(division);
@@ -56,8 +54,8 @@ exports.createAccountingList = async (req, res, next) => {
             data: result
         });
     } catch (error) {
-        console.log(error)
-        //return res.status(500).send({ "error": true, message: error.message })
+        // console.log(error)
+        return res.status(500).send({ "error": true, message: error.message })
     }
 };
 
@@ -101,12 +99,11 @@ exports.activateAccountingList = async (req, res, next) => {
     }
 };
 
-exports.getRelatedAccountingListByHeader = async (req, res) => {
+exports.getAccountingListByRelatedHeader = async (req, res) => {
     try {
-        console.log('here',req.params.id)
-        const result = await AccountingList.find({ relatedHeader: req.params.id })
+        const result = await AccountingList.find({ relatedHeader: req.params.id, isDeleted: false });
         return res.status(200).send({ success: true, data: result })
     } catch (error) {
-        return res.status(500).send({ error: true, message: error.message })
+        return res.status(500).send({ "error": true, "message": error.message })
     }
 }
