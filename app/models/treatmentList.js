@@ -14,7 +14,7 @@ let TreatmentListSchema = new Schema({
   },
   bodyParts: {
     type:String,
-    enum:['Face','Body','Body Injection'],
+    enum:['Treatment','Injection','Hair,Combine Tre & Facial','Combination Package', 'Surgery Price List'],
   },
   description: {
     type:String,
