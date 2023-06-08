@@ -6,12 +6,12 @@ const Schema = mongoose.Schema;
 
 
 let TreatmentSelectionSchema = new Schema({
-  code : {
-    type:String
+  code: {
+    type: String
   },
   paymentMethod: {
     type: String,
-    enum: ['Credit','Cash Down']
+    enum: ['Credit', 'Cash Down']
   },
   paidAmount: {
     type: Number,
@@ -38,9 +38,9 @@ let TreatmentSelectionSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Treatments'
   },
-  relatedTreatmentList:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'TreatmentLists'
+  relatedTreatmentList: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TreatmentLists'
   },
   relatedAppointments: {
     type: [mongoose.Schema.Types.ObjectId],
@@ -71,15 +71,15 @@ let TreatmentSelectionSchema = new Schema({
   },
   bodyParts: {
     type: String,
-    enum: ['Face', 'Body', 'Body Injection'],
+    enum: ['Treatment', 'Injection', 'Hair,Combine Tre & Facial', 'Combination Package', 'Surgery Price List'],
   },
   treatmentTimes: {
-    type:Number
+    type: Number
   },
-  seq:{
-    type:Number
+  seq: {
+    type: Number
   },
-  relatedTreatmentVoucher:{
+  relatedTreatmentVoucher: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'TreatmentVouchers'
   }
