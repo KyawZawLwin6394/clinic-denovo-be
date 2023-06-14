@@ -7,14 +7,14 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/member')
-        .post(verifyToken, catchError(member.createMember))
-        .put(verifyToken, catchError(member.updateMember))
+        .post( catchError(member.createMember))
+        .put( catchError(member.updateMember))
 
     app.route('/api/member/:id')
-        .get(verifyToken, catchError(member.getMember))
-        .delete(verifyToken, catchError(member.deleteMember))
-        .post(verifyToken, catchError(member.activateMember))
+        .get( catchError(member.getMember))
+        .delete( catchError(member.deleteMember))
+        .post( catchError(member.activateMember))
 
-    app.route('/api/members').get(verifyToken, catchError(member.listAllMembers))
+    app.route('/api/members').get( catchError(member.listAllMembers))
 
 };
