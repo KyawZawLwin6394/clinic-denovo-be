@@ -23,7 +23,7 @@ let AppointmentSchema = new Schema({
   },
   relatedTherapist: {
     type:mongoose.Schema.Types.ObjectId,
-    ref:'Doctors',
+    ref:'Therapists',
     // required: function() {
     //   return !this.relatedDoctor; // doctor is required if field2 is not provided
     // }
