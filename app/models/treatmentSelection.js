@@ -11,7 +11,7 @@ let TreatmentSelectionSchema = new Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['Credit', 'Cash Down']
+    enum: ['Credit', 'Cash Down', 'FOC']
   },
   paidAmount: {
     type: Number,
@@ -71,7 +71,7 @@ let TreatmentSelectionSchema = new Schema({
   },
   bodyParts: {
     type: String,
-    enum: ['Treatment', 'Injection', 'Hair,Combine Tre & Facial', 'Combination Package', 'Surgery Price List'],
+    enum: ['Face', 'Body', 'Body Injection'],
   },
   treatmentTimes: {
     type: Number
@@ -82,6 +82,24 @@ let TreatmentSelectionSchema = new Schema({
   relatedTreatmentVoucher: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'TreatmentVouchers'
+  },
+  paymentStatus: {
+    type: Boolean
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Users'
+  },
+  saleReturnFlag: {
+    type: Boolean,
+    default: false
+  },
+  purchaseType: {
+    type: String,
+    enum: ['Normal', 'Solid Beauty']
+  },
+  remark: {
+    type: String
   }
 
 });

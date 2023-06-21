@@ -11,53 +11,76 @@ let TreatmentVoucherSchema = new Schema({
         required: true,
         default: false
     },
-    createdAt:{
-        type:Date,
-        default:Date.now()
+    createdAt: {
+        type: Date,
+        default: Date.now()
     },
-    relatedTreatment:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Treatments'
+    relatedTreatment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Treatments'
     },
-    relatedAppointment:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Appointments'
+    relatedAppointment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Appointments'
     },
-    relatedPatient:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Patients'
+    relatedPatient: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Patients'
     },
-    paymentMethod:{
-        type:String,
-        enum:['by Appointment','Lumpsum','Total','Advanced']
+    paymentMethod: {
+        type: String,
+        enum: ['by Appointment', 'Lumpsum', 'Total', 'Advanced', 'FOC']
     },
-    amount:{
-        type:Number
+    amount: {
+        type: Number
     },
-    code:{
-        type:String
+    code: {
+        type: String
     },
-    relatedBank:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'AccountingLists'
+    relatedBank: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AccountingLists'
     },
-    relatedCash:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'AccountingLists'
+    relatedCash: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AccountingLists'
     },
-    paymentType:{
-        type:String,
-        enum:['Bank','Cash']
+    paymentType: {
+        type: String,
+        enum: ['Bank', 'Cash']
     },
-    seq:{
-        type:Number
+    seq: {
+        type: Number
     },
     relatedTreatmentSelection: {
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'TreatmentSelections'
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TreatmentSelections'
     },
-    remark:{
-        type:String 
+    remark: {
+        type: String
+    },
+    bankType: {
+        type: String,
+        enum: ['Normal', 'POS', 'Pay']
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users'
+    },
+    relatedAccounting: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AccountingLists'
+    },
+    saleReturnType: {
+        type: Boolean,
+        default: false
+    },
+    remark: {
+        type: String
+    },
+    payment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Attachments'
     }
 });
 
