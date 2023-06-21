@@ -96,7 +96,7 @@ let TreatmentSelectionSchema = new Schema({
   },
   purchaseType: {
     type: String,
-    enum: ['Normal', 'Solid Beauty']
+    enum: ['Clinic', 'Surgery']
   },
   remark: {
     type: String
