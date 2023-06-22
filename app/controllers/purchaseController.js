@@ -51,27 +51,24 @@ exports.createPurchase = async (req, res, next) => {
     try {
         data.medicineItems.map(async function (element, index) {
             const result = await MedicineItems.findOneAndUpdate(
-                { _id: element.item_id },
-                { $inc: { currentQuantity: element.qty  } },
+                { relatedMedicineItems: element.item_id },
+                { $inc: { currentQuantity: element.qty, totalUnit: element.totalUnit } },
                 { new: true },
             ).populate('supplierName').populate('medicineItems.item_id').populate('procedureItems.item_id')
-            console.log(result)
         })
         data.procedureItems.map(async function (element, index) {
             const result = await ProcedureItems.findOneAndUpdate(
-                { _id: element.item_id },
-                { $inc: { currentQuantity: element.qty  } },
+                { relatedProcedureItems: element.item_id },
+                { $inc: { currentQuantity: element.qty, totalUnit: element.totalUnit } },
                 { new: true },
             ).populate('name').populate('relatedCategory').populate('relatedBrand').populate('relatedSubCategory')
-            console.log(result)
         })
         data.accessoryItems.map(async function (element, index) {
             const result = await AccessoryItems.findOneAndUpdate(
-                { _id: element.item_id },
-                { $inc: { currentQuantity: element.qty  } },
+                { relatedAccessoryItems: element.item_id },
+                { $inc: { currentQuantity: element.qty, totalUnit: element.totalUnit } },
                 { new: true },
             ).populate('name').populate('relatedCategory').populate('relatedBrand').populate('relatedSubCategory')
-            console.log(result)
         })
         const newPurchase = new Purchase(data);
         const result = await newPurchase.save();
