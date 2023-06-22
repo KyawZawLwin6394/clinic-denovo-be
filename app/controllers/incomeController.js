@@ -1,7 +1,8 @@
 'use strict';
 const Income = require('../models/income');
-const Transaction = require('../models/transaction')
-const Bank = require('../models/bank');
+const Transaction = require('../models/transaction');
+const Accounting = require('../models/accountingList');
+
 exports.listAllIncomes = async (req, res) => {
   let { keyword, role, limit, skip } = req.query;
   let count = 0;
@@ -50,7 +51,7 @@ exports.createIncome = async (req, res, next) => {
     const newBody = req.body;
     const newIncome = new Income(newBody);
     const result = await newIncome.save();
-    const populatedResult = await Income.find({_id:result._id}).populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
+    const populatedResult = await Income.find({ _id: result._id }).populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
     // const bankResult = await Bank.findOneAndUpdate(
     //   { _id: req.body.id },
     //   { $inc: { balance: 50 } },
@@ -67,7 +68,7 @@ exports.createIncome = async (req, res, next) => {
       "treatmentFlag": false,
       "relatedTransaction": null,
       "relatedAccounting": newBody.relatedAccounting,
-      "relatedIncome" : result._id
+      "relatedIncome": result._id
     }
     const newTrans = new Transaction(firstTransaction)
     const fTransResult = await newTrans.save();
@@ -83,12 +84,12 @@ exports.createIncome = async (req, res, next) => {
         "treatmentFlag": false,
         "relatedTransaction": fTransResult._id,
         "relatedAccounting": newBody.relatedAccounting,
-        "relatedIncome" : result._id,
+        "relatedIncome": result._id,
         "relatedCredit": newBody.relatedCredit
       }
       const secTrans = new Transaction(secondTransaction)
       var secTransResult = await secTrans.save();
-      
+
     } else {
       //bank or cash
       const secondTransaction = {
@@ -101,14 +102,14 @@ exports.createIncome = async (req, res, next) => {
         "treatmentFlag": false,
         "relatedTransaction": fTransResult._id,
         "relatedAccounting": (newBody.relatedBankAccount) ? newBody.relatedBankAccount : newBody.relatedCashAccount,
-        "relatedIncome" : result._id,
+        "relatedIncome": result._id,
         "relatedBank": newBody.relatedBankAccount,
         "relatedCash": newBody.relatedCashAccount
       }
       const secTrans = new Transaction(secondTransaction)
       var secTransResult = await secTrans.save();
     }
-    
+
     console.log(result, fTransResult, secTransResult)
     res.status(200).send({
       message: 'Income create success',
@@ -161,3 +162,43 @@ exports.activateIncome = async (req, res, next) => {
     return res.status(500).send({ "error": true, "message": error.message })
   }
 };
+
+exports.incomeFilter = async (req, res) => {
+  let query = { relatedBankAccount: { $exists: true }, isDeleted: false }
+  try {
+    const { start, end, relatedBranch, createdBy } = req.query
+    if (start && end) query.date = { $gte: start, $lt: end }
+    if (relatedBranch) query.relatedBranch = relatedBranch
+    if (createdBy) query.createdBy = createdBy
+    const bankResult = await Income.find(query).populate('relatedAccounting relatedBankAccount relatedCashAccount relatedCredit relatedBranch')
+    const { relatedBankAccount, ...query2 } = query;
+    query2.relatedCashAccount = { $exists: true };
+    const cashResult = await Income.find(query2).populate('relatedAccounting relatedBankAccount relatedCashAccount relatedCredit relatedBranch')
+    const BankNames = bankResult.reduce((result, { relatedBankAccount, finalAmount }) => {
+      const { name } = relatedBankAccount;
+      result[name] = (result[name] || 0) + finalAmount;
+      return result;
+    }, {});
+    const CashNames = cashResult.reduce((result, { relatedCashAccount, finalAmount }) => {
+      const { name } = relatedCashAccount;
+      result[name] = (result[name] || 0) + finalAmount;
+      return result;
+    }, {});
+    const BankTotal = bankResult.reduce((total, sale) => total + sale.finalAmount, 0);
+    const CashTotal = cashResult.reduce((total, sale) => total + sale.finalAmount, 0);
+
+    return res.status(200).send({
+      success: true,
+      data: {
+        BankList: bankResult,
+        CashList: cashResult,
+        BankNames: BankNames,
+        CashNames: CashNames,
+        BankTotal: BankTotal,
+        CashTotal: CashTotal
+      }
+    });
+  } catch (error) {
+    return res.status(500).send({ error: true, message: error.message })
+  }
+}

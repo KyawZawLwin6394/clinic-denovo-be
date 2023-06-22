@@ -1,7 +1,9 @@
 'use strict';
 const MedicineSale = require('../models/medicineSale');
 const Transaction = require('../models/transaction');
-const Accounting = require('../models/accountingList')
+const Accounting = require('../models/accountingList');
+const Patient = require('../models/patient');
+const Stock = require('../models/stock');
 
 exports.listAllMedicineSales = async (req, res) => {
   let { keyword, role, limit, skip } = req.query;
@@ -254,5 +256,45 @@ exports.confirmTransaction = async (req, res, next) => {
     return res.status(200).send({ success: true, fTransResult: fTransResult, secTransResult: secTransResult })
   } catch (error) {
     return res.status(500).send({ error: true, message: err.message })
+  }
+}
+
+exports.MedicineSaleFilter = async (req, res) => {
+  let query = { relatedBank: { $exists: true }, isDeleted: false }
+  try {
+    const { start, end, relatedBranch, createdBy } = req.query
+    if (start && end) query.createdAt = { $gte: start, $lt: end }
+    if (relatedBranch) query.relatedBranch = relatedBranch
+    if (createdBy) query.createdBy = createdBy
+    const bankResult = await MedicineSale.find(query).populate('relatedBank relatedTreatment relatedPatient relatedAppointment medicineItems.item_id relatedCash relatedAccount relatedTransaction relatedBranch').populate('createdBy', 'givenName')
+    const { relatedBank, ...query2 } = query;
+    query2.relatedCash = { $exists: true };
+    const cashResult = await MedicineSale.find(query2).populate('relatedBank relatedTreatment relatedPatient relatedAppointment medicineItems.item_id relatedCash relatedAccount relatedTransaction relatedBranch').populate('createdBy', 'givenName')
+    const BankNames = bankResult.reduce((result, { relatedBank, totalAmount }) => {
+      const { name } = relatedBank;
+      result[name] = (result[name] || 0) + totalAmount;
+      return result;
+    }, {});
+    const CashNames = cashResult.reduce((result, { relatedCash, totalAmount }) => {
+      const { name } = relatedCash;
+      result[name] = (result[name] || 0) + totalAmount;
+      return result;
+    }, {});
+    const BankTotal = bankResult.reduce((total, sale) => total + sale.totalAmount, 0);
+    const CashTotal = cashResult.reduce((total, sale) => total + sale.totalAmount, 0);
+
+    return res.status(200).send({
+      success: true,
+      data: {
+        BankList: bankResult,
+        CashList: cashResult,
+        BankNames: BankNames,
+        CashNames: CashNames,
+        BankTotal: BankTotal,
+        CashTotal: CashTotal
+      }
+    });
+  } catch (error) {
+    return res.status(500).send({ error: true, message: error.message })
   }
 }

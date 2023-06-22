@@ -15,5 +15,6 @@ module.exports = (app) => {
         .delete(verifyToken, catchError(income.deleteIncome)) 
         .post( verifyToken, catchError(income.activateIncome))
 
+    app.route('/api/incomes/filter').get(verifyToken, catchError(income.incomeFilter))
     app.route('/api/incomes').get( verifyToken, catchError(income.listAllIncomes))
 };

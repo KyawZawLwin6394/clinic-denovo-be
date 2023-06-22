@@ -1,6 +1,7 @@
 'use strict';
 const Expense = require('../models/expense');
 const Transaction = require('../models/transaction');
+const Accounting = require('../models/accountingList');
 
 exports.listAllExpenses = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -159,3 +160,45 @@ exports.activateExpense = async (req, res, next) => {
         return res.status(500).send({ "error": true, "message": error.message })
     }
 };
+
+exports.expenseFilter = async (req, res) => {
+    let query = { relatedBankAccount: { $exists: true }, isDeleted: false }
+    try {
+        const { start, end, relatedBranch, createdBy } = req.query
+        if (start && end) query.date = { $gte: start, $lt: end }
+        if (relatedBranch) query.relatedBranch = relatedBranch
+        if (createdBy) query.createdBy = createdBy
+        const bankResult = await Expense.find(query).populate('relatedBankAccount relatedAccounting relatedCredit relatedCashAccount relatedBranch').populate('createdBy', 'givenName')
+        const { relatedBankAccount, ...query2 } = query;
+        query2.relatedCashAccount = { $exists: true };
+        console.log(query2)
+        const cashResult = await Expense.find(query2).populate('relatedBankAccount relatedAccounting relatedCredit relatedCashAccount relatedBranch').populate('createdBy', 'givenName')
+        const BankNames = bankResult.reduce((result, { relatedBankAccount, finalAmount }) => {
+            const { name } = relatedBankAccount;
+            result[name] = (result[name] || 0) + finalAmount;
+            return result;
+        }, {});
+        const CashNames = cashResult.reduce((result, { relatedCashAccount, finalAmount }) => {
+            const { name } = relatedCashAccount;
+            result[name] = (result[name] || 0) + finalAmount;
+            return result;
+        }, {});
+        const BankTotal = bankResult.reduce((total, sale) => total + sale.finalAmount, 0);
+        const CashTotal = cashResult.reduce((total, sale) => total + sale.finalAmount, 0);
+        console.log(BankNames)
+
+        return res.status(200).send({
+            success: true,
+            data: {
+                BankList: bankResult,
+                CashList: cashResult,
+                BankNames: BankNames,
+                CashNames: CashNames,
+                BankTotal: BankTotal,
+                CashTotal: CashTotal
+            }
+        });
+    } catch (error) {
+        return res.status(500).send({ error: true, message: error.message })
+    }
+}

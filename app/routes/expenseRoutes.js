@@ -15,5 +15,6 @@ module.exports = (app) => {
         .delete(verifyToken, catchError(expense.deleteExpense)) 
         .post( verifyToken, catchError(expense.activateExpense))
 
+    app.route('/api/expenses/filter').get(verifyToken, catchError(expense.expenseFilter))
     app.route('/api/expenses').get( verifyToken, catchError(expense.listAllExpenses))
 };
