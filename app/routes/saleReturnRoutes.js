@@ -7,14 +7,14 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/sale-return')
-        .post( catchError(saleReturn.createSaleReturn))
-        .put( catchError(saleReturn.updateSaleReturn))
+        .post( verifyToken, catchError(saleReturn.createSaleReturn))
+        .put( verifyToken, catchError(saleReturn.updateSaleReturn))
 
     app.route('/api/sale-return/:id')
-        .get( catchError(saleReturn.getSaleReturn))
-        .delete( catchError(saleReturn.deleteSaleReturn))
-        .post( catchError(saleReturn.activateSaleReturn))
+        .get( verifyToken, catchError(saleReturn.getSaleReturn))
+        .delete( verifyToken, catchError(saleReturn.deleteSaleReturn))
+        .post( verifyToken, catchError(saleReturn.activateSaleReturn))
 
-    app.route('/api/sale-returns').get( catchError(saleReturn.listAllSaleReturns))
+    app.route('/api/sale-returns').get( verifyToken, catchError(saleReturn.listAllSaleReturns))
 
 };

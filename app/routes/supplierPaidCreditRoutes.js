@@ -7,13 +7,13 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/supplier-paid-credit')
-        .post(catchError(supplierPaidCredit.createSupplierPaidCredit))
-        .put(catchError(supplierPaidCredit.updateSupplierPaidCredit))
+        .post(verifyToken, catchError(supplierPaidCredit.createSupplierPaidCredit))
+        .put(verifyToken, catchError(supplierPaidCredit.updateSupplierPaidCredit))
         
     app.route('/api/supplier-paid-credit/:id')
-        .get(catchError(supplierPaidCredit.getSupplierPaidCredit))
-        .delete(catchError(supplierPaidCredit.deleteSupplierPaidCredit)) 
-        .post(catchError(supplierPaidCredit.activateSupplierPaidCredit))
+        .get(verifyToken, catchError(supplierPaidCredit.getSupplierPaidCredit))
+        .delete(verifyToken, catchError(supplierPaidCredit.deleteSupplierPaidCredit)) 
+        .post(verifyToken, catchError(supplierPaidCredit.activateSupplierPaidCredit))
 
-    app.route('/api/supplier-paid-credits').get(catchError(supplierPaidCredit.listAllSupplierPaidCredits))
+    app.route('/api/supplier-paid-credits').get(verifyToken, catchError(supplierPaidCredit.listAllSupplierPaidCredits))
 };

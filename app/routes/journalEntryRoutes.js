@@ -7,10 +7,10 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/journal')
-        .post(catchError(journal.createJournal))
+        .post(verifyToken, catchError(journal.createJournal))
         
     app.route('/api/journal/:id')
-        .get(catchError(journal.getJournal))
+        .get(verifyToken, catchError(journal.getJournal))
 
-    app.route('/api/journals').get(catchError(journal.getAllJournals))
+    app.route('/api/journals').get(verifyToken, catchError(journal.getAllJournals))
 };

@@ -7,14 +7,14 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/discount')
-        .post( catchError(discount.createDiscount))
-        .put( catchError(discount.updateDiscount))
+        .post( verifyToken, catchError(discount.createDiscount))
+        .put( verifyToken, catchError(discount.updateDiscount))
 
     app.route('/api/discount/:id')
-        .get( catchError(discount.getDiscount))
-        .delete( catchError(discount.deleteDiscount))
-        .post( catchError(discount.activateDiscount))
+        .get( verifyToken, catchError(discount.getDiscount))
+        .delete( verifyToken, catchError(discount.deleteDiscount))
+        .post( verifyToken, catchError(discount.activateDiscount))
 
-    app.route('/api/discounts').get( catchError(discount.listAllDiscounts))
+    app.route('/api/discounts').get( verifyToken, catchError(discount.listAllDiscounts))
 
 };

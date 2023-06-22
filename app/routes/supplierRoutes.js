@@ -7,15 +7,15 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/supplier')
-        .post(catchError(supplier.createSupplier))
-        .put(catchError(supplier.updateSupplier))
+        .post(verifyToken, catchError(supplier.createSupplier))
+        .put(verifyToken, catchError(supplier.updateSupplier))
         
     app.route('/api/supplier/:id')
-        .get(catchError(supplier.getSupplier))
-        .delete(catchError(supplier.deleteSupplier)) 
-        .post(catchError(supplier.activateSupplier))
+        .get(verifyToken, catchError(supplier.getSupplier))
+        .delete(verifyToken, catchError(supplier.deleteSupplier)) 
+        .post(verifyToken, catchError(supplier.activateSupplier))
 
-    app.route('/api/suppliers').get(catchError(supplier.listAllSuppliers))
+    app.route('/api/suppliers').get(verifyToken, catchError(supplier.listAllSuppliers))
 
-    app.route('/api/suppliers/pay').put(catchError(supplier.paySupplier))
+    app.route('/api/suppliers/pay').put(verifyToken, catchError(supplier.paySupplier))
 };

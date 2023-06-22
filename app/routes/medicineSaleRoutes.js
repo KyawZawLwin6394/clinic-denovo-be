@@ -7,20 +7,20 @@ const verifyToken = require("../lib/verifyToken");
 module.exports = (app) => {
 
     app.route('/api/medicine-sale')
-        .post(catchError(medicineSale.createMedicineSale))
-        .put(catchError(medicineSale.updateMedicineSale))
+        .post(verifyToken, catchError(medicineSale.createMedicineSale))
+        .put(verifyToken, catchError(medicineSale.updateMedicineSale))
 
         
     app.route('/api/medicine-sale/:id')
-        .get(catchError(medicineSale.getMedicineSale))
-        .delete(catchError(medicineSale.deleteMedicineSale)) 
-        .post(catchError(medicineSale.activateMedicineSale))
+        .get(verifyToken, catchError(medicineSale.getMedicineSale))
+        .delete(verifyToken, catchError(medicineSale.deleteMedicineSale)) 
+        .post(verifyToken, catchError(medicineSale.activateMedicineSale))
 
-    app.route('/api/medicine-sales').get(catchError(medicineSale.listAllMedicineSales))
-    app.route('/api/medicine-sales/code').get(catchError(medicineSale.createCode))
+    app.route('/api/medicine-sales').get(verifyToken, catchError(medicineSale.listAllMedicineSales))
+    app.route('/api/medicine-sales/code').get(verifyToken, catchError(medicineSale.createCode))
 
-    app.route('/api/medicine-sales/transaction').post(catchError(medicineSale.createMedicineSaleTransaction))
-    app.route('/api/medicine-sales/filter').get( catchError(medicineSale.filterMedicineSales))
-    app.route('/api/medicine-sales/confirm').post( catchError(medicineSale.confirmTransaction))
+    app.route('/api/medicine-sales/transaction').post(verifyToken, catchError(medicineSale.createMedicineSaleTransaction))
+    app.route('/api/medicine-sales/filter').get( verifyToken, catchError(medicineSale.filterMedicineSales))
+    app.route('/api/medicine-sales/confirm').post( verifyToken, catchError(medicineSale.confirmTransaction))
 
 };

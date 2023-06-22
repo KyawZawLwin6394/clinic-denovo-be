@@ -8,18 +8,18 @@ const upload = require('../lib/fieldUploader').upload;
 module.exports = (app) => {
 
     app.route('/api/procedure-history')
-        .post(upload, catchError(procedureHistory.createProcedureHistory))
-        .put(catchError(procedureHistory.updateProcedureHistory))
+        .post(upload, verifyToken, catchError(procedureHistory.createProcedureHistory))
+        .put(verifyToken, catchError(procedureHistory.updateProcedureHistory))
 
     app.route('/api/procedure-history/:id')
-        .get(catchError(procedureHistory.getProcedureHistory))
-        .delete(catchError(procedureHistory.deleteProcedureHistory))
-        .post(catchError(procedureHistory.activateProcedureHistory))
+        .get(verifyToken, catchError(procedureHistory.getProcedureHistory))
+        .delete(verifyToken, catchError(procedureHistory.deleteProcedureHistory))
+        .post(verifyToken, catchError(procedureHistory.activateProcedureHistory))
 
     app.route('/api/procedure-history-upload')
-        .post(upload, catchError(procedureHistory.uploadImage))
+        .post(upload, verifyToken, catchError(procedureHistory.uploadImage))
 
-    app.route('/api/procedure-histories').get(catchError(procedureHistory.listAllProcedureHistorys))
+    app.route('/api/procedure-histories').get(verifyToken, catchError(procedureHistory.listAllProcedureHistorys))
 
-    app.route('/api/procedure-histories/filter').get(catchError(procedureHistory.getRelatedProcedureHistory))
+    app.route('/api/procedure-histories/filter').get(verifyToken, catchError(procedureHistory.getRelatedProcedureHistory))
 };

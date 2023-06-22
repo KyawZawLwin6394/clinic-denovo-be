@@ -9,21 +9,21 @@ const upload = require('../lib/fieldUploader').upload;
 module.exports = (app) => {
 
     app.route('/api/treatment-selection')
-        .post(upload, catchError(treatmentSelection.createTreatmentSelection))
-        .put(catchError(treatmentSelection.updateTreatmentSelection))
+        .post(upload, verifyToken, catchError(treatmentSelection.createTreatmentSelection))
+        .put(verifyToken, catchError(treatmentSelection.updateTreatmentSelection))
 
     app.route('/api/treatment-selection/:id')
-        .get(catchError(treatmentSelection.getTreatmentSelection))
-        .delete(catchError(treatmentSelection.deleteTreatmentSelection))
-        .post(catchError(treatmentSelection.activateTreatmentSelection))
+        .get(verifyToken, catchError(treatmentSelection.getTreatmentSelection))
+        .delete(verifyToken, catchError(treatmentSelection.deleteTreatmentSelection))
+        .post(verifyToken, catchError(treatmentSelection.activateTreatmentSelection))
 
-    app.route('/api/treatment-selections').get(catchError(treatmentSelection.listAllTreatmentSelections))
+    app.route('/api/treatment-selections').get(verifyToken, catchError(treatmentSelection.listAllTreatmentSelections))
 
-    app.route('/api/treatment-selections/transaction').post(catchError(treatmentSelection.createTreatmentTransaction))
-    app.route('/api/treatment-selections/treatment/:id').get(catchError(treatmentSelection.getTreatementSelectionByTreatmentID))
-    app.route('/api/treatment-selections/payment').put(upload, catchError(treatmentSelection.treatmentPayment))
-    app.route('/api/treatment-selections/filter').post(catchError(treatmentSelection.getRelatedTreatmentSelections))
-    app.route('/api/treatment-selections/search').post(catchError(treatmentSelection.searchTreatmentSelections))
-    app.route('/api/treatment-selections/code').get(catchError(treatmentSelection.createTreatmentSelectionCode))
+    app.route('/api/treatment-selections/transaction').post(verifyToken, catchError(treatmentSelection.createTreatmentTransaction))
+    app.route('/api/treatment-selections/treatment/:id').get(verifyToken, catchError(treatmentSelection.getTreatementSelectionByTreatmentID))
+    app.route('/api/treatment-selections/payment').put(upload, verifyToken, catchError(treatmentSelection.treatmentPayment))
+    app.route('/api/treatment-selections/filter').post(verifyToken, catchError(treatmentSelection.getRelatedTreatmentSelections))
+    app.route('/api/treatment-selections/search').post(verifyToken, catchError(treatmentSelection.searchTreatmentSelections))
+    app.route('/api/treatment-selections/code').get(verifyToken, catchError(treatmentSelection.createTreatmentSelectionCode))
 
 };

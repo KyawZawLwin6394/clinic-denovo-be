@@ -9,5 +9,5 @@ module.exports = app => {
 
        app.route('/api/auth/login').post(auth.login);
 
-       app.route('/api/auth/logout').get(catchError(auth.logout));
+       app.route('/api/auth/logout').get(verifyToken, catchError(auth.logout));
 };

@@ -7,13 +7,13 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/purchase')
-        .post(catchError(purchase.createPurchase))
-        .put(catchError(purchase.updatePurchase))
+        .post(verifyToken, catchError(purchase.createPurchase))
+        .put(verifyToken, catchError(purchase.updatePurchase))
         
     app.route('/api/purchase/:id')
-        .get(catchError(purchase.getPurchase))
-        .delete(catchError(purchase.deletePurchase)) 
-        .post(catchError(purchase.activatePurchase))
+        .get(verifyToken, catchError(purchase.getPurchase))
+        .delete(verifyToken, catchError(purchase.deletePurchase)) 
+        .post(verifyToken, catchError(purchase.activatePurchase))
 
-    app.route('/api/purchases').get(catchError(purchase.listAllPurchases))
+    app.route('/api/purchases').get(verifyToken, catchError(purchase.listAllPurchases))
 };

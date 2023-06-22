@@ -7,16 +7,16 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/patient-treatment')
-        .post(catchError(patientTreatment.createPatientTreatment))
-        .put(catchError(patientTreatment.updatePatientTreatment))
+        .post(verifyToken, catchError(patientTreatment.createPatientTreatment))
+        .put(verifyToken, catchError(patientTreatment.updatePatientTreatment))
         
     app.route('/api/patient-treatment/:id')
-        .get( catchError(patientTreatment.getPatientTreatment))
-        .delete(catchError(patientTreatment.deletePatientTreatment)) 
-        .post( catchError(patientTreatment.activatePatientTreatment))
+        .get( verifyToken, catchError(patientTreatment.getPatientTreatment))
+        .delete(verifyToken, catchError(patientTreatment.deletePatientTreatment)) 
+        .post( verifyToken, catchError(patientTreatment.activatePatientTreatment))
 
-    app.route('/api/patient-treatments').get(catchError(patientTreatment.listAllPatientTreatments))
+    app.route('/api/patient-treatments').get(verifyToken, catchError(patientTreatment.listAllPatientTreatments))
 
-    app.route('/api/patient-treatments/outstanding').get(catchError(patientTreatment.getOutstandingPatientTreatment))
-    app.route('/api/patient-treatments/well-done').get(catchError(patientTreatment.getWellDonePatientTreatment))
+    app.route('/api/patient-treatments/outstanding').get(verifyToken, catchError(patientTreatment.getOutstandingPatientTreatment))
+    app.route('/api/patient-treatments/well-done').get(verifyToken, catchError(patientTreatment.getWellDonePatientTreatment))
 };

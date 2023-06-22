@@ -7,18 +7,18 @@ const verifyToken = require("../lib/verifyToken");
 module.exports = (app) => {
 
     app.route('/api/medicine-item')
-        .post(catchError(medicineItem.createMedicineItem))
-        .put(catchError(medicineItem.updateMedicineItem))
+        .post(verifyToken, catchError(medicineItem.createMedicineItem))
+        .put(verifyToken, catchError(medicineItem.updateMedicineItem))
         
     app.route('/api/medicine-item/:id')
-        .get(catchError(medicineItem.getMedicineItem))
-        .delete(catchError(medicineItem.deleteMedicineItem)) 
-        .post(catchError(medicineItem.activateMedicineItem))
+        .get(verifyToken, catchError(medicineItem.getMedicineItem))
+        .delete(verifyToken, catchError(medicineItem.deleteMedicineItem)) 
+        .post(verifyToken, catchError(medicineItem.activateMedicineItem))
 
-    app.route('/api/medicine-items').get(catchError(medicineItem.listAllMedicineItems))
+    app.route('/api/medicine-items').get(verifyToken, catchError(medicineItem.listAllMedicineItems))
 
-    app.route('/api/medicine-items/:id').get(catchError(medicineItem.getRelatedMedicineItem))
+    app.route('/api/medicine-items/:id').get(verifyToken, catchError(medicineItem.getRelatedMedicineItem))
 
-    app.route('/api/medicine-items-search').post(catchError(medicineItem.searchMedicineItems))
+    app.route('/api/medicine-items-search').post(verifyToken, catchError(medicineItem.searchMedicineItems))
 
 };

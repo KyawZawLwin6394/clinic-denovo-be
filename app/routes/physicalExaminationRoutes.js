@@ -7,19 +7,19 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/physical-examination')
-        .post(catchError(physicalExamination.createPhysicalExamination))
-        .put(catchError(physicalExamination.updatePhysicalExamination))
+        .post(verifyToken, catchError(physicalExamination.createPhysicalExamination))
+        .put(verifyToken, catchError(physicalExamination.updatePhysicalExamination))
 
     app.route('/api/physical-examination/:id')
-        .get(catchError(physicalExamination.getPhysicalExamination))
-        .delete(catchError(physicalExamination.deletePhysicalExamination))
-        .post(catchError(physicalExamination.activatePhysicalExamination))
+        .get(verifyToken, catchError(physicalExamination.getPhysicalExamination))
+        .delete(verifyToken, catchError(physicalExamination.deletePhysicalExamination))
+        .post(verifyToken, catchError(physicalExamination.activatePhysicalExamination))
 
-    app.route('/api/physical-examinations').get(catchError(physicalExamination.listAllPhysicalExaminations))
+    app.route('/api/physical-examinations').get(verifyToken, catchError(physicalExamination.listAllPhysicalExaminations))
 
     app.route('/api/physical-examinations-filter')
-        .get(catchError(physicalExamination.filterPhysicalExaminations))
+        .get(verifyToken, catchError(physicalExamination.filterPhysicalExaminations))
 
     app.route('/api/physical-examinations-search')
-        .post(catchError(physicalExamination.searchPhysicalExaminations))
+        .post(verifyToken, catchError(physicalExamination.searchPhysicalExaminations))
 };

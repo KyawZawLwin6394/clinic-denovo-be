@@ -8,21 +8,21 @@ const upload = require('../lib/fieldUploader').upload;
 module.exports = (app) => {
 
     app.route('/api/patient')
-        .post(upload,catchError(patient.createPatient))
-        .put(upload, catchError(patient.updatePatient))
+        .post(upload,verifyToken, catchError(patient.createPatient))
+        .put(upload, verifyToken, catchError(patient.updatePatient))
     
     app.route('/api/patient/:id')
-        .get(catchError(patient.getPatient))
-        .delete(catchError(patient.deletePatient)) 
-        .post(catchError(patient.activatePatient))
+        .get(verifyToken, catchError(patient.getPatient))
+        .delete(verifyToken, catchError(patient.deletePatient)) 
+        .post(verifyToken, catchError(patient.activatePatient))
 
-    app.route('/api/patients').get(catchError(patient.listAllPatients))
+    app.route('/api/patients').get(verifyToken, catchError(patient.listAllPatients))
 
     app.route('/api/patients-filter')
-        .get(catchError(patient.filterPatients))
+        .get(verifyToken, catchError(patient.filterPatients))
 
     app.route('/api/patients-search')
-        .post(catchError(patient.searchPatients))
+        .post(verifyToken, catchError(patient.searchPatients))
     
-    app.route('/api/patients/history-and-patient/:id').get(catchError(patient.getHistoryAndPhysicalExamination))
+    app.route('/api/patients/history-and-patient/:id').get(verifyToken, catchError(patient.getHistoryAndPhysicalExamination))
 };

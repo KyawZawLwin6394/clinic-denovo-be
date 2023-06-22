@@ -7,14 +7,14 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/stock-transfer')
-        .post(catchError(stockTransfer.createStockTransfer))
-        .put(catchError(stockTransfer.updateStockTransfer))
+        .post(verifyToken, catchError(stockTransfer.createStockTransfer))
+        .put(verifyToken, catchError(stockTransfer.updateStockTransfer))
 
     app.route('/api/stock-transfer/:id')
-        .get(catchError(stockTransfer.getStockTransfer))
-        .delete(catchError(stockTransfer.deleteStockTransfer))
-        .post(catchError(stockTransfer.activateStockTransfer))
+        .get(verifyToken, catchError(stockTransfer.getStockTransfer))
+        .delete(verifyToken, catchError(stockTransfer.deleteStockTransfer))
+        .post(verifyToken, catchError(stockTransfer.activateStockTransfer))
 
-    app.route('/api/stock-transfers').get(catchError(stockTransfer.listAllStockRequests))
-    app.route('/api/stock-transfers/code').get(catchError(stockTransfer.generateCode))
+    app.route('/api/stock-transfers').get(verifyToken, catchError(stockTransfer.listAllStockRequests))
+    app.route('/api/stock-transfers/code').get(verifyToken, catchError(stockTransfer.generateCode))
 };

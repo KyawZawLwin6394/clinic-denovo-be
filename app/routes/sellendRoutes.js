@@ -7,13 +7,13 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/sellend')
-        .post(catchError(sellend.createSellEnd))
-        .put(catchError(sellend.updateSellEnd))
+        .post(verifyToken, catchError(sellend.createSellEnd))
+        .put(verifyToken, catchError(sellend.updateSellEnd))
         
     app.route('/api/sellend/:id')
-        .get(catchError(sellend.getSellEnd))
-        .delete(catchError(sellend.deleteSellEnd)) 
-        .post(catchError(sellend.activateSellEnd))
+        .get(verifyToken, catchError(sellend.getSellEnd))
+        .delete(verifyToken, catchError(sellend.deleteSellEnd)) 
+        .post(verifyToken, catchError(sellend.activateSellEnd))
 
-    app.route('/api/sellends').get(catchError(sellend.listAllSellEnds))
+    app.route('/api/sellends').get(verifyToken, catchError(sellend.listAllSellEnds))
 };

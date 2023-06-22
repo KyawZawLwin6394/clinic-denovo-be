@@ -7,16 +7,16 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/voucher')
-        .post( catchError(voucher.createVoucher))       
-        .put( catchError(voucher.updateVoucher))
+        .post( verifyToken, catchError(voucher.createVoucher))       
+        .put( verifyToken, catchError(voucher.updateVoucher))
 
     app.route('/api/voucher/:id')
-        .get( catchError(voucher.getVoucher))
-        .delete( catchError(voucher.deleteVoucher))
-        .post( catchError(voucher.activateVoucher))
+        .get( verifyToken, catchError(voucher.getVoucher))
+        .delete( verifyToken, catchError(voucher.deleteVoucher))
+        .post( verifyToken, catchError(voucher.activateVoucher))
 
-    app.route('/api/vouchers').get( catchError(voucher.listAllVouchers))
+    app.route('/api/vouchers').get( verifyToken, catchError(voucher.listAllVouchers))
 
     app.route('/api/vouchers/validate')
-        .post( catchError(voucher.createVoucherWithValidation))
+        .post( verifyToken, catchError(voucher.createVoucherWithValidation))
 };

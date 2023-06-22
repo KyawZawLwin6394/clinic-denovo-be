@@ -7,16 +7,16 @@ const verifyToken = require("../lib/verifyToken");
 module.exports = (app) => {
 
     app.route('/api/procedure-item')
-        .post(catchError(procedureItem.createProcedureItem))
-        .put(catchError(procedureItem.updateProcedureItem))
+        .post(verifyToken, catchError(procedureItem.createProcedureItem))
+        .put(verifyToken, catchError(procedureItem.updateProcedureItem))
         
     app.route('/api/procedure-item/:id')
-        .get(catchError(procedureItem.getProcedureItem))
-        .delete(catchError(procedureItem.deleteProcedureItem)) 
-        .post(catchError(procedureItem.activateProcedureItem))
+        .get(verifyToken, catchError(procedureItem.getProcedureItem))
+        .delete(verifyToken, catchError(procedureItem.deleteProcedureItem)) 
+        .post(verifyToken, catchError(procedureItem.activateProcedureItem))
 
-    app.route('/api/procedure-items').get(catchError(procedureItem.listAllProcedureItems))
-    app.route('/api/procedure-items/:id').get(catchError(procedureItem.getRelatedProcedureItem))
-    app.route('/api/procedure-items-search').post(catchError(procedureItem.searchProcedureItems))
+    app.route('/api/procedure-items').get(verifyToken, catchError(procedureItem.listAllProcedureItems))
+    app.route('/api/procedure-items/:id').get(verifyToken, catchError(procedureItem.getRelatedProcedureItem))
+    app.route('/api/procedure-items-search').post(verifyToken, catchError(procedureItem.searchProcedureItems))
 
 };

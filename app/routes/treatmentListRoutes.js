@@ -7,21 +7,21 @@ const verifyToken = require("../lib/verifyToken");
 module.exports = (app) => {
 
     app.route('/api/treatment-list')
-        .post(catchError(treatmentList.createTreatmentList))
-        .put(catchError(treatmentList.updateTreatmentList))
+        .post(verifyToken, catchError(treatmentList.createTreatmentList))
+        .put(verifyToken, catchError(treatmentList.updateTreatmentList))
         
     app.route('/api/treatment-list/:id')
-        .get(catchError(treatmentList.getTreatmentList))
-        .delete(catchError(treatmentList.deleteTreatmentList)) 
-        .post(catchError(treatmentList.activateTreatmentList))
+        .get(verifyToken, catchError(treatmentList.getTreatmentList))
+        .delete(verifyToken, catchError(treatmentList.deleteTreatmentList)) 
+        .post(verifyToken, catchError(treatmentList.activateTreatmentList))
 
-    app.route('/api/treatment-lists').get(catchError(treatmentList.listAllTreatmentLists))
+    app.route('/api/treatment-lists').get(verifyToken, catchError(treatmentList.listAllTreatmentLists))
 
     app.route('/api/treatment-lists-filter')
-        .get(catchError(treatmentList.filterTreatmentLists))
+        .get(verifyToken, catchError(treatmentList.filterTreatmentLists))
 
     app.route('/api/treatment-lists-search')
-        .post(catchError(treatmentList.searchTreatmentLists))
+        .post(verifyToken, catchError(treatmentList.searchTreatmentLists))
         
-    app.route('/api/treatment-lists/treatment/:id').get(catchError(treatmentList.getRelatedTreatments))
+    app.route('/api/treatment-lists/treatment/:id').get(verifyToken, catchError(treatmentList.getRelatedTreatments))
 };

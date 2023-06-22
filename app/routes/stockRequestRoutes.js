@@ -7,14 +7,14 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/stock-request')
-        .post(catchError(stockRequest.createStockRequest))
-        .put(catchError(stockRequest.updateStockRequest))
+        .post(verifyToken, catchError(stockRequest.createStockRequest))
+        .put(verifyToken, catchError(stockRequest.updateStockRequest))
 
     app.route('/api/stock-request/:id')
-        .get(catchError(stockRequest.getStockRequest))
-        .delete(catchError(stockRequest.deleteStockRequest))
-        .post(catchError(stockRequest.activateStockRequest))
+        .get(verifyToken, catchError(stockRequest.getStockRequest))
+        .delete(verifyToken, catchError(stockRequest.deleteStockRequest))
+        .post(verifyToken, catchError(stockRequest.activateStockRequest))
 
-    app.route('/api/stock-requests').get(catchError(stockRequest.listAllStockRequests))
-    app.route('/api/stock-requests/code').get(catchError(stockRequest.generateCode))
+    app.route('/api/stock-requests').get(verifyToken, catchError(stockRequest.listAllStockRequests))
+    app.route('/api/stock-requests/code').get(verifyToken, catchError(stockRequest.generateCode))
 };

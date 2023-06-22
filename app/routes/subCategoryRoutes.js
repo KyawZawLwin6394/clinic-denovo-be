@@ -7,14 +7,14 @@ const verifyToken = require("../lib/verifyToken");
 module.exports = (app) => {
 
     app.route('/api/sub-category')
-        .post(catchError(subCategory.createSubCategory))
-        .put(catchError(subCategory.updateSubCategory))
+        .post(verifyToken, catchError(subCategory.createSubCategory))
+        .put(verifyToken, catchError(subCategory.updateSubCategory))
         
     app.route('/api/sub-category/:id')
-        .get(catchError(subCategory.getSubCategory))
-        .delete(catchError(subCategory.deleteSubCategory)) 
-        .post(catchError(subCategory.activateSubCategory))
+        .get(verifyToken, catchError(subCategory.getSubCategory))
+        .delete(verifyToken, catchError(subCategory.deleteSubCategory)) 
+        .post(verifyToken, catchError(subCategory.activateSubCategory))
 
-    app.route('/api/sub-categories').get(catchError(subCategory.listAllSubCategories))
+    app.route('/api/sub-categories').get(verifyToken, catchError(subCategory.listAllSubCategories))
 
 };

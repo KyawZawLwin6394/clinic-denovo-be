@@ -7,21 +7,21 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/appointment')
-        .post(catchError(appointment.createAppointment))
-        .put(catchError(appointment.updateAppointment))
+        .post(verifyToken, catchError(appointment.createAppointment))
+        .put(verifyToken, catchError(appointment.updateAppointment))
         
     app.route('/api/appointment/:id')
-        .get(catchError(appointment.getAppointment))
-        .delete(catchError(appointment.deleteAppointment)) 
-        .post(catchError(appointment.activateAppointment))
+        .get(verifyToken, catchError(appointment.getAppointment))
+        .delete(verifyToken, catchError(appointment.deleteAppointment)) 
+        .post(verifyToken, catchError(appointment.activateAppointment))
 
     app.route('/api/appointments-filter')
-        .get(catchError(appointment.filterAppointments))
+        .get(verifyToken, catchError(appointment.filterAppointments))
 
-    app.route('/api/appointments').get(catchError(appointment.listAllAppointments))
+    app.route('/api/appointments').get(verifyToken, catchError(appointment.listAllAppointments))
     app.route('/api/appointment-search')
-        .post(catchError(appointment.searchAppointment))
+        .post(verifyToken, catchError(appointment.searchAppointment))
 
     app.route('/api/appointments/today')
-        .get(catchError(appointment.getTodaysAppointment))
+        .get(verifyToken, catchError(appointment.getTodaysAppointment))
 };

@@ -7,8 +7,8 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/trial-balance')
-        .get(catchError(trialBalance.trialBalance))
+        .get(verifyToken, catchError(trialBalance.trialBalance))
         
     app.route('/api/trial-balance/type')
-        .get( catchError(trialBalance.trialBalanceWithType))
+        .get( verifyToken, catchError(trialBalance.trialBalanceWithType))
 };

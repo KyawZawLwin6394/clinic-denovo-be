@@ -7,14 +7,14 @@ const verifyToken = require("../lib/verifyToken");
 module.exports = (app) => {
 
     app.route('/api/therapist')
-        .post(catchError(therapist.createTherapist))
-        .put(catchError(therapist.updateTherapist))
+        .post(verifyToken, catchError(therapist.createTherapist))
+        .put(verifyToken, catchError(therapist.updateTherapist))
         
     app.route('/api/therapist/:id')
-        .get(catchError(therapist.getTherapist))
-        .delete(catchError(therapist.deleteTherapist)) 
-        .post(catchError(therapist.activateTherapist))
+        .get(verifyToken, catchError(therapist.getTherapist))
+        .delete(verifyToken, catchError(therapist.deleteTherapist)) 
+        .post(verifyToken, catchError(therapist.activateTherapist))
 
-    app.route('/api/therapists').get(catchError(therapist.listAllTherapists))
+    app.route('/api/therapists').get(verifyToken, catchError(therapist.listAllTherapists))
 
 };

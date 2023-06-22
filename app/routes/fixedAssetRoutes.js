@@ -7,13 +7,13 @@ const verifyToken = require('../lib/verifyToken');
 module.exports = (app) => {
 
     app.route('/api/fixed-asset')
-        .post(catchError(fixedAsset.createFixedAsset))
-        .put(catchError(fixedAsset.updateFixedAsset))
+        .post(verifyToken, catchError(fixedAsset.createFixedAsset))
+        .put(verifyToken, catchError(fixedAsset.updateFixedAsset))
         
     app.route('/api/fixed-asset/:id')
-        .get(catchError(fixedAsset.getFixedAsset))
-        .delete(catchError(fixedAsset.deleteFixedAsset)) 
-        .post(catchError(fixedAsset.activateFixedAsset))
+        .get(verifyToken, catchError(fixedAsset.getFixedAsset))
+        .delete(verifyToken, catchError(fixedAsset.deleteFixedAsset)) 
+        .post(verifyToken, catchError(fixedAsset.activateFixedAsset))
 
-    app.route('/api/fixed-assets').get(catchError(fixedAsset.listAllFixedAssets))
+    app.route('/api/fixed-assets').get(verifyToken, catchError(fixedAsset.listAllFixedAssets))
 };
