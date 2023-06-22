@@ -71,7 +71,7 @@ let TreatmentSelectionSchema = new Schema({
   },
   bodyParts: {
     type: String,
-    enum: ['Face', 'Body', 'Body Injection'],
+    enum: ['Treatment', 'Injection', 'Hair,Combine Tre & Facial', 'Surgery Price List', 'Combination Package']
   },
   treatmentTimes: {
     type: Number
@@ -82,6 +82,10 @@ let TreatmentSelectionSchema = new Schema({
   relatedTreatmentVoucher: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'TreatmentVouchers'
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
   },
   paymentStatus: {
     type: Boolean
@@ -96,7 +100,7 @@ let TreatmentSelectionSchema = new Schema({
   },
   purchaseType: {
     type: String,
-    enum: ['Clinic', 'Surgery']
+    enum: ['Normal', 'Solid Beauty']
   },
   remark: {
     type: String

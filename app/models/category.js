@@ -14,7 +14,7 @@ let CategorySchema = new Schema({
     type: String
   },
   description: {
-    type:String,
+    type: String,
   },
   createdAt: {
     type: Date,
@@ -24,10 +24,14 @@ let CategorySchema = new Schema({
     type: Date
   },
   isDeleted: {
-    type:Boolean,
-    required:true,
-    default:false
-  }
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('Categories', CategorySchema);

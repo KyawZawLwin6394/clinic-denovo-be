@@ -23,7 +23,8 @@ let ProcedureHistorySchema = new Schema({
         totalQTY: Number,
         subTotal: Number,
         SIG: String,
-        subSIG: String
+        subSIG: String,
+        remark:String
     }],
     // treatmentPackages: [{
     //     item_id: {
@@ -36,14 +37,14 @@ let ProcedureHistorySchema = new Schema({
     //     SIG: String
     // }],
     customTreatmentPackages: {
-        item_id:{
-            type:mongoose.Schema.Types.ObjectId,
-            ref:'Treatments'
+        item_id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Treatments'
         }
     },
-    status:{
-        type:String,
-        enum:['Finished']
+    status: {
+        type: String,
+        enum: ['Finished']
     },
     isDeleted: {
         type: Boolean,
@@ -51,20 +52,33 @@ let ProcedureHistorySchema = new Schema({
         default: false
     },
     date: {
-        type:Date,
-        default:Date.now()
+        type: Date,
+        default: Date.now()
     },
     pHistory: {
-        type:[mongoose.Schema.Types.ObjectId],
-        ref:'Attachments'
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'Attachments'
     },
-    relatedAppointment:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Appointments'
+    relatedAppointment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Appointments'
     },
-    relatedTreatmentSelection:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'TreatmentSelection'
+    relatedTreatmentSelection: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TreatmentSelections'
+    },
+    relatedBranch: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branches'
+    },
+    complaint: {
+        type: String
+    },
+    improvement: {
+        type: String
+    },
+    remark: {
+        type: String
     }
 });
 

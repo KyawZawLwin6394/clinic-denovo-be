@@ -16,14 +16,18 @@ let DoctorSchema = new Schema({
 
   },
   treatmentUnitMain: {
-    type:String,
+    type: String,
 
   },
   schedule: {
     type: Array,
 
   },
-  commission: {
+  commissionAmount: {
+    type: Number,
+
+  },
+  commissionPercent: {
     type: Number,
 
   },
@@ -35,10 +39,14 @@ let DoctorSchema = new Schema({
     type: Date
   },
   isDeleted: {
-    type:Boolean,
-    required:true,
-    default:false
-  }
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('Doctors', DoctorSchema);

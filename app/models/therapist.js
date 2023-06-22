@@ -14,7 +14,7 @@ let TherapistSchema = new Schema({
     type: String,
   },
   treatmentUnitMain: {
-    type:String,
+    type: String,
   },
   schedule: {
     type: Array,
@@ -30,10 +30,14 @@ let TherapistSchema = new Schema({
     type: Date
   },
   isDeleted: {
-    type:Boolean,
-    required:true,
-    default:false
-  }
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('Therapists', TherapistSchema);

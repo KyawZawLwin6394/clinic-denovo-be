@@ -15,40 +15,44 @@ let SystemSettingSchema = new Schema({
     required: true,
   },
   email: {
-    type:String,
-    required:true
+    type: String,
+    required: true
   },
   address: {
     type: String,
   },
   accountingFlag: {
     type: Boolean,
-    required:true,
+    required: true,
   },
   fiscalYearStartDate: {
-    type:Date,
-    required:true
+    type: Date,
+    required: true
   },
   fiscalYearEndDate: {
-    type:Date,
-    required:true
+    type: Date,
+    required: true
   },
   isDeleted: {
-    type:Boolean,
-    default:false
+    type: Boolean,
+    default: false
   },
-  mdName:{
-    type:String
+  mdName: {
+    type: String
   },
-  startingCapital : {
-    type:Number
+  startingCapital: {
+    type: Number
   },
-  netProfitPrevious:{
-    type:Number
+  netProfitPrevious: {
+    type: Number
   },
   netProfitNext: {
-    type:Number
-  }
+    type: Number
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('SystemSettings', SystemSettingSchema);

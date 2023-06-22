@@ -13,7 +13,7 @@ let BankSchema = new Schema({
     type: String
   },
   accountHolderName: {
-    type:String
+    type: String
   },
   bankContact: {
     type: String
@@ -28,25 +28,29 @@ let BankSchema = new Schema({
     type: String
   },
   isDeleted: {
-    type:Boolean,
-    required:true,
-    default:false
+    type: Boolean,
+    required: true,
+    default: false
   },
   relatedCurrency: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Currencies'
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Currencies'
   },
-  relatedAccounting:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'AccountingLists'
+  relatedAccounting: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'AccountingLists'
   },
   accountName: {
-    type:String,
-    required:true
+    type: String,
+    required: true
   },
-  bank:{
-    type:String
-  }
+  bank: {
+    type: String
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('Banks', BankSchema);

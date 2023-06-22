@@ -10,24 +10,24 @@ let SupplierSchema = new Schema({
   name: {
     type: String,
   },
-  phone:{
+  phone: {
     type: String,
     unique: true,
   },
   address: {
-    type:String,
+    type: String,
   },
   creditAmount: {
     type: Number,
-    default:0
+    default: 0
   },
   purchaseAmount: {
     type: Number,
-    default:0,
+    default: 0,
   },
-  status:{
-    type:Boolean,
-    default:false
+  status: {
+    type: Boolean,
+    default: false
   },
   createdAt: {
     type: Date,
@@ -37,10 +37,14 @@ let SupplierSchema = new Schema({
     type: Date
   },
   isDeleted: {
-    type:Boolean,
-    required:true,
-    default:false
-  }
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('Suppliers', SupplierSchema);

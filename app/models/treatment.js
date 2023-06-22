@@ -10,98 +10,102 @@ let TreatmentSchema = new Schema({
     required: true
   },
   name: {
-    type:String,
+    type: String,
   },
   treatmentName: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:"TreatmentLists",
+    ref: "TreatmentLists",
   },
   treatmentTimes: {
-    type:Number,
-    required:true
+    type: Number,
+    required: true
   },
   relatedDoctor: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Doctors',
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Doctors',
     // required: function() {
     //     return !this.relatedTherapist; // therapist is required if field2 is not provided
     //   }
   },
   relatedTherapist: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Therapists',
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Therapists',
     // required: function() {
     //     return !this.relatedDoctor; // doctor is required if field2 is not provided
     //   }
   },
   procedureMedicine: [{
-    item_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'ProcedureItems'
+    item_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'ProcedureItems'
     },
-    quantity:Number,
-    perUsageQTY:Number
+    quantity: Number,
+    perUsageQTY: Number
   }],
   medicineLists: [{
-    item_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'MedicineItems'
+    item_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'MedicineItems'
     },
-    quantity:Number,
-    perUsageQTY:Number
+    quantity: Number,
+    perUsageQTY: Number
   }],
   procedureAccessory: [{
-    item_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'AccessoryItems'
+    item_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'AccessoryItems'
     },
-    quantity:Number,
-    perUsageQTY:Number
+    quantity: Number,
+    perUsageQTY: Number
   }],
-  machine:[{
-    item_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'FixedAssets'
+  machine: [{
+    item_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'FixedAssets'
     },
-    quantity:Number,
-    perUsageQTY:Number,
-    unit:String
+    quantity: Number,
+    perUsageQTY: Number,
+    unit: String
   }],
-  estimateTotalPrice:{
+  estimateTotalPrice: {
     type: Number,
-    required:true,
+    required: true,
   },
-  discount:{
-    type:Number,
-    required:true
+  discount: {
+    type: Number,
+    required: true
   },
   sellingPrice: {
-    type:Number,
-    required:true,
+    type: Number,
+    required: true,
   },
   description: {
-    type:String
+    type: String
   },
   isDeleted: {
-    type:Boolean, 
-    required:true,
-    default:false
+    type: Boolean,
+    required: true,
+    default: false
   },
   relatedPatient: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Patients'
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Patients'
   },
   relatedAppointment: {
-    type:[mongoose.Schema.Types.ObjectId],
-    ref:'Appointments'
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'Appointments'
   },
   status: {
-    type:Boolean,
+    type: Boolean,
   },
-  relatedAccount:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'AccountingLists'
-  }
+  relatedAccount: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'AccountingLists'
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('Treatments', TreatmentSchema);

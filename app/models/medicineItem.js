@@ -10,49 +10,53 @@ let MedicineItemSchema = new Schema({
   code: {
     type: String
   },
-  medicineItemName:{
-    type:String
+  medicineItemName: {
+    type: String
   },
   name: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'MedicineLists'
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'MedicineLists'
   },
   currentQuantity: {
-    type:Number
-  },
-  reOrderQuantity: {
-    type:Number,
+    type: Number
   },
   purchasePrice: {
-    type:Number
+    type: Number
   },
   sellingPrice: {
-    type:Number
+    type: Number
   },
   description: {
-    type:String,
+    type: String,
   },
   fromUnit: {
-    type:String,
+    type: String,
   },
   toUnit: {
-    type:String
+    type: String
   },
   totalUnit: {
-    type:Number
+    type: Number
   },
   updatedAt: {
     type: Date
   },
   isDeleted: {
-    type:Boolean,
-    default:false
+    type: Boolean,
+    default: false
   },
-  reOrderQuantity:{
-    type:Number
+  reOrderQuantity: {
+    type: Number
   },
-  perUnitQuantity:{
-    type:Number
+  perUnitQuantity: {
+    type: Number
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
+  unit:{
+    type:String
   }
 });
 

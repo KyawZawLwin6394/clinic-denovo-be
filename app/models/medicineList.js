@@ -14,28 +14,32 @@ let MedicineListSchema = new Schema({
     type: String,
   },
   description: {
-    type:String,
+    type: String,
   },
   updatedAt: {
     type: Date
   },
   isDeleted: {
-    type:Boolean,
-    required:true,
-    default:false
+    type: Boolean,
+    required: true,
+    default: false
   },
   relatedCategory: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Categories'
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Categories'
   },
   relatedBrand: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Brands'
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Brands'
   },
   relatedSubCategory: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'SubCategories'
-  }
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SubCategories'
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('MedicineLists', MedicineListSchema);

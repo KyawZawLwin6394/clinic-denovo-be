@@ -8,17 +8,15 @@ const Schema = mongoose.Schema;
 let LogSchema = new Schema({
     relatedTreatmentSelection: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'TreatmentSelections',
-        required: true
+        ref: 'TreatmentSelections'
     },
     relatedAppointment: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Appointments',
-        required: true
+        ref: 'Appointments'
     },
     date: {
         type: Date,
-        default:Date.now()
+        default: Date.now()
     },
     currentQty: {
         type: Number,
@@ -29,22 +27,42 @@ let LogSchema = new Schema({
     finalQty: {
         type: Number,
     },
-    relatedProcedureItems:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'ProcedureItems'
+    relatedStock: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Stocks'
     },
-    relatedAccessoryItems:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'AccessoryItems'
+    relatedProcedureItems: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ProcedureItems'
     },
-    relatedMachine:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'FixedAssets'
+    relatedAccessoryItems: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AccessoryItems'
+    },
+    relatedMachine: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'FixedAssets'
+    },
+    relatedMedicineItems: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'MedicineItems'
     },
     isDeleted: {
         type: Boolean,
         required: true,
         default: false
+    },
+    relatedBranch: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branches'
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users'
+    },
+    type: {
+        type: String,
+        enum: ['Stock Transfer', 'Usage', 'Request Recieved', 'Stock Update', 'Medicine Sale']
     }
 });
 

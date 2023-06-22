@@ -8,52 +8,60 @@ const Schema = mongoose.Schema;
 let TransactionSchema = new Schema({
   relatedAccounting: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:'AccountingLists'
+    ref: 'AccountingLists'
   },
   amount: {
     type: String,
   },
   date: {
-    type:Date,
+    type: Date,
   },
   remark: {
     type: String
   },
   type: {
     type: String,
-    enum:['Debit','Credit'],
+    enum: ['Debit', 'Credit'],
     // required:true,
   },
   relatedTreatment: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Treatments',
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Treatments',
   },
   relatedBank: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'AccountingLists',
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'AccountingLists',
   },
   relatedCash: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'AccountingLists',
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'AccountingLists',
   },
   treatmentFlag: {
-    type:Boolean, 
+    type: Boolean,
     // required:true
   },
   relatedTransaction: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:'Transactions',
-    default:null
+    ref: 'Transactions',
+    default: null
   },
   isDeleted: {
-    type:Boolean,
+    type: Boolean,
     // required:true,
-    default:false
+    default: false
   },
   relatedMedicineSale: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:'MedicineSales',
-    default:null
+    ref: 'MedicineSales',
+    default: null
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Users'
   }
 });
 

@@ -11,21 +11,21 @@ let AccountingListSchema = new Schema({
     },
     relatedType: {
         type: mongoose.Schema.Types.ObjectId,
-        ref:'AccountTypes'
+        ref: 'AccountTypes'
     },
     relatedHeader: {
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'AccountHeaders'
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AccountHeaders'
     },
     subHeader: {
-        type:String
-    },  
+        type: String
+    },
     name: {
         type: String
     },
     relatedTreatment: {
         type: mongoose.Schema.Types.ObjectId,
-        ref:'Treatments',
+        ref: 'Treatments',
     },
     amount: {
         type: Number
@@ -42,19 +42,23 @@ let AccountingListSchema = new Schema({
         default: false
     },
     relatedCurrency: {
-        type:String
-      },
+        type: String
+    },
     carryForWork: {
-        type:Boolean
+        type: Boolean
     },
     relatedBank: {
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Banks'
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Banks'
     },
     relatedBranch: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Branches'
-      },
+    },
+    accountNature: {
+        type: String,
+        enum: ['Credit', 'Debit']
+    }
 });
 
 module.exports = mongoose.model('AccountingLists', AccountingListSchema);

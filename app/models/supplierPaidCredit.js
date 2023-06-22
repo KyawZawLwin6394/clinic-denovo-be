@@ -8,15 +8,15 @@ const Schema = mongoose.Schema;
 let SupplierPaidCreditSchema = new Schema({
   relatedSupplier: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:'Suppliers'
+    ref: 'Suppliers'
   },
   relatedPurchase: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:'Purchases'
+    ref: 'Purchases'
   },
   createdAt: {
-    type:Date,
-    default:Date.now()
+    type: Date,
+    default: Date.now()
   },
   paidAmount: {
     type: Number
@@ -28,8 +28,12 @@ let SupplierPaidCreditSchema = new Schema({
     type: String,
   },
   isDeleted: {
-    type:Boolean,
-    default:false
+    type: Boolean,
+    default: false
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
   },
 });
 

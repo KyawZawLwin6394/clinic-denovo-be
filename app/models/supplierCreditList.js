@@ -8,15 +8,15 @@ const Schema = mongoose.Schema;
 let SupplierCreditListSchema = new Schema({
   relatedSupplier: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:'Suppliers'
+    ref: 'Suppliers'
   },
   relatedPurchase: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:'Purchases'
+    ref: 'Purchases'
   },
   createdAt: {
-    type:Date,
-    default:Date.now()
+    type: Date,
+    default: Date.now()
   },
   creditAmount: {
     type: Number
@@ -25,9 +25,13 @@ let SupplierCreditListSchema = new Schema({
     type: Boolean
   },
   isDeleted: {
-    type:Boolean,
+    type: Boolean,
     // required:true,
-    default:false
+    default: false
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
   },
 });
 

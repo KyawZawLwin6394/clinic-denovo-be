@@ -14,11 +14,11 @@ let SubCategorySchema = new Schema({
     type: String,
   },
   description: {
-    type:String,
+    type: String,
   },
   relatedCategory: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Categories',
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Categories',
   },
   createdAt: {
     type: Date,
@@ -28,10 +28,14 @@ let SubCategorySchema = new Schema({
     type: Date
   },
   isDeleted: {
-    type:Boolean,
-    required:true,
-    default:false
-  }
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('SubCategories', SubCategorySchema);

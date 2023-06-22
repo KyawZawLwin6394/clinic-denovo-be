@@ -10,49 +10,53 @@ let procedureItemSchema = new Schema({
   code: {
     type: String
   },
-  procedureItemName:{
-    type:String,
+  procedureItemName: {
+    type: String,
   },
   name: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'ProcedureMedicines'
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ProcedureMedicines'
   },
   currentQuantity: {
-    type:Number
+    type: Number
   },
   reOrderQuantity: {
-    type:Number,
+    type: Number,
   },
   purchasePrice: {
-    type:Number
+    type: Number
   },
   sellingPrice: {
-    type:Number
+    type: Number
   },
   description: {
-    type:String,
+    type: String,
   },
   fromUnit: {
-    type:Number,
+    type: Number,
   },
   toUnit: {
-    type:Number
-  },
-  totalUnit: {
-    type:Number
+    type: Number
   },
   updatedAt: {
     type: Date
   },
   isDeleted: {
-    type:Boolean,
-    default:false
+    type: Boolean,
+    default: false
   },
-  totalUnit:{
-    type:Number
+  totalUnit: {
+    type: Number
   },
-  perUnitQuantity:{
-    type:Number
+  perUnitQuantity: {
+    type: Number
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
+  unit:{
+    type:String
   }
 });
 

@@ -31,8 +31,8 @@ let PurchaseSchema = new Schema({
             ref: 'ProcedureItems'
         },
         qty: Number,
-        price:Number,
-        subTotal:Number
+        price: Number,
+        subTotal: Number
     }],
     accessoryItems: [{
         item_id: {
@@ -40,8 +40,8 @@ let PurchaseSchema = new Schema({
             ref: 'AccessoryItems'
         },
         qty: Number,
-        price:Number,
-        subTotal:Number
+        price: Number,
+        subTotal: Number
     }],
     totalQTY: {
         type: Number,
@@ -54,17 +54,21 @@ let PurchaseSchema = new Schema({
         required: true,
         default: false
     },
-    date:{
-        type:Date,
-        default:Date.now()
+    date: {
+        type: Date,
+        default: Date.now()
     },
-    purchaseType:{
-        type:String,
-        enum:['Cash Down','Credit']
+    purchaseType: {
+        type: String,
+        enum: ['Cash Down', 'Credit']
     },
-    creditAmount:{
-        type:Number
-    }
+    creditAmount: {
+        type: Number
+    },
+    relatedBranch: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branches'
+    },
 });
 
 module.exports = mongoose.model('Purchases', PurchaseSchema);

@@ -3,29 +3,36 @@
 const mongoose = require('mongoose');
 mongoose.promise = global.Promise;
 const Schema = mongoose.Schema;
+const validator = require('validator');
 
 
-let SubHeaderSchema = new Schema({
-    code: {
-        type: String,
-    },
+let NurseSchema = new Schema({
     name: {
         type: String,
     },
+    speciality: {
+        type: String,
+    },
+    treatmentUnitMain: {
+        type: String,
+    },
+    schedule: {
+        type: Array,
+    },
+    commission: {
+        type: Number,
+    },
     createdAt: {
         type: Date,
-        default: Date.now()
+        default: Date.now,
     },
-    description: {
-        type: String,
+    updatedAt: {
+        type: Date
     },
     isDeleted: {
         type: Boolean,
         required: true,
         default: false
-    },
-    updatedAt: {
-        type: Date,
     },
     relatedBranch: {
         type: mongoose.Schema.Types.ObjectId,
@@ -33,6 +40,6 @@ let SubHeaderSchema = new Schema({
     },
 });
 
-module.exports = mongoose.model('SubHeaders', SubHeaderSchema);
+module.exports = mongoose.model('Nurses', NurseSchema);
 
 //Author: Kyaw Zaw Lwin

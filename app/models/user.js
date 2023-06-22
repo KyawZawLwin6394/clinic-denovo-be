@@ -23,29 +23,29 @@ let UserSchema = new Schema({
     },
     required: [true, 'User email required'],
   },
-  address:{
-    type:String,
+  address: {
+    type: String,
   },
   password: {
     type: String,
     required: true,
   },
-  phone:{
+  phone: {
     type: String,
     unique: true,
     required: [true, 'Phone Number Required!'],
   },
   isAdmin: {
-    type:Boolean,
-    default:false,
+    type: Boolean,
+    default: false,
   },
   isDoctor: {
     type: Boolean,
-    default:false,
+    default: false,
   },
-  isUser:{
-    type:Boolean,
-    default:false,
+  isUser: {
+    type: Boolean,
+    default: false,
   },
   gender: {
     type: String,
@@ -62,11 +62,18 @@ let UserSchema = new Schema({
     type: Date,
     default: null,
   },
-  role:{
+  role: {
     type: String,
     enum: ['Doctor', 'User', 'Admin']
+  },
+  branch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
+  branchName:{
+    type:String
   }
-  
+
 });
 const reasons = (UserSchema.statics.failedLogin = {
   NOT_FOUND: 0,

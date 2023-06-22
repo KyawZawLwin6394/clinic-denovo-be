@@ -8,13 +8,13 @@ const Schema = mongoose.Schema;
 let SellEndSchema = new Schema({
   flag: {
     type: String,
-    enum:['Sell','End']
+    enum: ['Sell', 'End']
   },
   currentValue: {
     type: Number
   },
   sellPrice: {
-    type:Number
+    type: Number
   },
   sellDate: {
     type: Date
@@ -24,7 +24,7 @@ let SellEndSchema = new Schema({
   },
   relatedFixedAsset: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:'FixedAssets'
+    ref: 'FixedAssets'
   },
   usedYears: {
     type: Number
@@ -32,21 +32,25 @@ let SellEndSchema = new Schema({
   remaniningYears: {
     type: Number
   },
-  remark:{
-    type:String
+  remark: {
+    type: String
   },
-  endDate:{
-    type:Date
+  endDate: {
+    type: Date
   },
   isDeleted: {
-    type:Boolean,
-    required:true,
-    default:false
+    type: Boolean,
+    required: true,
+    default: false
   },
   relatedAccounting: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:'AccountingLists'
-  }
+    ref: 'AccountingLists'
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('SellEnds', SellEndSchema);

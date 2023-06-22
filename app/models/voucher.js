@@ -7,25 +7,25 @@ const Schema = mongoose.Schema;
 
 let VoucherSchema = new Schema({
   voucherType: {
-    type:String,
+    type: String,
   },
   voucherCode: {
-    type:String,
+    type: String,
   },
   date: {
-    type:Date,
+    type: Date,
   },
   relatedPatient: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Patients',
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Patients',
   },
-  medicineSaleItems:[{
-    item_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'MedicineItems'
+  medicineSaleItems: [{
+    item_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'MedicineItems'
     },
-    quantity:Number,
-    discount:Number
+    quantity: Number,
+    discount: Number
   }],
   totalAmount: {
     type: Number,
@@ -36,26 +36,30 @@ let VoucherSchema = new Schema({
   grandTotal: {
     type: Number,
   },
-  paymentMethod:{
+  paymentMethod: {
     type: String,
-    enum:['Bank','Cash Down']
+    enum: ['Bank', 'Cash Down']
   },
-  relatedAccounting:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Accounting'
+  relatedAccounting: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Accounting'
   },
-  remark:{
-    type:String
+  remark: {
+    type: String
   },
   isDeleted: {
-    type:Boolean,
-    required:true,
-    default:false
+    type: Boolean,
+    required: true,
+    default: false
   },
-  relatedTreatment:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Treatments',
-  }
+  relatedTreatment: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Treatments',
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('Vouchers', VoucherSchema);

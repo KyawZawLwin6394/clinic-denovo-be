@@ -8,28 +8,32 @@ const validator = require('validator');
 
 let AppointmentSchema = new Schema({
   relatedPatient: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Patients'
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Patients'
   },
   phone: {
-    type:String
+    type: String
   },
   relatedDoctor: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Doctors',
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Doctors',
     // required: function() {
     //   return !this.relatedTherapist; // therapist is required if field2 is not provided
     // }
   },
   relatedTherapist: {
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Therapists',
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Therapists',
     // required: function() {
     //   return !this.relatedDoctor; // doctor is required if field2 is not provided
     // }
   },
+  relatedNurse: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Nurses'
+  },
   description: {
-    type:String
+    type: String
   },
   originalDate: {
     type: Date
@@ -41,26 +45,44 @@ let AppointmentSchema = new Schema({
   updatedAt: {
     type: Date
   },
-  date:{
+  date: {
     type: String,
   },
-  time:{
-    type:String,
+  time: {
+    type: String,
   },
   isDeleted: {
-    type:Boolean,
-    required:true,
-    default:false
+    type: Boolean,
+    required: true,
+    default: false
   },
   token: {
-    type:String
+    type: String
   },
   relatedTreatmentSelection: {
-    type:[mongoose.Schema.Types.ObjectId],
-    ref:'TreatmentSelections'
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'TreatmentSelections'
   },
   status: {
-    type:String
+    type: Boolean,
+    default: false
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
+  usageStatus: {
+    type: String,
+    enum: ['Pending', 'In Progress', 'Finished'],
+    default: 'Pending'
+  },
+  relatedUsage: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Usages'
+  },
+  isCommissioned: {
+    type: Boolean,
+    default: false
   }
 });
 

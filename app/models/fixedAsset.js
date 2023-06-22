@@ -15,7 +15,6 @@ let FixedAssetSchema = new Schema({
   relatedAccount: {
     type:mongoose.Schema.Types.ObjectId,
     ref:'AccountingLists',
-    required:true
   },
   type: {
     type: String
@@ -50,7 +49,11 @@ let FixedAssetSchema = new Schema({
   isDeleted:{
     type:Boolean,
     default:false
-  }
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('FixedAssets', FixedAssetSchema);

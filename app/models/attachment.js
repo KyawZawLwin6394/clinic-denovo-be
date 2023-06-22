@@ -18,7 +18,11 @@ let AttachmentSchema = new Schema({
     },
     image:{
         type:String
-    }
+    },
+    relatedBranch: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branches'
+      },
 
 });
 

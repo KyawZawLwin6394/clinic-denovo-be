@@ -15,24 +15,17 @@ let PatientSchema = new Schema({
     type: Number,
   },
   phone: {
-    type:String,
-    required:true
+    type: String,
+    required: true
   },
   dateOfBirth: {
     type: Date,
   },
   date: {
-    type:String
-  },  
+    type: String
+  },
   email: {
-    type: String,
-    lowercase: true,
-    trim: true,
-    validate: {
-      isAsync: true,
-      validator: validator.isEmail,
-      message: 'Invalid Email Address.',
-    }
+    type: String
   },
   gender: {
     type: String,
@@ -52,33 +45,65 @@ let PatientSchema = new Schema({
     type: Date
   },
   isDeleted: {
-    type:Boolean,
-    required:true,
-    default:false
+    type: Boolean,
+    required: true,
+    default: false
   },
   patientStatus: {
-    type:String,
-    enum:['New','Old'],
+    type: String,
+    enum: ['New', 'Old'],
 
-    default:'New',
+    default: 'New',
 
   },
   patientID: {
-    type:String,
+    type: String,
   },
   seq: {
-    type:Number
+    type: Number
   },
-  img:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'Attachments',
+  img: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Attachments',
   },
   relatedTreatmentSelection: {
-    type:[mongoose.Schema.Types.ObjectId],
-    ref:'TreatmentSelections'
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'TreatmentSelections'
   },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
+  relatedMember: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Members'
+  },
+  conditionAmount: {
+    type: Number,
+  },
+  conditionPurchaseFreq: {
+    type: Number,
+  },
+  conditionPackageQty: {
+    type: Number
+  },
+  treatmentPackageQty: {
+    type: Number
+  },
+  totalAmount: {
+    type: Number
+  },
+  totalAppointments: {
+    type: Number
+  },
+  finishedAppointments: {
+    type: Number
+  },
+  unfinishedAppointments: {
+    type: Number
+  }
 });
-const patient = mongoose.model('Patients',PatientSchema)
+const patient = mongoose.model('Patients', PatientSchema)
 module.exports = patient;
 
 

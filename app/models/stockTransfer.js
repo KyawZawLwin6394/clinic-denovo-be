@@ -12,7 +12,8 @@ let StockTransferSchema = new Schema({
         },
         stockQty: Number,
         requestedQty: Number,
-        transferQty: Number
+        transferQty: Number,
+        purchasePrice: Number
     }],
     medicineLists: [{
         item_id: {
@@ -21,7 +22,8 @@ let StockTransferSchema = new Schema({
         },
         stockQty: Number,
         requestedQty: Number,
-        transferQty: Number
+        transferQty: Number,
+        purchasePrice: Number
     }],
     procedureAccessory: [{
         item_id: {
@@ -30,7 +32,8 @@ let StockTransferSchema = new Schema({
         },
         stockQty: Number,
         requestedQty: Number,
-        transferQty: Number
+        transferQty: Number,
+        purchasePrice: Number
     }],
     relatedBranch: {
         type: mongoose.Schema.Types.ObjectId,

@@ -33,6 +33,26 @@ let HistorySchema = new Schema({
         type: Boolean,
         required: true,
         default: false
+    },
+    relatedBranch: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branches'
+    },
+    lmp:{
+        type:Date
+    },
+    desiredTreatment:{
+        type:String
+    },
+    note:{
+        type:String
+    },
+    complaint:{
+        type:String
+    },
+    consent:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Attachments"
     }
 });
 

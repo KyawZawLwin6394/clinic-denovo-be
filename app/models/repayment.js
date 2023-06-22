@@ -13,21 +13,25 @@ let RepaymentSchema = new Schema({
     type: Number,
   },
   remaningCredit: {
-    type:Number,
+    type: Number,
   },
   description: {
     type: String,
   },
   relatedPateintTreatment: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:'PatientTreatments',
-    required:true,
+    ref: 'PatientTreatments',
+    required: true,
   },
   isDeleted: {
-    type:Boolean,
-    required:true,
-    default:false
-  }
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('Repayments', RepaymentSchema);
