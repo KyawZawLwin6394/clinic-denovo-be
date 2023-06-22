@@ -59,6 +59,10 @@ let TreatmentVoucherSchema = new Schema({
     remark: {
         type: String
     },
+    relatedBranch: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branches'
+    },
     bankType: {
         type: String,
         enum: ['Normal', 'POS', 'Pay']
@@ -81,6 +85,10 @@ let TreatmentVoucherSchema = new Schema({
     payment: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Attachments'
+    },
+    relatedDiscount:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Discounts'
     }
 });
 

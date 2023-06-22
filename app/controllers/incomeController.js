@@ -166,14 +166,13 @@ exports.activateIncome = async (req, res, next) => {
 exports.incomeFilter = async (req, res) => {
   let query = { relatedBankAccount: { $exists: true }, isDeleted: false }
   try {
-    const { start, end, relatedBranch, createdBy } = req.query
+    const { start, end, createdBy } = req.query
     if (start && end) query.date = { $gte: start, $lt: end }
-    if (relatedBranch) query.relatedBranch = relatedBranch
     if (createdBy) query.createdBy = createdBy
-    const bankResult = await Income.find(query).populate('relatedAccounting relatedBankAccount relatedCashAccount relatedCredit relatedBranch')
+    const bankResult = await Income.find(query).populate('relatedAccounting relatedBankAccount relatedCashAccount relatedCredit')
     const { relatedBankAccount, ...query2 } = query;
     query2.relatedCashAccount = { $exists: true };
-    const cashResult = await Income.find(query2).populate('relatedAccounting relatedBankAccount relatedCashAccount relatedCredit relatedBranch')
+    const cashResult = await Income.find(query2).populate('relatedAccounting relatedBankAccount relatedCashAccount relatedCredit')
     const BankNames = bankResult.reduce((result, { relatedBankAccount, finalAmount }) => {
       const { name } = relatedBankAccount;
       result[name] = (result[name] || 0) + finalAmount;

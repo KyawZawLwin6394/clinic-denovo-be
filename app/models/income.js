@@ -45,7 +45,11 @@ let IncomeSchema = new Schema({
     relatedCredit: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'AccountingLists'
-    }
+    },
+    relatedBranch: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branches'
+      },
 });
 
 module.exports = mongoose.model('Incomes', IncomeSchema);

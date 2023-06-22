@@ -9,9 +9,12 @@ let MedicineSaleSchema = new Schema({
   voucherCode: {
     type:String
   },
+  createdBy: {
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'Users'
+  },
   createdAt: {
-    type:Date,
-    default:Date.now()
+    type:Date
   },
   relatedTreatment: {
     type: mongoose.Schema.Types.ObjectId,
@@ -83,7 +86,11 @@ let MedicineSaleSchema = new Schema({
   relatedTransaction:{
     type:[mongoose.Schema.Types.ObjectId],
     ref:'Transactions'
-  }
+  },
+  relatedBranch: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Branches'
+  },
 });
 
 module.exports = mongoose.model('MedicineSales', MedicineSaleSchema);

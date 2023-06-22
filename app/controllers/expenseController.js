@@ -51,7 +51,7 @@ exports.createExpense = async (req, res, next) => {
         const newBody = req.body;
         const newExpense = new Expense(newBody);
         const result = await newExpense.save();
-        const populatedResult = await Expense.find({_id:result._id}).populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
+        const populatedResult = await Expense.find({ _id: result._id }).populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
         const firstTransaction =
         {
             "initialExchangeRate": newBody.initialExchangeRate,
@@ -63,7 +63,7 @@ exports.createExpense = async (req, res, next) => {
             "treatmentFlag": false,
             "relatedTransaction": null,
             "relatedAccounting": newBody.relatedAccounting,
-            "relatedExpense" : result._id
+            "relatedExpense": result._id
         }
         const newTrans = new Transaction(firstTransaction)
         const fTransResult = await newTrans.save();
@@ -80,30 +80,30 @@ exports.createExpense = async (req, res, next) => {
                 "treatmentFlag": false,
                 "relatedTransaction": fTransResult._id,
                 "relatedAccounting": newBody.relatedAccounting,
-                "relatedExpense" : result._id,
-                "relatedCredit":newBody.relatedCredit
+                "relatedExpense": result._id,
+                "relatedCredit": newBody.relatedCredit
             }
             const secTrans = new Transaction(secondTransaction)
             var secTransResult = await secTrans.save();
             console.log(secTransResult)
         } else {
             //bank or cash
-            
-                const secondTransaction = {
-                    "initialExchangeRate": newBody.initialExchangeRate,
-                    "amount": newBody.finalAmount,
-                    "date": newBody.date,
-                    "remark": newBody.remark,
-                    "type": "Credit",
-                    "relatedTreatment": newBody.relatedTreatment,
-                    "treatmentFlag": false,
-                    "relatedTransaction": fTransResult._id,
-                    "relatedAccounting": (newBody.relatedBankAccount) ? newBody.relatedBankAccount : newBody.relatedCashAccount,
-                    "relatedExpense" : result._id,
-                    "relatedBank": newBody.relatedBankAccount,
-                    "relatedCash": newBody.relatedCashAccount
-                }
-            
+
+            const secondTransaction = {
+                "initialExchangeRate": newBody.initialExchangeRate,
+                "amount": newBody.finalAmount,
+                "date": newBody.date,
+                "remark": newBody.remark,
+                "type": "Credit",
+                "relatedTreatment": newBody.relatedTreatment,
+                "treatmentFlag": false,
+                "relatedTransaction": fTransResult._id,
+                "relatedAccounting": (newBody.relatedBankAccount) ? newBody.relatedBankAccount : newBody.relatedCashAccount,
+                "relatedExpense": result._id,
+                "relatedBank": newBody.relatedBankAccount,
+                "relatedCash": newBody.relatedCashAccount
+            }
+
 
             const secTrans = new Transaction(secondTransaction)
             var secTransResult = await secTrans.save();
@@ -164,15 +164,15 @@ exports.activateExpense = async (req, res, next) => {
 exports.expenseFilter = async (req, res) => {
     let query = { relatedBankAccount: { $exists: true }, isDeleted: false }
     try {
-        const { start, end, relatedBranch, createdBy } = req.query
+        const { start, end, createdBy } = req.query
         if (start && end) query.date = { $gte: start, $lt: end }
-        if (relatedBranch) query.relatedBranch = relatedBranch
         if (createdBy) query.createdBy = createdBy
-        const bankResult = await Expense.find(query).populate('relatedBankAccount relatedAccounting relatedCredit relatedCashAccount relatedBranch').populate('createdBy', 'givenName')
+        const bankResult = await Expense.find(query).populate('relatedBankAccount relatedAccounting relatedCredit relatedCashAccount').populate('createdBy', 'givenName')
         const { relatedBankAccount, ...query2 } = query;
         query2.relatedCashAccount = { $exists: true };
         console.log(query2)
-        const cashResult = await Expense.find(query2).populate('relatedBankAccount relatedAccounting relatedCredit relatedCashAccount relatedBranch').populate('createdBy', 'givenName')
+        const cashResult = await Expense.find(query2).populate('relatedBankAccount relatedAccounting relatedCredit relatedCashAccount').populate('createdBy', 'givenName')
+        console.log(bankResult)
         const BankNames = bankResult.reduce((result, { relatedBankAccount, finalAmount }) => {
             const { name } = relatedBankAccount;
             result[name] = (result[name] || 0) + finalAmount;
@@ -185,7 +185,6 @@ exports.expenseFilter = async (req, res) => {
         }, {});
         const BankTotal = bankResult.reduce((total, sale) => total + sale.finalAmount, 0);
         const CashTotal = cashResult.reduce((total, sale) => total + sale.finalAmount, 0);
-        console.log(BankNames)
 
         return res.status(200).send({
             success: true,
@@ -199,6 +198,7 @@ exports.expenseFilter = async (req, res) => {
             }
         });
     } catch (error) {
+        console.log(error)
         return res.status(500).send({ error: true, message: error.message })
     }
 }

@@ -21,7 +21,7 @@ let ExpenseSchema = new Schema({
         type: Number,
     },
     initialCurrency: {
-        type:String,
+        type: String,
     },
     finalAmount: {
         type: Number,
@@ -35,8 +35,8 @@ let ExpenseSchema = new Schema({
         default: false
     },
     relatedCredit: {
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'AccountingLists'
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AccountingLists'
     },
     relatedBankAccount: {
         type: mongoose.Schema.Types.ObjectId,
@@ -46,6 +46,14 @@ let ExpenseSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'AccountingLists'
     },
+    relatedBranch: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Branches'
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users'
+    }
 });
 
 module.exports = mongoose.model('Expenses', ExpenseSchema);
