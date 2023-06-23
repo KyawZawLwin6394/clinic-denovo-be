@@ -8,6 +8,28 @@ const Repay = require('../models/repayRecord');
 const Accounting = require('../models/accountingList');
 const Attachment = require('../models/attachment');
 
+exports.getwithExactDate = async (req, res) => {
+    try {
+        let { exact } = req.query;
+        const date = new Date(exact);
+        const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Set start date to the beginning of the day
+        const endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1); // Set end date to the beginning of the next day
+        let result = await TreatmentVoucher.find({ createdAt: { $gte: startDate, $lt: endDate } }).populate('createdBy relatedAppointment relatedPatient relatedCash').populate({
+            path: 'relatedTreatment',
+            model: 'Treatments',
+            populate: {
+                path: 'treatmentName',
+                model: 'TreatmentLists'
+            }
+        })
+        //.populate('createdBy relatedTreatment relatedAppointment relatedPatient');
+        if (result.length <= 0) return res.status(404).send({ error: true, message: 'Not Found!' });
+        return res.status(200).send({ success: true, data: result });
+    } catch (error) {
+        return res.status(500).send({ error: true, message: error.message });
+    }
+};
+
 exports.listAllTreatmentSelections = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
     let count = 0;
