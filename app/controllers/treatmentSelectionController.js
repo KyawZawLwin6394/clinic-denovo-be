@@ -164,14 +164,24 @@ exports.createTreatmentSelection = async (req, res, next) => {
         console.log(data, 'data1')
         //first transaction 
         if (req.body.paymentMethod === 'Cash Down') {
-            var fTransResult = await Transaction.create({
-                "amount": req.body.paidAmount,
-                "date": Date.now(),
-                "remark": null,
-                "relatedAccounting": "6467379159a9bc811d97f4d2", //Advance received from customer
-                "type": "Credit",
-                "createdBy": createdBy
-            })
+            if (req.body.purchaseType === 'Clinic') {
+                var fTransResult = await Transaction.create({
+                    "amount": req.body.paidAmount,
+                    "date": Date.now(),
+                    "remark": null,
+                    "relatedAccounting": "6467379159a9bc811d97f4d2", //sales clinic
+                    "createdBy": createdBy
+                })
+            } else if (req.body.purchaseType === 'Surgery') {
+                var fTransResult = await Transaction.create({
+                    "amount": req.body.paidAmount,
+                    "date": Date.now(),
+                    "remark": null,
+                    "relatedAccounting": "648096bd7d7e4357442aa476", //sales-surgery
+                    "createdBy": createdBy
+                })
+            }
+
             var amountUpdate = await Accounting.findOneAndUpdate(
                 { _id: "6467379159a9bc811d97f4d2" },
                 { $inc: { amount: req.body.paidAmount } }
@@ -439,14 +449,25 @@ exports.treatmentPayment = async (req, res, next) => {
             })
             var rpRecordPopulated = await Repay.find({ _id: repayRecord._id }).populate('relatedAppointment')
             //transaction
-            var fTransResult = await Transaction.create({
-                "amount": req.body.paidAmount,
-                "date": Date.now(),
-                "remark": null,
-                "relatedAccounting": "6467379159a9bc811d97f4d2", //Advance received from customer
-                "type": "Debit",
-                "createdBy": createdBy,
-            })
+            if (req.body.purchaseType === 'Clinic') {
+                var fTransResult = await Transaction.create({
+                    "amount": req.body.paidAmount,
+                    "date": Date.now(),
+                    "remark": null,
+                    "relatedAccounting": "649416b44236f7602ba3411a", //Sales Clinic
+                    "type": "Debit",
+                    "createdBy": createdBy,
+                })
+            } else if (req.body.purchaseType === 'Surgery') {
+                var fTransResult = await Transaction.create({
+                    "amount": req.body.paidAmount,
+                    "date": Date.now(),
+                    "remark": null,
+                    "relatedAccounting": "648096bd7d7e4357442aa476", //Sales-Surgery
+                    "type": "Debit",
+                    "createdBy": createdBy,
+                })
+            }
             //sec transaction
             var secTransResult = await Transaction.create({
                 "amount": req.body.paidAmount,
@@ -595,4 +616,16 @@ exports.searchTreatmentSelections = async (req, res, next) => {
     } catch (err) {
         return res.status(500).send({ error: true, message: err.message })
     }
+}
+
+exports.profitAndLossForEveryMonth = async (req, res) => {
+    console.log('here')
+    let treatmentSelectionResult = await TreatmentSelection.find({})
+    const BankNames = treatmentSelectionResult.reduce((result, { purchaseType, totalAmount }) => {
+        console.log(result, 'before')
+        result[purchaseType] = (result[purchaseType] || 0) + totalAmount;
+        console.log(result, 'after')
+        return result;
+    }, {});
+    return res.status(200).send({ success: true, data: treatmentSelectionResult })
 }

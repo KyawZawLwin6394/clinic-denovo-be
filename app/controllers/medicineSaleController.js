@@ -59,8 +59,30 @@ exports.getMedicineSale = async (req, res) => {
   return res.status(200).send({ success: true, data: result });
 };
 
+exports.createCode = async (req, res, next) => {
+  let data = {}
+  try {
+    const latestDocument = await MedicineSale.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
+    if (latestDocument.length == 0) data = { ...data, seq: 1, voucherCode: "MVC-1" } // if seq is undefined set initial patientID and seq
+    if (latestDocument.length) {
+      const increment = latestDocument[0].seq + 1
+      data = { ...data, voucherCode: "MVC-" + increment, seq: increment }
+    }
+    return res.status(200).send({
+      success: true,
+      data: data
+    })
+  } catch (err) {
+    return res.status(500).send({
+      error: true,
+      message: err
+    })
+  }
+}
+
 exports.createMedicineSale = async (req, res, next) => {
   let data = req.body;
+  let createdBy = req.credentials.id
   try {
     //prepare CUS-ID
     const latestDocument = await MedicineSale.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -69,16 +91,27 @@ exports.createMedicineSale = async (req, res, next) => {
       const increment = latestDocument[0].seq + 1
       data = { ...data, voucherCode: "MVC-" + increment, seq: increment }
     }
-    console.log(data)
+
+    // const patientUpdate = await Patient.findOneAndUpdate(
+    //   { _id: req.body.relatedPatient },
+    //   { $inc: { conditionAmount: req.body.grandTotal, conditionPurchaseFreq: 1, conditionPackageQty: 1 } },
+    //   { new: true }
+    // )
+
     //first transaction 
     const fTransaction = new Transaction({
       "amount": data.payAmount,
       "date": Date.now(),
       "remark": req.body.remark,
-      "relatedAccounting": "646739c059a9bc811d97fa8b", //Sales (Medicines)
-      "type": "Credit"
+      "relatedAccounting": "648095b57d7e4357442aa457", //Sales Medicines
+      "type": "Credit",
+      "createdBy": createdBy
     })
     const fTransResult = await fTransaction.save()
+    var amountUpdate = await Accounting.findOneAndUpdate(
+      { _id: "648095b57d7e4357442aa457" },  //Sales Medicines
+      { $inc: { amount: data.payAmount } }
+    )
     //sec transaction
     const secTransaction = new Transaction(
       {
@@ -88,10 +121,29 @@ exports.createMedicineSale = async (req, res, next) => {
         "relatedBank": req.body.relatedBank,
         "relatedCash": req.body.relatedCash,
         "type": "Debit",
-        "relatedTransaction": fTransResult._id
+        "relatedTransaction": fTransResult._id,
+        "createdBy": createdBy
       }
     )
     const secTransResult = await secTransaction.save();
+    var fTransUpdate = await Transaction.findOneAndUpdate(
+      { _id: fTransResult._id },
+      {
+        relatedTransaction: secTransResult._id
+      },
+      { new: true }
+    )
+    if (req.body.relatedBankAccount) {
+      var amountUpdate = await Accounting.findOneAndUpdate(
+        { _id: req.body.relatedBankAccount },
+        { $inc: { amount: data.payAmount } }
+      )
+    } else if (req.body.relatedCash) {
+      var amountUpdate = await Accounting.findOneAndUpdate(
+        { _id: req.body.relatedCash },
+        { $inc: { amount: data.payAmount } }
+      )
+    }
     let objID = ''
     if (req.body.relatedBank) objID = req.body.relatedBank
     if (req.body.relatedCash) objID = req.body.relatedCash
@@ -102,13 +154,13 @@ exports.createMedicineSale = async (req, res, next) => {
       { amount: parseInt(req.body.payAmount) + parseInt(acc[0].amount) },
       { new: true },
     )
-    data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id] }
+    data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy }
     const newMedicineSale = new MedicineSale(data)
     const medicineSaleResult = await newMedicineSale.save()
     res.status(200).send({
       message: 'MedicineSale Transaction success',
       success: true,
-      fTrans: fTransResult,
+      fTrans: fTransUpdate,
       sTrans: secTransResult,
       accResult: accResult,
       data: medicineSaleResult

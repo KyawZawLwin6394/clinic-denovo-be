@@ -25,5 +25,6 @@ module.exports = (app) => {
     app.route('/api/treatment-selections/filter').post(verifyToken, catchError(treatmentSelection.getRelatedTreatmentSelections))
     app.route('/api/treatment-selections/search').post(verifyToken, catchError(treatmentSelection.searchTreatmentSelections))
     app.route('/api/treatment-selections/code').get(verifyToken, catchError(treatmentSelection.createTreatmentSelectionCode))
+    app.route('/api/treatment-selections/profit-and-loss').get(verifyToken, catchError(treatmentSelection.profitAndLossForEveryMonth))
 
 };
