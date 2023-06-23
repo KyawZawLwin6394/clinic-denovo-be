@@ -104,6 +104,9 @@ let TreatmentSelectionSchema = new Schema({
   },
   remark: {
     type: String
+  },
+  deposit: {
+    type: Number
   }
 
 });
