@@ -15,7 +15,7 @@ exports.listAllPackages = async (req, res) => {
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await Package.find(query).populate('relatedTreatments relatedDiscount').populate('createdBy','givenName')
+        let result = await Package.find(query).populate('relatedTreatments relatedDiscount').populate('createdBy', 'givenName')
         count = await Package.find(query).count();
         const division = count / limit;
         page = Math.ceil(division);
@@ -38,9 +38,9 @@ exports.listAllPackages = async (req, res) => {
 
 exports.getPackage = async (req, res) => {
     try {
-        let query = req.mongoQuery
+        let query = { isDeleted: false }
         if (req.params.id) query._id = req.params.id
-        const result = await Package.find(query).populate('relatedTreatments relatedDiscount').populate('createdBy','givenName')
+        const result = await Package.find(query).populate('relatedTreatments relatedDiscount').populate('createdBy', 'givenName')
         if (result.length === 0)
             return res.status(500).json({ error: true, message: 'No Record Found' });
         return res.status(200).send({ success: true, data: result });
@@ -72,7 +72,7 @@ exports.updatePackage = async (req, res, next) => {
             { _id: req.body.id },
             req.body,
             { new: true },
-        ).populate('relatedTreatments relatedDiscount').populate('createdBy','givenName')
+        ).populate('relatedTreatments relatedDiscount').populate('createdBy', 'givenName')
         return res.status(200).send({ success: true, data: result });
     } catch (error) {
         return res.status(500).send({ "error": true, "message": error.message })
