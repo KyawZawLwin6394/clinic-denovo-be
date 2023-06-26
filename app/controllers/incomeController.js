@@ -5,6 +5,7 @@ const Accounting = require('../models/accountingList');
 const MedicineSale = require('../models/medicineSale');
 const TreatmentVoucher = require('../models/treatmentVoucher');
 const Expense = require('../models/expense');
+const mergeAndSum = require('../lib/userUtil').mergeAndSum;
 
 exports.listAllIncomes = async (req, res) => {
   let { keyword, role, limit, skip } = req.query;
@@ -237,7 +238,7 @@ exports.totalIncome = async (req, res) => {
   });
   const tvFilterBankResult = await TreatmentVoucher.find(filterQuery2).populate('relatedTreatment relatedAppointment relatedPatient relatedBank relatedCash')
   const incomeFilterBankResult = await Income.find(filterQuery).populate('relatedAccounting relatedBankAccount relatedCashAccount')
-  const expenseFilterBankResult = await Expense.find(filterQuery).populate('relatedAccounting relatedBankAccount relatedCashAccount')
+  //const expenseFilterBankResult = await Expense.find(filterQuery).populate('relatedAccounting relatedBankAccount relatedCashAccount')
 
   const { relatedBankAccount, ...filterQuerys } = filterQuery;
   filterQuerys.relatedCashAccount = { $exists: true };
@@ -262,7 +263,7 @@ exports.totalIncome = async (req, res) => {
   });
   const tvFilterCashResult = await TreatmentVoucher.find(filterQuery3).populate('relatedTreatment relatedAppointment relatedPatient relatedBank relatedCash')
   const incomeFilterCashResult = await Income.find(filterQuerys).populate('relatedAccounting relatedBankAccount relatedCashAccount')
-  const expenseFilterCashResult = await Expense.find(filterQuerys).populate('relatedAccounting relatedBankAccount relatedCashAccount')
+  //const expenseFilterCashResult = await Expense.find(filterQuerys).populate('relatedAccounting relatedBankAccount relatedCashAccount')
 
   //      Medicine Sale
   const msBankNames = msFilterBankResult.reduce((result, { relatedBank, totalAmount }) => {
@@ -306,54 +307,28 @@ exports.totalIncome = async (req, res) => {
   const incomeBankTotal = incomeFilterBankResult.reduce((total, sale) => total + sale.finalAmount, 0);
   const incomeCashTotal = incomeFilterCashResult.reduce((total, sale) => total + sale.finalAmount, 0);
 
-  //Expense
-  const expenseBankNames = expenseFilterBankResult.reduce((result, { relatedBankAccount, finalAmount }) => {
-    const { name } = relatedBankAccount;
-    result[name] = (result[name] || 0) + finalAmount;
-    return result;
-  }, {});
-  const expenseCashNames = expenseFilterCashResult.reduce((result, { relatedCashAccount, finalAmount }) => {
-    const { name } = relatedCashAccount;
-    result[name] = (result[name] || 0) + finalAmount;
-    return result;
-  }, {});
-  const expenseBankTotal = expenseFilterBankResult.reduce((total, sale) => total + sale.finalAmount, 0);
-  const expenseCashTotal = expenseFilterCashResult.reduce((total, sale) => total + sale.finalAmount, 0);
-  return res.status(200).send({
-    succes: true,
+  const finalResult = await mergeAndSum({
     Income: {
-      bankResult: incomeFilterBankResult,
-      cashResult: incomeFilterCashResult,
       BankNames: incomeBankNames,
       CashNames: incomeCashNames,
       BankTotal: incomeBankTotal,
       CashTotal: incomeCashTotal
     },
-    Expense: {
-      bankResult: expenseFilterBankResult,
-      cashResult: expenseFilterCashResult,
-      BankNames: expenseBankNames,
-      CashNames: expenseCashNames,
-      BankTotal: expenseBankTotal,
-      CashTotal: expenseCashTotal
-    },
     MedicineSale: {
-      bankResult: msFilterBankResult,
-      cashResult: msFilterCashResult,
       BankNames: msBankNames,
       CashNames: msCashNames,
       BankTotal: msBankTotal,
       CashTotal: msCashTotal
     },
     TreatmentVoucher: {
-      bankResult: tvFilterBankResult,
-      cashResult: tvFilterCashResult,
       BankNames: tvBankNames,
       CashNames: tvCashNames,
       BankTotal: tvBankTotal,
       CashTotal: tvCashTotal
     },
   })
+  console.log(finalResult)
+  return res.status(200).send({ success: true, data: finalResult })
 }
 
 exports.getwithExactDate = async (req, res) => {
