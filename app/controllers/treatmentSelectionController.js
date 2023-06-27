@@ -45,7 +45,7 @@ exports.listAllTreatmentSelections = async (req, res) => {
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await TreatmentSelection.find(query).populate('createdBy relatedBranch relatedTreatmentList relatedAppointments relatedPatient finishedAppointments remainingAppointments relatedTransaction').populate({
+        let result = await TreatmentSelection.find(query).populate('createdBy relatedTreatmentList relatedAppointments relatedPatient finishedAppointments remainingAppointments relatedTransaction').populate({
             path: 'relatedTreatment',
             model: 'Treatments',
             populate: {
@@ -145,8 +145,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
             relatedPatient: req.body.relatedPatient,
             relatedDoctor: req.body.relatedDoctor,
             originalDate: new Date(req.body.originalDate), // Convert to Date object
-            phone: req.body.phone,
-            relatedBranch: req.body.relatedBranch
+            phone: req.body.phone
         };
         console.log(appointmentConfig)
         const numTreatments = req.body.treatmentTimes;
@@ -182,7 +181,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
             { new: true }
         )
 
-        data = { ...data, relatedAppointments: relatedAppointments, remainingAppointments: relatedAppointments, createdBy: createdBy, relatedBranch: req.mongoQuery.relatedBranch }
+        data = { ...data, relatedAppointments: relatedAppointments, remainingAppointments: relatedAppointments, createdBy: createdBy }
         console.log(data, 'data1')
         //first transaction 
         if (req.body.paymentMethod === 'Cash Down') {
@@ -414,7 +413,6 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "paymentType": req.body.paymentType, //enum: ['Bank','Cash']
                 "relatedCash": req.body.relatedCash, //must be cash acc from accounting accs
                 "createdBy": createdBy,
-                "relatedBranch": req.body.relatedBranch,
                 "remark": req.body.remark,
                 "payment": attachID,
                 "relatedDiscount": req.body.relatedDiscount
