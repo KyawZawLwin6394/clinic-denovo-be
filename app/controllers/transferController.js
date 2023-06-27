@@ -25,7 +25,7 @@ exports.transferFilter = async (req, res) => {
     const result = await Transfer.find(query)
   } catch (error) {
     //console.log(error)
-    return res.status(500).send({error:true, message:error.message})
+    return res.status(500).send({ error: true, message: error.message })
   }
 }
 
@@ -47,7 +47,7 @@ exports.createTransfer = async (req, res, next) => {
       { new: true },
     );
     const toAccUpdate = await AccList.findOneAndUpdate(
-      { _id: req.body.fromAcc },
+      { _id: req.body.toAcc },
       { $inc: { amount: req.body.amount } },
       { new: true },
     );
