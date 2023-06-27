@@ -7,8 +7,28 @@ const TreatmentVoucher = require('../models/treatmentVoucher');
 const Repay = require('../models/repayRecord');
 const Accounting = require('../models/accountingList');
 const Attachment = require('../models/attachment');
-const AdvanceRecords = require('../models/advanceRecord');
-const Treatment = require('../models/treatment');
+
+exports.getwithExactDate = async (req, res) => {
+    try {
+        let { exact } = req.query;
+        const date = new Date(exact);
+        const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Set start date to the beginning of the day
+        const endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1); // Set end date to the beginning of the next day
+        let result = await TreatmentVoucher.find({ createdAt: { $gte: startDate, $lt: endDate } }).populate('createdBy relatedAppointment relatedPatient relatedCash').populate({
+            path: 'relatedTreatment',
+            model: 'Treatments',
+            populate: {
+                path: 'treatmentName',
+                model: 'TreatmentLists'
+            }
+        })
+        //.populate('createdBy relatedTreatment relatedAppointment relatedPatient');
+        if (result.length <= 0) return res.status(404).send({ error: true, message: 'Not Found!' });
+        return res.status(200).send({ success: true, data: result });
+    } catch (error) {
+        return res.status(500).send({ error: true, message: error.message });
+    }
+};
 
 exports.listAllTreatmentSelections = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -119,7 +139,6 @@ exports.createTreatmentSelection = async (req, res, next) => {
     let tvcCreate = false;
     let createdBy = req.credentials.id
     let files = req.files
-    // if (flag === true) patient advance update(-totalAmount)
     try {
         if (req.body.originalDate === undefined) return res.status(500).send({ error: true, message: 'Original Date is required' })
         const appointmentConfig = {
@@ -165,20 +184,25 @@ exports.createTreatmentSelection = async (req, res, next) => {
 
         data = { ...data, relatedAppointments: relatedAppointments, remainingAppointments: relatedAppointments, createdBy: createdBy, relatedBranch: req.mongoQuery.relatedBranch }
         console.log(data, 'data1')
-
-
         //first transaction 
         if (req.body.paymentMethod === 'Cash Down') {
+            let accID = ''
+            if (req.body.purchaseType === 'Clinic') {
+                accID = '6467379159a9bc811d97f4d2'
+
+            } else if (req.body.purchaseType === 'Surgery') {
+                accID = '648096bd7d7e4357442aa476'
+            }
             var fTransResult = await Transaction.create({
                 "amount": req.body.paidAmount,
                 "date": Date.now(),
                 "remark": null,
-                "relatedAccounting": "6467379159a9bc811d97f4d2", //Advance received from customer
-                "type": "Credit",
+                "relatedAccounting": accID, //sales clinic
                 "createdBy": createdBy
             })
+
             var amountUpdate = await Accounting.findOneAndUpdate(
-                { _id: "6467379159a9bc811d97f4d2" },
+                { _id: accID },
                 { $inc: { amount: req.body.paidAmount } }
             )
             //sec transaction
@@ -222,21 +246,82 @@ exports.createTreatmentSelection = async (req, res, next) => {
             let advanceAmount = req.body.totalAmount - req.body.paidAmount
 
             if (req.body.deferAmount > 0 && req.body.paidAmount !== 0 && req.body.cashBackAmount === 0) {
+                let transID = ''
+                if (req.body.purchaseType === 'Clinic') {
+                    transID = "6467379159a9bc811d97f4d2"
+                } else if (req.body.purchaseType === 'Surgery') {
+                    transID = "648096bd7d7e4357442aa476"
+                }
                 var fTransResult = await Transaction.create({
                     "amount": advanceAmount,
                     "date": Date.now(),
                     "remark": null,
-                    "relatedAccounting": "6467379159a9bc811d97f4d2", //Advance received from customer
+                    "relatedAccounting": transID, //Advance received from customer
                     "type": "Debit",
                     "createdBy": createdBy
                 })
                 var amountUpdate = await Accounting.findOneAndUpdate(
-                    { _id: "6467379159a9bc811d97f4d2" },
+                    { _id: transID },
                     { $inc: { amount: -req.body.totalAmount } }
                 )
                 //sec transaction
                 var secTransResult = await Transaction.create({
                     "amount": req.body.paidAmount,
+                    "date": Date.now(),
+                    "remark": null,
+                    "relatedBank": req.body.relatedBank,
+                    "relatedCash": req.body.relatedCash,
+                    "type": "Debit",
+                    "relatedTransaction": fTransResult._id,
+                    "createdBy": createdBy
+                });
+                var fTransUpdate = await Transaction.findOneAndUpdate(
+                    { _id: fTransResult._id },
+                    {
+                        relatedTransaction: secTransResult._id
+                    },
+                    { new: true }
+                )
+                if (req.body.relatedBank) {
+                    var freqSecamountUpdate = await Accounting.findOneAndUpdate(
+                        { _id: req.body.relatedBank },
+                        { $inc: { amount: req.body.paidAmount } }
+                    )
+                } else if (req.body.relatedCash) {
+                    var freqSecamountUpdate = await Accounting.findOneAndUpdate(
+                        { _id: req.body.relatedCash },
+                        { $inc: { amount: req.body.paidAmount } }
+                    )
+
+                }
+                var secTransResult2 = await Transaction.create({
+                    "amount": req.body.totalAmount,
+                    "date": Date.now(),
+                    "remark": null,
+                    "relatedAccounting": transID,
+                    "type": "Credit",
+                    "relatedTransaction": fTransResult._id,
+                    "createdBy": createdBy
+                });
+                var freqSecamountUpdate2 = await Accounting.findOneAndUpdate(
+                    { _id: treatmentResult[0].relatedAccount },
+                    { $inc: { amount: req.body.totalAmount } }
+                )
+                const ARUpdate = await AdvanceRecords.findOneAndUpdate(
+                    { _id: req.body.advanceID },
+                    { amount: 0 },
+                    { new: true }
+                )
+            } else if (req.body.deferAmount < 0 && req.body.paidAmount === 0 && req.body.cashBackAmount > 0) {
+
+            }
+
+
+
+            if (req.body.deferAmount) {
+                //sec transaction
+                var secTransResult = await Transaction.create({
+                    "amount": req.body.totalAmount,
                     "date": Date.now(),
                     "remark": null,
                     "relatedBank": req.body.relatedBank,
@@ -264,56 +349,22 @@ exports.createTreatmentSelection = async (req, res, next) => {
                     )
 
                 }
-                var secTransResult2 = await Transaction.create({
-                    "amount": req.body.totalAmount,
-                    "date": Date.now(),
-                    "remark": null,
-                    "relatedAccounting": treatmentResult[0].relatedAccount,
-                    "type": "Credit",
-                    "relatedTransaction": fTransResult._id,
-                    "createdBy": createdBy
-                });
-                var freqSecamountUpdate2 = await Accounting.findOneAndUpdate(
-                    { _id: treatmentResult[0].relatedAccount },
-                    { $inc: { amount: req.body.totalAmount } }
-                )
                 const ARUpdate = await AdvanceRecords.findOneAndUpdate(
                     { _id: req.body.advanceID },
                     { amount: 0 },
                     { new: true }
                 )
-            } else if (req.body.deferAmount < 0 && req.body.paidAmount === 0 && req.body.cashBackAmount > 0) {
-
+            } else if (req.body.deferAmount === undefined) {
                 //sec transaction
-                var fTransResult = await Transaction.create({
+                var secTransResult = await Transaction.create({
                     "amount": req.body.totalAmount,
                     "date": Date.now(),
                     "remark": null,
                     "relatedAccounting": treatmentResult[0].relatedAccount,
                     "type": "Credit",
-
-                    "createdBy": createdBy
-                });
-
-                var amountUpdate = await Accounting.findOneAndUpdate(
-                    { _id: treatmentResult[0].relatedAccount },
-                    { $inc: { amount: req.body.totalAmount } }
-                )
-                var secTransResult = await Transaction.create({
-                    "amount": req.body.totalAmount,
-                    "date": Date.now(),
-                    "remark": null,
-                    "relatedAccounting": "6467379159a9bc811d97f4d2", //Advance received from customer
-                    "type": "Debit",
                     "relatedTransaction": fTransResult._id,
                     "createdBy": createdBy
-                })
-
-                var amountUpdate = await Accounting.findOneAndUpdate(
-                    { _id: "6467379159a9bc811d97f4d2" },
-                    { $inc: { amount: -req.body.totalAmount } }
-                )
-
+                });
                 var fTransUpdate = await Transaction.findOneAndUpdate(
                     { _id: fTransResult._id },
                     {
@@ -321,55 +372,9 @@ exports.createTreatmentSelection = async (req, res, next) => {
                     },
                     { new: true }
                 )
-
-                const ARUpdate = await AdvanceRecords.findOneAndUpdate(
-                    { _id: req.body.advanceID },
-                    { amount: req.body.cashBackAmount },
-                    { new: true }
-                )
-
-            } else if (req.body.deferAmount === 0 && req.boy.paidAmount === 0 && req.body.cashBackAmount === 0) {
-                var fTransResult = await Transaction.create({
-                    "amount": req.body.totalAmount,
-                    "date": Date.now(),
-                    "remark": null,
-                    "relatedAccounting": treatmentResult[0].relatedAccount,
-                    "type": "Credit",
-
-                    "createdBy": createdBy
-                });
-
                 var amountUpdate = await Accounting.findOneAndUpdate(
                     { _id: treatmentResult[0].relatedAccount },
                     { $inc: { amount: req.body.totalAmount } }
-                )
-                var secTransResult = await Transaction.create({
-                    "amount": req.body.totalAmount,
-                    "date": Date.now(),
-                    "remark": null,
-                    "relatedAccounting": "6467379159a9bc811d97f4d2", //Advance received from customer
-                    "type": "Debit",
-                    "relatedTransaction": fTransResult._id,
-                    "createdBy": createdBy
-                })
-
-                var amountUpdate = await Accounting.findOneAndUpdate(
-                    { _id: "6467379159a9bc811d97f4d2" },
-                    { $inc: { amount: -req.body.totalAmount } }
-                )
-
-                var fTransUpdate = await Transaction.findOneAndUpdate(
-                    { _id: fTransResult._id },
-                    {
-                        relatedTransaction: secTransResult._id
-                    },
-                    { new: true }
-                )
-
-                const ARUpdate = await AdvanceRecords.findOneAndUpdate(
-                    { _id: req.body.advanceID },
-                    { amount: 0 },
-                    { new: true }
                 )
             }
             let dataTVC = {
@@ -378,7 +383,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "relatedAppointment": req.body.relatedAppointment,
                 "relatedPatient": req.body.relatedPatient,
                 "paymentMethod": "pAdvance", //enum: ['by Appointment','Lapsum','Total','Advanced']
-                "amount": req.body.totalAmount,
+                "amount": req.body.paidAmount,
                 "relatedBank": req.body.relatedBank,
                 "bankType": req.body.bankType,//must be bank acc from accounting accs
                 "paymentType": req.body.paymentType, //enum: ['Bank','Cash']
@@ -406,16 +411,14 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "relatedAppointment": req.body.relatedAppointment,
                 "relatedPatient": req.body.relatedPatient,
                 "paymentMethod": "FOC", //enum: ['by Appointment','Lapsum','Total','Advanced']
-                "amount": 0,
+                "amount": req.body.paidAmount,
                 "relatedBank": req.body.relatedBank,
                 "bankType": req.body.bankType,//must be bank acc from accounting accs
                 "paymentType": req.body.paymentType, //enum: ['Bank','Cash']
                 "relatedCash": req.body.relatedCash, //must be cash acc from accounting accs
                 "createdBy": createdBy,
-                "relatedBranch": req.body.relatedBranch,
                 "remark": req.body.remark,
-                "payment": attachID,
-                "relatedDiscount": req.body.relatedDiscount
+                "payment": attachID
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -440,10 +443,8 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "paymentType": req.body.paymentType, //enum: ['Bank','Cash']
                 "relatedCash": req.body.relatedCash, //must be cash acc from accounting accs
                 "createdBy": createdBy,
-                "relatedBranch": req.body.relatedBranch,
                 "remark": req.body.remark,
-                "payment": attachID,
-                "relatedDiscount": req.body.relatedDiscount
+                "payment": attachID
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -454,61 +455,6 @@ exports.createTreatmentSelection = async (req, res, next) => {
             }
             var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
         }
-        let advanceQuery = { $inc: { amount: -req.body.totalAmount } }
-        if (req.body.recievedPatient) advanceQuery.recievedPatient = req.body.recievedPatient
-        //freq Update Start
-        const advanceResult = await AdvanceRecords.findOneAndUpdate(
-            { relatedPatient: req.body.relatedPatient },
-            advanceQuery,
-            { new: true }
-        )
-        const freqUpdate = await Patient.findOneAndUpdate(
-            { _id: req.body.relatedPatient },
-            { $inc: { treatmentPackageQty: 1, totalAmount: req.body.totalAmount, totalAppointments: req.body.treatmentTimes, unfinishedAppointments: req.body.treatmentTimes } },
-            { new: true }
-        )
-        var freqfTransResult = await Transaction.create({
-            "amount": req.body.paidAmount,
-            "date": Date.now(),
-            "remark": null,
-            "relatedAccounting": "6467379159a9bc811d97f4d2", //Advance received from customer
-            "type": "Credit",
-            "createdBy": createdBy
-        })
-        var freqamountUpdate = await Accounting.findOneAndUpdate(
-            { _id: "6467379159a9bc811d97f4d2" },
-            { $inc: { amount: -req.body.paidAmount } }
-        )
-        //sec transaction
-        var freqSecTransResult = await Transaction.create({
-            "amount": req.body.paidAmount,
-            "date": Date.now(),
-            "remark": null,
-            "relatedBank": req.body.relatedBank,
-            "relatedCash": req.body.relatedCash,
-            "type": "Debit",
-            "relatedTransaction": freqfTransResult._id,
-            "createdBy": createdBy
-        });
-        var freqfTransUpdate = await Transaction.findOneAndUpdate(
-            { _id: freqfTransResult._id },
-            {
-                relatedTransaction: freqSecTransResult._id
-            },
-            { new: true }
-        )
-        if (req.body.relatedBank) {
-            var freqSecamountUpdate = await Accounting.findOneAndUpdate(
-                { _id: req.body.relatedBank },
-                { $inc: { amount: req.body.paidAmount } }
-            )
-        } else if (req.body.relatedCash) {
-            var freqSecamountUpdate = await Accounting.findOneAndUpdate(
-                { _id: req.body.relatedCash },
-                { $inc: { amount: req.body.paidAmount } }
-            )
-        }
-        //Freq Update end
         const populatedResult = await TreatmentSelection.find({ _id: result._id }).populate('createdBy relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentList').populate({
             path: 'relatedTreatment',
             model: 'Treatments',
@@ -537,23 +483,18 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 { new: true }
             )
         }
-        if (treatmentVoucherResult) {
-            var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount')
-        }
-
         let response = {
             message: 'Treatment Selection create success',
             success: true,
             data: populatedResult,
             appointmentAutoGenerate: appointmentResult,
-            patientFreqUpdate: freqUpdate
             // fTransResult: fTransResult,
             // secTransResult: secTransResult,
             // treatmentVoucherResult:treatmentVoucherResult
         }
-        if (populatedTV) response.treatmentVoucherResult = populatedTV
-        // if (fTransUpdate) response.fTransResult = fTransUpdate
-        // if (fTransResult) response.secTransResult = secTransResult
+        if (treatmentVoucherResult) response.treatmentVoucherResult = treatmentVoucherResult
+        if (fTransUpdate) response.fTransResult = fTransUpdate
+        if (fTransResult) response.secTransResult = secTransResult
         res.status(200).send(response);
     } catch (error) {
         console.log(error)
@@ -605,7 +546,6 @@ exports.treatmentPayment = async (req, res, next) => {
         }
         if (result.paymentMethod === 'Credit') { //
             let dataTVC = {
-                "relatedBranch": req.body.relatedBranch,
                 "relatedTreatmentSelection": result._id,
                 "relatedTreatment": req.body.relatedTreatment,
                 "relatedAppointment": req.body.relatedAppointment,
@@ -617,10 +557,8 @@ exports.treatmentPayment = async (req, res, next) => {
                 "paymentType": req.body.paymentType, //enum: ['Bank','Cash']
                 "relatedCash": req.body.relatedCash,
                 "createdBy": createdBy, //must be cash acc from accounting accs
-                "relatedBranch": req.body.relatedBranch,
                 "remark": req.body.remark,
-                "payment": attachID,
-                "relatedDiscount": req.body.relatedDiscount
+                "payment": attachID
 
             }
             let today = new Date().toISOString()
@@ -634,24 +572,21 @@ exports.treatmentPayment = async (req, res, next) => {
             //transaction
             var fTransResult = await Transaction.create({
                 "amount": req.body.paidAmount,
-                "relatedBranch": req.body.relatedBranch,
                 "date": Date.now(),
                 "remark": null,
                 "relatedAccounting": result.relatedTreatment.relatedAccount,
                 "type": "Credit",
                 "createdBy": createdBy,
-                "relatedBranch": req.mongoQuery.relatedBranch
             })
             if (result.relatedTreatment.relatedAccount) {
                 var amountUpdate = await Accounting.findOneAndUpdate(
                     { _id: result.relatedTreatment.relatedAccount },
-                    { $inc: { amount: req.body.paidAmount } }
+                    { $inc: { amount: -req.body.paidAmount } }
                 )
             }
             //sec transaction
             var secTransResult = await Transaction.create({
                 "amount": req.body.paidAmount,
-                "relatedBranch": req.body.relatedBranch,
                 "date": Date.now(),
                 "remark": null,
                 "relatedBank": req.body.relatedBank,
@@ -659,7 +594,6 @@ exports.treatmentPayment = async (req, res, next) => {
                 "type": "Debit",
                 "relatedTransaction": fTransResult._id,
                 "createdBy": createdBy,
-                "relatedBranch": req.mongoQuery.relatedBranch
             });
             var fTransUpdate = await Transaction.findOneAndUpdate(
                 { _id: fTransResult._id },
@@ -694,31 +628,37 @@ exports.treatmentPayment = async (req, res, next) => {
                 relatedAppointment: req.body.relatedAppointment,
                 relatedTreatmentSelection: req.body.id,
                 paidAmount: req.body.paidAmount,
-                relatedBranch: req.body.relatedBranch
             })
             var rpRecordPopulated = await Repay.find({ _id: repayRecord._id }).populate('relatedAppointment')
             //transaction
-            var fTransResult = await Transaction.create({
-                "amount": req.body.paidAmount,
-                "date": Date.now(),
-                "remark": null,
-                "relatedBranch": req.body.relatedBranch,
-                "relatedAccounting": "6467379159a9bc811d97f4d2", //Advance received from customer
-                "type": "Debit", //minus
-                "createdBy": createdBy,
-                "relatedBranch": req.mongoQuery.relatedBranch
-            })
+            if (req.body.purchaseType === 'Clinic') {
+                var fTransResult = await Transaction.create({
+                    "amount": req.body.paidAmount,
+                    "date": Date.now(),
+                    "remark": null,
+                    "relatedAccounting": "649416b44236f7602ba3411a", //Sales Clinic
+                    "type": "Debit",
+                    "createdBy": createdBy,
+                })
+            } else if (req.body.purchaseType === 'Surgery') {
+                var fTransResult = await Transaction.create({
+                    "amount": req.body.paidAmount,
+                    "date": Date.now(),
+                    "remark": null,
+                    "relatedAccounting": "648096bd7d7e4357442aa476", //Sales-Surgery
+                    "type": "Debit",
+                    "createdBy": createdBy,
+                })
+            }
             //sec transaction
             var secTransResult = await Transaction.create({
                 "amount": req.body.paidAmount,
                 "date": Date.now(),
                 "remark": null,
-                "relatedBranch": req.body.relatedBranch,
                 "relatedAccounting": result.relatedTreatment.relatedAccount,
-                "type": "Credit", //plus
+                "type": "Credit",
                 "relatedTransaction": fTransResult._id,
                 "createdBy": createdBy,
-                "relatedBranch": req.mongoQuery.relatedBranch
             })
             var fTransUpdate = await Transaction.findOneAndUpdate(
                 { _id: fTransResult._id },
@@ -726,15 +666,6 @@ exports.treatmentPayment = async (req, res, next) => {
                     relatedTransaction: secTransResult._id
                 },
                 { new: true }
-            )
-            var amountUpdate = await Accounting.findOneAndUpdate(
-                { _id: result.relatedTreatment.relatedAccount },
-                { $inc: { amount: req.body.paidAmount } }
-            )
-
-            var amountUpdate2 = await Accounting.findOneAndUpdate(
-                { _id: "6467379159a9bc811d97f4d2" },
-                { $inc: { amount: -req.body.paidAmount } }
             )
         }
         let response = {
@@ -787,25 +718,21 @@ exports.createTreatmentTransaction = async (req, res) => {
         const fTransaction = new Transaction({
             "amount": req.body.amount,
             "date": req.body.date,
-            "relatedBranch": req.body.relatedBranch,
             "remark": req.body.remark,
             "relatedAccounting": req.body.firstAccount,
             "type": "Credit",
             "createdBy": createdBy,
-            "relatedBranch": req.mongoQuery.relatedBranch
         })
         const fTransResult = await fTransaction.save()
         const secTransaction = new Transaction(
             {
                 "amount": req.body.amount,
                 "date": req.body.date,
-                "relatedBranch": req.body.relatedBranch,
                 "remark": req.body.remark,
                 "relatedAccounting": req.body.secondAccount,
                 "type": "Debit",
                 "relatedTransaction": fTransResult._id,
                 "createdBy": createdBy,
-                "relatedBranch": req.mongoQuery.relatedBranch
             }
         )
         var fTransUpdate = await Transaction.findOneAndUpdate(
@@ -873,100 +800,14 @@ exports.searchTreatmentSelections = async (req, res, next) => {
     }
 }
 
-// exports.TopTenFilter = async (req, res) => {
-//     try {
-//         let query = req.mongoQuery
-//         let { start, end } = req.query
-//         if (start, end) query.createdAt = { $gte: start, $lte: end }
-//         const TreatmentResult = await TreatmentSelection.find(query).populate('relatedTreatment').populate({
-//             path: 'relatedTreatment',
-//             populate: [{
-//                 path: 'treatmentName',
-//                 model: 'TreatmentLists',
-//                 // populate:{
-//                 //     path:'treatmentName',
-//                 //     model:'TreatmentLists'
-//                 // }
-//             }]
-//         })
-//         const TreatmentName = [];
-//         TreatmentResult.forEach(({ relatedTreatment }) => {
-//             const { name, treatmentName } = relatedTreatment;
-//             const tempObj = {
-//                 treatmentUnit: name,
-//                 treatment: treatmentName.name,
-//                 qty: 1
-//             };
-//             TreatmentName.push(tempObj);
-//         });
-//         const reducedTreatmentNames = TreatmentName.reduce((result, current) => {
-//             const existingItem = result.find(item => item.treatmentUnit === current.treatmentUnit);
-//             if (existingItem) {
-//                 existingItem.qty += current.qty;
-//             } else {
-//                 result.push(current);
-//             }
-//             return result;
-//         }, []);
-
-//         const sortedTreatmentNames = reducedTreatmentNames.sort((a, b) => b.qty - a.qty); //Descending
-//         console.log(sortedTreatmentNames);
-
-//         return res.status(200).send({ success: true, data: sortedTreatmentNames, list: TreatmentResult })
-//     } catch (error) {
-//         return res.status(500).send({ error: true, message: error.message })
-//     }
-// }
-
-exports.TopTenFilter = async (req, res) => {
-    try {
-        let query = req.mongoQuery;
-        let { start, end } = req.query;
-        if (start, end) query.createdAt = { $gte: start, $lte: end };
-
-        const TreatmentResult = await TreatmentSelection.find(query)
-            .populate('relatedTreatment')
-            .populate({
-                path: 'relatedTreatment',
-                populate: {
-                    path: 'treatmentName',
-                    model: 'TreatmentLists',
-                }
-            });
-
-        const treatmentNameMap = TreatmentResult.reduce((result, { relatedTreatment }) => {
-            const { name, treatmentName } = relatedTreatment;
-            const treatmentUnit = name;
-            const treatment = treatmentName.name;
-
-            if (result.hasOwnProperty(treatmentUnit)) {
-                result[treatmentUnit].qty++;
-            } else {
-                result[treatmentUnit] = { treatmentUnit, treatment, qty: 1 };
-            }
-
-            return result;
-        }, {});
-
-        const reducedTreatmentNames = Object.values(treatmentNameMap);
-
-        const sortedTreatmentNames = reducedTreatmentNames.sort((a, b) => b.qty - a.qty); // Descending
-
-        return res.status(200).send({ success: true, data: sortedTreatmentNames, list: TreatmentResult });
-    } catch (error) {
-        return res.status(500).send({ error: true, message: error.message });
-    }
-};
-
-
-// const TreatmentNames = TreatmentResult.reduce((result, { relatedTreatment }) => {
-        //     const { name, treatmentName } = relatedTreatment;
-        //     result[name] = (result[name] || 0) + 1; // Increment count by 1
-        //     return result;
-        // }, []);
-        // const sortedTreatmentNames = Object.entries(TreatmentNames)
-        //     .sort((a, b) => b[1] - a[1])
-        //     .reduce((sortedObj, [name, count]) => {
-        //         sortedObj[name] = count;
-        //         return sortedObj;
-        //     }, {}); //Descending
+exports.profitAndLossForEveryMonth = async (req, res) => {
+    console.log('here')
+    let treatmentSelectionResult = await TreatmentSelection.find({})
+    const BankNames = treatmentSelectionResult.reduce((result, { purchaseType, totalAmount }) => {
+        console.log(result, 'before')
+        result[purchaseType] = (result[purchaseType] || 0) + totalAmount;
+        console.log(result, 'after')
+        return result;
+    }, {});
+    return res.status(200).send({ success: true, data: treatmentSelectionResult })
+}
