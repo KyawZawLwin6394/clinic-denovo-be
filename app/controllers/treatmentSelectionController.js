@@ -197,12 +197,12 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "amount": req.body.paidAmount,
                 "date": Date.now(),
                 "remark": null,
-                "relatedAccounting": accID, //sales clinic
+                "relatedAccounting": "6495731a7e9b3fb309e0f6ab", //Advance Income
                 "createdBy": createdBy
             })
 
             var amountUpdate = await Accounting.findOneAndUpdate(
-                { _id: accID },
+                { _id: "6495731a7e9b3fb309e0f6ab" },
                 { $inc: { amount: req.body.paidAmount } }
             )
             //sec transaction
@@ -256,12 +256,12 @@ exports.createTreatmentSelection = async (req, res, next) => {
                     "amount": advanceAmount,
                     "date": Date.now(),
                     "remark": null,
-                    "relatedAccounting": transID, //Advance received from customer
+                    "relatedAccounting": "6495731a7e9b3fb309e0f6ab", //Advance Income
                     "type": "Debit",
                     "createdBy": createdBy
                 })
                 var amountUpdate = await Accounting.findOneAndUpdate(
-                    { _id: transID },
+                    { _id: "6495731a7e9b3fb309e0f6ab" },
                     { $inc: { amount: -req.body.totalAmount } }
                 )
                 //sec transaction
@@ -377,14 +377,14 @@ exports.createTreatmentSelection = async (req, res, next) => {
                     "amount": req.body.totalAmount,
                     "date": Date.now(),
                     "remark": null,
-                    "relatedAccounting": transID, //Advance received from customer
+                    "relatedAccounting": "6495731a7e9b3fb309e0f6ab", //Advance Income
                     "type": "Debit",
                     "relatedTransaction": fTransResult._id,
                     "createdBy": createdBy
                 })
 
                 var amountUpdate = await Accounting.findOneAndUpdate(
-                    { _id: transID },
+                    { _id: "6495731a7e9b3fb309e0f6ab" },
                     { $inc: { amount: -req.body.totalAmount } }
                 )
 
@@ -496,12 +496,12 @@ exports.createTreatmentSelection = async (req, res, next) => {
             "amount": req.body.paidAmount,
             "date": Date.now(),
             "remark": null,
-            "relatedAccounting": "6467379159a9bc811d97f4d2", //Advance received from customer
+            "relatedAccounting": "6495731a7e9b3fb309e0f6ab", //Advance Income
             "type": "Credit",
             "createdBy": createdBy
         })
         var freqamountUpdate = await Accounting.findOneAndUpdate(
-            { _id: "6467379159a9bc811d97f4d2" },
+            { _id: "6495731a7e9b3fb309e0f6ab" },
             { $inc: { amount: -req.body.paidAmount } }
         )
         //sec transaction
