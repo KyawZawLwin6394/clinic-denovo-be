@@ -9,7 +9,7 @@ exports.listAllDefers = async (req, res) => {
   try {
     limit = +limit <= 100 ? +limit : 20; //limit
     skip = +skip || 0;
-    let query = {isDeleted:false},
+    let query = { isDeleted: false },
       regexKeyword;
     role ? (query['role'] = role.toUpperCase()) : '';
     keyword && /\w/.test(keyword)
@@ -39,7 +39,7 @@ exports.listAllDefers = async (req, res) => {
 };
 
 exports.getDefer = async (req, res) => {
-  const result = await Defer.find({ _id: req.params.id,isDeleted:false }).populate('relatedMedicineSale')
+  const result = await Defer.find({ _id: req.params.id, isDeleted: false }).populate('relatedMedicineSale')
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
@@ -49,24 +49,30 @@ exports.createDefer = async (req, res, next) => {
   try {
     //first transaction 
     const fTransaction = new Transaction({
+      "amount": req.body.deferredAmount,
+      "date": req.body.deferredDate,
+      "remark": req.body.remark,
+      "relatedAccounting": "6423eb525fb841d5566db371", //Sales-Package Debit
+      "type": "Debit"
+    })
+    const fTransResult = await fTransaction.save()
+    const secTransaction = new Transaction(
+      {
         "amount": req.body.deferredAmount,
         "date": req.body.deferredDate,
         "remark": req.body.remark,
-        "relatedAccounting":"6423eb525fb841d5566db371", //Sales-Package Debit
-        "type": "Debit"
-      })
-      const fTransResult = await fTransaction.save()
-      const secTransaction = new Transaction(
-        {
-          "amount": req.body.deferredAmount,
-          "date": req.body.deferredDate,
-          "remark": req.body.remark,
-          "relatedAccounting":"6423fcdf54015805ecc45917", //Sales Package Deferred Revenue
-          "type": "Credit",
-          "relatedTransaction":fTransResult._id
-        }
-      )
-      const secTransResult = await secTransaction.save()
+        "relatedAccounting": "6423fcdf54015805ecc45917", //Sales Package Deferred Revenue
+        "type": "Credit",
+        "relatedTransaction": fTransResult._id
+      }
+    )
+    const secTransResult = await secTransaction.save()
+    const fTransUpdate = await Transaction.findOneAndUpdate(
+      { _id: fTransResult._id },
+      {
+        relatedTransaction: secTransResult._id
+      }
+    )
     const newBody = req.body;
     const newDefer = new Defer(newBody);
     const result = await newDefer.save();
@@ -74,11 +80,11 @@ exports.createDefer = async (req, res, next) => {
       message: 'Defer create success',
       success: true,
       data: result,
-      first:fTransResult,
-      second:secTransResult
+      first: fTransResult,
+      second: secTransResult
     });
   } catch (error) {
-    console.log(error )
+    console.log(error)
     return res.status(500).send({ "error": true, message: error.message })
   }
 };

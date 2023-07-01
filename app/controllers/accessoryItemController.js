@@ -1,5 +1,6 @@
 'use strict';
 const AccessoryItem = require('../models/accessoryItem');
+const Log = require('../models/log');
 
 exports.listAllAccessoryItems = async (req, res) => {
   let { keyword, role, limit, skip } = req.query;
@@ -8,7 +9,7 @@ exports.listAllAccessoryItems = async (req, res) => {
   try {
     limit = +limit <= 100 ? +limit : 10; //limit
     skip = +skip || 0;
-    let query = {isDeleted:false},
+    let query = { isDeleted: false },
       regexKeyword;
     role ? (query['role'] = role.toUpperCase()) : '';
     keyword && /\w/.test(keyword)
@@ -37,18 +38,18 @@ exports.listAllAccessoryItems = async (req, res) => {
 };
 
 exports.getAccessoryItem = async (req, res) => {
-  const result = await AccessoryItem.find({ _id: req.params.id,isDeleted:false }).populate('name')
+  const result = await AccessoryItem.find({ _id: req.params.id, isDeleted: false }).populate('name')
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
 };
 
 exports.getRelatedAccessoryItem = async (req, res) => {
-    const result = await AccessoryItem.find({ name: req.params.id,isDeleted:false }).populate('name')
-    if (!result)
-      return res.status(500).json({ error: true, message: 'No Record Found' });
-    return res.status(200).send({ success: true, data: result });
-  };
+  const result = await AccessoryItem.find({ name: req.params.id, isDeleted: false }).populate('name')
+  if (!result)
+    return res.status(500).json({ error: true, message: 'No Record Found' });
+  return res.status(200).send({ success: true, data: result });
+};
 
 exports.createAccessoryItem = async (req, res, next) => {
   try {
@@ -61,18 +62,26 @@ exports.createAccessoryItem = async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    console.log(error )
+    console.log(error)
     return res.status(500).send({ "error": true, message: error.message })
   }
 };
 
 exports.updateAccessoryItem = async (req, res, next) => {
   try {
+    const getResult = await AccessoryItem.find({ _id: req.body.id })
     const result = await AccessoryItem.findOneAndUpdate(
       { _id: req.body.id },
       req.body,
       { new: true },
     ).populate('name')
+    const logResult = await Log.create({
+      "relatedAccessoryItems": req.body.id,
+      "currentQty": getResult[0].totalUnit,
+      "finalQty": req.body.totalUnit,
+      "type": "Stock Update",
+      "createdBy": req.credentials.id
+    })
     return res.status(200).send({ success: true, data: result });
   } catch (error) {
     return res.status(500).send({ "error": true, "message": error.message })
@@ -109,7 +118,7 @@ exports.activateAccessoryItem = async (req, res, next) => {
 exports.searchAccessoryItems = async (req, res, next) => {
   try {
     const result = await AccessoryItem.find({ $text: { $search: req.body.search } }).populate('name')
-    if (result.length===0) return res.status(404).send({error:true, message:'No Record Found!'})
+    if (result.length === 0) return res.status(404).send({ error: true, message: 'No Record Found!' })
     return res.status(200).send({ success: true, data: result })
   } catch (err) {
     return res.status(500).send({ error: true, message: err.message })

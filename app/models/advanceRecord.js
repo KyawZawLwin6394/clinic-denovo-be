@@ -28,6 +28,14 @@ let AdvanceRecordSchema = new Schema({
     createdAt: {
         type: Date
     },
+    relatedBank: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AccountingLists'
+    },
+    relatedCash: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AccountingLists'
+    }
 });
 
 module.exports = mongoose.model('AdvanceRecords', AdvanceRecordSchema);
