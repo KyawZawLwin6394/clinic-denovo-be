@@ -22,7 +22,7 @@ exports.getHistoryAndPhysicalExamination = async (req, res) => {
   const { id } = req.params;
   try {
     const PhysicalResult = await Physical.find({ relatedPatient: id, isDeleted: false }).populate('relatedPatient');
-    const result = await History.find({ relatedPatient: req.params.id,isDeleted:false }).populate('relatedPatient')
+    const result = await History.find({ relatedPatient: req.params.id, isDeleted: false }).populate('relatedPatient')
     return res.status(200).send({ success: true, PhysicalResult: PhysicalResult, HistoryResult: result })
   } catch (error) {
     return res.status(500).send({ error: true, message: error.message })
@@ -66,7 +66,7 @@ exports.listAllPatients = async (req, res) => {
 };
 
 exports.getPatient = async (req, res) => {
-  let query = req.mongoQuery
+  let query = { isDeleted: false }
   if (req.params.id) query._id = req.params.id
   const result = await Patient.find(query).populate('img').populate({
     path: 'relatedMember',
