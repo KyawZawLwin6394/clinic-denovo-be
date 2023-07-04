@@ -8,6 +8,7 @@ const Repay = require('../models/repayRecord');
 const Accounting = require('../models/accountingList');
 const Attachment = require('../models/attachment');
 const AdvanceRecords = require('../models/advanceRecord');
+const Treatment = require('../models/treatment')
 
 exports.getwithExactDate = async (req, res) => {
     try {
