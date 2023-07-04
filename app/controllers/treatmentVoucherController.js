@@ -8,7 +8,7 @@ exports.listAllTreatmentVouchers = async (req, res) => {
     try {
         limit = +limit <= 100 ? +limit : 20; //limit
         skip = +skip || 0;
-        let query = req.mongoQuery,
+        let query = { isDeleted: false },
             regexKeyword;
         role ? (query['role'] = role.toUpperCase()) : '';
         keyword && /\w/.test(keyword)
@@ -46,7 +46,7 @@ exports.getTreatmentVoucherWithTreatmentID = async (req, res) => {
 };
 
 exports.getTreatmentVoucher = async (req, res) => {
-    let query = req.mongoQuery
+    let query = { isDeleted: false }
     if (req.params.id) query._id = req.params.id
     const result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient relatedTreatmentSelection')
     if (!result)
@@ -56,7 +56,7 @@ exports.getTreatmentVoucher = async (req, res) => {
 
 exports.getRelatedTreatmentVoucher = async (req, res) => {
     try {
-        let query = req.mongoQuery;
+        let query = { isDeleted: false };
         let { relatedPatient, relatedTreatment, start, end, treatmentSelection, createdBy } = req.body
         if (start && end) query.createdAt = { $gte: start, $lte: end }
         if (relatedPatient) query.relatedPatient = relatedPatient
@@ -68,13 +68,14 @@ exports.getRelatedTreatmentVoucher = async (req, res) => {
             return res.status(404).json({ error: true, message: 'No Record Found' });
         return res.status(200).send({ success: true, data: result });
     } catch (error) {
+        console.log(error)
         return res.status(500).send({ error: true, message: 'An Error Occured While Fetching Related Treatment Vouchers' })
     }
 };
 
 exports.searchTreatmentVoucher = async (req, res, next) => {
     try {
-        let query = req.mongoQuery
+        let query = { isDeleted: false }
         let { search, relatedPatient } = req.body
         if (relatedPatient) query.relatedPatient = relatedPatient
         if (search) query.$text = { $search: search }
@@ -160,7 +161,7 @@ exports.activateTreatmentVoucher = async (req, res, next) => {
 
 exports.getTodaysTreatmentVoucher = async (req, res) => {
     try {
-        let query = req.mongoQuery
+        let query = { isDeleted: false }
         var start = new Date();
         var end = new Date();
         start.setHours(0, 0, 0, 0);
