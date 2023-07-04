@@ -152,11 +152,18 @@ exports.createAppointment = async (req, res, next) => {
 
 exports.updateAppointment = async (req, res, next) => {
   try {
+    let { relatedPatient } = req.body;
     const result = await Appointment.findOneAndUpdate(
       { _id: req.body.id },
       req.body,
       { new: true },
-    ).populate('relatedPatient').populate('relatedDoctor').populate('relatedTherapist');
+    ).populate('relatedPatient').populate('relatedDoctor').populate('relatedTherapist relatedNurse');
+    if (relatedPatient) {
+      const patientUpdate = await Patient.findOneAndUpdate(
+        { _id: relatedPatient },
+        { $inc: { unfinishedAppointments: -1, finishedAppointments: 1 } }
+      )
+    }
     return res.status(200).send({ success: true, data: result });
   } catch (error) {
     return res.status(500).send({ "error": true, "message": error.message })
