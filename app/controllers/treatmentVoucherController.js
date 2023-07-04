@@ -37,7 +37,7 @@ exports.listAllTreatmentVouchers = async (req, res) => {
 };
 
 exports.getTreatmentVoucherWithTreatmentID = async (req, res) => {
-    let query = req.mongoQuery
+    let query = { isDeleted: false }
     if (req.params.id) query.relatedTreatmentSelection = req.params.id
     const result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient')
     if (!result)
