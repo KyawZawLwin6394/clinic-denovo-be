@@ -13,7 +13,7 @@ let TreatmentVoucherSchema = new Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now()
+        default: Date.now
     },
     relatedTreatment: {
         type: mongoose.Schema.Types.ObjectId,
@@ -29,7 +29,7 @@ let TreatmentVoucherSchema = new Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['by Appointment', 'Lumpsum', 'Total', 'Advanced', 'FOC']
+        enum: ['by Appointment', 'Lumpsum', 'Total', 'Advanced', 'FOC','pAdvance']
     },
     amount: {
         type: Number
