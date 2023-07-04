@@ -40,7 +40,7 @@ exports.listAllTreatmentSelections = async (req, res) => {
     try {
         limit = +limit <= 100 ? +limit : 10; //limit
         skip = +skip || 0;
-        let query = req.mongoQuery,
+        let query = { isDeleted: false },
             regexKeyword;
         role ? (query['role'] = role.toUpperCase()) : '';
         keyword && /\w/.test(keyword)
@@ -75,7 +75,7 @@ exports.listAllTreatmentSelections = async (req, res) => {
 };
 
 exports.getTreatmentSelection = async (req, res) => {
-    let query = req.mongoQuery
+    let query = { isDeleted: false }
     if (req.params.id) query._id = req.params.id
     const result = await TreatmentSelection.find(query).populate('createdBy relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentList').populate({
         path: 'relatedTreatment',
@@ -101,7 +101,7 @@ exports.getTreatmentSelection = async (req, res) => {
 };
 
 exports.getTreatementSelectionByTreatmentID = async (req, res) => {
-    let query = req.mongoQuery
+    let query = { isDeleted: false }
     if (req.params.id) query.relatedTreatment = req.params.id
     const result = await TreatmentSelection.find(query).populate('createdBy relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentList').populate({
         path: 'relatedTreatment',
@@ -849,7 +849,7 @@ exports.createTreatmentTransaction = async (req, res) => {
 
 exports.getRelatedTreatmentSelections = async (req, res) => {
     try {
-        let query = req.mongoQuery;
+        let query = { isDeleted: false };
         let { relatedPatient, start, end, relatedAppointments } = req.body
         if (start && end) query.createdAt = { $gte: start, $lte: end }
         if (relatedPatient) query.relatedPatient = relatedPatient
@@ -874,7 +874,7 @@ exports.getRelatedTreatmentSelections = async (req, res) => {
 
 exports.searchTreatmentSelections = async (req, res, next) => {
     try {
-        let query = req.mongoQuery
+        let query = { isDeleted: false }
         let { search, relatedPatient } = req.body
         if (relatedPatient) query.relatedPatient = relatedPatient
         if (search) query.$text = { $search: search }
