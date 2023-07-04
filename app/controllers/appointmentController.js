@@ -121,7 +121,7 @@ exports.getAppointment = async (req, res) => {
 exports.createAppointment = async (req, res, next) => {
   let data = req.body
   try {
-    if (req.body.status == 'New') {
+    if (req.body.pstatus == 'New') {
       const latestDocument = await Patient.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
       console.log(latestDocument)
       if (latestDocument.length === 0) data = { ...data, seq: '1', patientID: "CUS-1" } // if seq is undefined set initial patientID and seq
