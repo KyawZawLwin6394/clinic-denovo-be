@@ -25,5 +25,7 @@ module.exports = (app) => {
     app.route('/api/package-selections/filter').post(verifyToken, catchError(packageSelection.getRelatedPackageSelections))
     app.route('/api/package-selections/search').post(verifyToken, catchError(packageSelection.searchPackageSelections))
     app.route('/api/package-selections/code').get(verifyToken, catchError(packageSelection.createPackageSelectionCode))
+    app.route('/api/package-selections/generate').post(verifyToken, catchError(packageSelection.appointmentGenerate))
+
 
 };

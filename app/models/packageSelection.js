@@ -34,13 +34,9 @@ let PackageSelectionSchema = new Schema({
     required: true,
     default: false
   },
-  relatedTreatment: {
+  relatedPackage: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Treatments'
-  },
-  relatedTreatmentList: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'TreatmentLists'
+    ref: 'Packages'
   },
   relatedAppointments: {
     type: [mongoose.Schema.Types.ObjectId],

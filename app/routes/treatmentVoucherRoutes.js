@@ -25,4 +25,6 @@ module.exports = (app) => {
     app.route('/api/treatment-vouchers/get-date').get(verifyToken, catchError(treatmentVoucher.getwithExactDate))
     app.route('/api/treatment-vouchers/TV-Filter').get(verifyToken, catchError(treatmentVoucher.TreatmentVoucherFilter))
     app.route('/api/treatment-vouchers/treatment-selection/:id').get(verifyToken, catchError(treatmentVoucher.getTreatmentVoucherWithTreatmentID))
+    app.route('/api/treatment-vouchers/filter')
+        .get(verifyToken, catchError(treatmentVoucher.filterTreatmentVoucher))
 };
