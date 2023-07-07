@@ -84,9 +84,13 @@ let AppointmentSchema = new Schema({
     type: Boolean,
     default: false
   },
-  relatedPackageSelection:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:'PackageSelections'
+  relatedPackageSelection: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PackageSelections'
+  },
+  relatedTreatment: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Treatments'
   }
 });
 

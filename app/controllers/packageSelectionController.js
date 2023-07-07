@@ -45,6 +45,19 @@ exports.listAllPackageSelections = async (req, res) => {
     }
 };
 
+exports.getAppointmentsForPackageSelection = async (req, res) => {
+    try {
+        let { relatedPackageSelection, relatedTreatment } = req.query;
+        const appointmentResult = await Appointment.find({ relatedPackageSelection: relatedPackageSelection, relatedTreatment: relatedTreatment })
+        return res.status(200).send({ success: true, data: appointmentResult })
+    } catch (error) {
+        return res.status(500).send({
+            error: true,
+            message: error.message
+        })
+    }
+}
+
 exports.getPackageSelection = async (req, res) => {
     let query = { isDeleted: false }
     if (req.params.id) query._id = req.params.id
@@ -92,7 +105,7 @@ exports.createPackageSelectionCode = async (req, res) => {
 exports.appointmentGenerate = async (req, res) => {
     let relatedAppointments = []
     const dataconfigs = [];
-    let { relatedPatient, relatedDoctor, originalDate, relatedBranch, treatmentTimes, inBetweenDuration, relatedPackageSelection, relatedTreatment,phone } = req.body
+    let { relatedPatient, relatedDoctor, originalDate, relatedBranch, treatmentTimes, inBetweenDuration, relatedPackageSelection, relatedTreatment, phone } = req.body
     if (originalDate === undefined) return res.status(500).send({ error: true, message: 'Original Date is required' })
     const appointmentConfig = {
         relatedPatient: relatedPatient,
