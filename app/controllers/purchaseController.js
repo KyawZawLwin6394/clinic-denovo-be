@@ -2,7 +2,9 @@
 const Purchase = require('../models/purchase');
 const MedicineItems = require('../models/medicineItem');
 const ProcedureItems = require('../models/procedureItem');
-const AccessoryItems = require('../models/accessoryItem')
+const AccessoryItems = require('../models/accessoryItem');
+const Stock = require('../models/stock');
+const Transaction = require('../models/transaction');
 
 exports.listAllPurchases = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -18,7 +20,7 @@ exports.listAllPurchases = async (req, res) => {
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await Purchase.find(query).populate('supplierName').populate('medicineItems.item_id').populate('procedureItems.item_id')
+        let result = await Purchase.find(query).populate('supplierName').populate('medicineItems.item_id').populate('procedureItems.item_id').populate('relatedBranch')
         count = await Purchase.find(query).count();
         const division = count / limit;
         page = Math.ceil(division);
@@ -48,34 +50,82 @@ exports.getPurchase = async (req, res) => {
 
 exports.createPurchase = async (req, res, next) => {
     let data = req.body
+    let { relatedBranch } = data
     try {
-        data.medicineItems.map(async function (element, index) {
-            const result = await MedicineItems.findOneAndUpdate(
-                { relatedMedicineItems: element.item_id },
-                { $inc: { currentQuantity: element.qty, totalUnit: element.totalUnit } },
-                { new: true },
-            ).populate('supplierName').populate('medicineItems.item_id').populate('procedureItems.item_id')
-        })
-        data.procedureItems.map(async function (element, index) {
-            const result = await ProcedureItems.findOneAndUpdate(
-                { relatedProcedureItems: element.item_id },
-                { $inc: { currentQuantity: element.qty, totalUnit: element.totalUnit } },
-                { new: true },
-            ).populate('name').populate('relatedCategory').populate('relatedBrand').populate('relatedSubCategory')
-        })
-        data.accessoryItems.map(async function (element, index) {
-            const result = await AccessoryItems.findOneAndUpdate(
-                { relatedAccessoryItems: element.item_id },
-                { $inc: { currentQuantity: element.qty, totalUnit: element.totalUnit } },
-                { new: true },
-            ).populate('name').populate('relatedCategory').populate('relatedBrand').populate('relatedSubCategory')
-        })
+        if (relatedBranch !== undefined) {
+            data.medicineItems.map(async function (element, index) {
+                const result = await Stock.findOneAndUpdate(
+                    { relatedMedicineItems: element.item_id, relatedBranch: relatedBranch },
+                    { $inc: { currentQty: element.qty, totalUnit: element.totalUnit } },
+                    { new: true },
+                ).populate('supplierName').populate('medicineItems.item_id').populate('procedureItems.item_id')
+            })
+            data.procedureItems.map(async function (element, index) {
+                const result = await Stock.findOneAndUpdate(
+                    { relatedProcedureItems: element.item_id, relatedBranch: relatedBranch },
+                    { $inc: { currentQty: element.qty, totalUnit: element.totalUnit } },
+                    { new: true },
+                ).populate('name').populate('relatedCategory').populate('relatedBrand').populate('relatedSubCategory')
+            })
+            data.accessoryItems.map(async function (element, index) {
+                const result = await Stock.findOneAndUpdate(
+                    { relatedAccessoryItems: element.item_id, relatedBranch: relatedBranch },
+                    { $inc: { currentQty: element.qty, totalUnit: element.totalUnit } },
+                    { new: true },
+                ).populate('name').populate('relatedCategory').populate('relatedBrand').populate('relatedSubCategory')
+            })
+        } else if (relatedBranch === undefined) {
+            data.medicineItems.map(async function (element, index) {
+                const result = await MedicineItems.findOneAndUpdate(
+                    { _id: element.item_id },
+                    { $inc: { currentQuantity: element.qty, totalUnit: element.totalUnit } },
+                    { new: true },
+                ).populate('supplierName').populate('medicineItems.item_id').populate('procedureItems.item_id')
+            })
+            data.procedureItems.map(async function (element, index) {
+                const result = await ProcedureItems.findOneAndUpdate(
+                    { _id: element.item_id },
+                    { $inc: { currentQuantity: element.qty, totalUnit: element.totalUnit } },
+                    { new: true },
+                ).populate('name').populate('relatedCategory').populate('relatedBrand').populate('relatedSubCategory')
+            })
+            data.accessoryItems.map(async function (element, index) {
+                const result = await AccessoryItems.findOneAndUpdate(
+                    { _id: element.item_id },
+                    { $inc: { currentQuantity: element.qty, totalUnit: element.totalUnit } },
+                    { new: true },
+                ).populate('name').populate('relatedCategory').populate('relatedBrand').populate('relatedSubCategory')
+            })
+        }
+        data = { ...data, relatedBranch: relatedBranch }
         const newPurchase = new Purchase(data);
         const result = await newPurchase.save();
+
+        const transResult = await Transaction.create({
+            "amount": data.totalPrice,
+            "date": Date.now(),
+            "remark": data.remark,
+            "type": "Credit",
+            "relatedTransaction": null,
+            "relatedAccounting": "646733d659a9bc811d97efa9", //Opening Stock
+            "relatedBranch": relatedBranch
+        })
+        const SectransResult = await Transaction.create({
+            "amount": data.totalPrice,
+            "date": Date.now(),
+            "remark": data.remark,
+            "type": "Debit",
+            "relatedTransaction": null,
+            "relatedBank": req.body.relatedBank, //Opening Stock
+            "relatedCash": req.body.relatedCash,
+            "relatedTransaction": transResult._id
+        })
+        const transUpdate = await Transaction.findOneAndUpdate({ _id: transResult._id }, { "relatedTransaction": SectransResult._id })
         res.status(200).send({
             message: 'Purchase create success',
             success: true,
-            data: result
+            data: result,
+            transResult: transResult
         });
     } catch (error) {
         return res.status(500).send({ "error": true, message: error.message })
