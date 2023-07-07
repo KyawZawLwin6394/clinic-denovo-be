@@ -83,6 +83,10 @@ let AppointmentSchema = new Schema({
   isCommissioned: {
     type: Boolean,
     default: false
+  },
+  relatedPackageSelection:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'PackageSelections'
   }
 });
 

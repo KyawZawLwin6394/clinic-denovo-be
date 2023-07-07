@@ -101,6 +101,10 @@ let PatientSchema = new Schema({
   },
   unfinishedAppointments: {
     type: Number
+  },
+  maritalStatus: {
+    type: String,
+    enum: ['Single', 'Married', 'N/A']
   }
 });
 const patient = mongoose.model('Patients', PatientSchema)
