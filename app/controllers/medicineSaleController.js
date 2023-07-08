@@ -3,6 +3,7 @@ const MedicineSale = require('../models/medicineSale');
 const Transaction = require('../models/transaction');
 const Accounting = require('../models/accountingList');
 const Patient = require('../models/patient');
+const MedicineItems = require('../models/medicineItem');
 
 exports.getwithExactDate = async (req, res) => {
   try {
@@ -105,11 +106,43 @@ exports.createMedicineSale = async (req, res, next) => {
       const increment = latestDocument[0].seq + 1
       data = { ...data, voucherCode: "MVC-" + increment, seq: increment }
     }
-    // const patientUpdate = await Patient.findOneAndUpdate(
-    //   { _id: req.body.relatedPatient },
-    //   { $inc: { conditionAmount: req.body.grandTotal, conditionPurchaseFreq: 1, conditionPackageQty: 1 } },
-    //   { new: true }
-    // )
+    //_________COGS___________
+    const medicineResult = await MedicineItems.find({ _id: { $in: req.body.medicineItems.map(item => item.item_id) } })
+    const purchaseTotal = medicineResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice , 0)
+
+    const inventoryResult = Transaction.create({
+      "amount": purchaseTotal,
+      "date": Date.now(),
+      "remark": req.body.remark,
+      "relatedAccounting": "64a8e06755a87deaea39e17b", //Medicine inventory
+      "type": "Credit",
+      "createdBy": createdBy
+    })
+    var inventoryAmountUpdate = await Accounting.findOneAndUpdate(
+      { _id: "64a8e06755a87deaea39e17b" },  // Medicine inventory
+      { $inc: { amount: -purchaseTotal } }
+    )
+    const COGSResult = Transaction.create({
+      "amount": purchaseTotal,
+      "date": Date.now(),
+      "remark": req.body.remark,
+      "relatedAccounting": "64a8e10b55a87deaea39e193", //Medicine Sales COGS
+      "type": "Debit",
+      "relatedTransaction": inventoryResult._id,
+      "createdBy": createdBy
+    })
+    var inventoryUpdate = await Transaction.findOneAndUpdate(
+      { _id: inventoryResult._id },
+      {
+        relatedTransaction: COGSResult._id
+      },
+      { new: true }
+    )
+    var COGSUpdate = await Accounting.findOneAndUpdate(
+      { _id: "64a8e10b55a87deaea39e193" },  //Medicine Sales COGS
+      { $inc: { amount: purchaseTotal } }
+    )
+    //_________END_OF_COGS___________
 
     //first transaction 
     const fTransaction = new Transaction({
@@ -173,10 +206,10 @@ exports.createMedicineSale = async (req, res, next) => {
     res.status(200).send({
       message: 'MedicineSale Transaction success',
       success: true,
-      fTrans: fTransUpdate,
-      sTrans: secTransResult,
-      accResult: accResult,
-      data: medicineSaleResult
+      // fTrans: fTransUpdate,
+      // sTrans: secTransResult,
+      // accResult: accResult,
+      // data: medicineSaleResult
     });
 
   } catch (error) {

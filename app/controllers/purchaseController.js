@@ -91,7 +91,7 @@ exports.createPurchase = async (req, res, next) => {
             "date": Date.now(),
             "remark": data.remark,
             "type": "Debit",
-            "relatedTransaction": null,
+            "relatedTransaction": null, //bank or cash mhr credit - , treatment inventory mhr debit +
             "relatedBank": req.body.relatedBank, //Opening Stock
             "relatedCash": req.body.relatedCash,
             "relatedTransaction": transResult._id
