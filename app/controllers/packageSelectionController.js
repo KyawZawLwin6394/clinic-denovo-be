@@ -127,7 +127,8 @@ exports.appointmentGenerate = async (req, res) => {
     appointmentResult.map(function (element, index) {
         relatedAppointments.push(element._id)
     })
-    return res.status(200).send({ success: true, data: appointmentResult, relatedAppointments: relatedAppointments })
+    const populatedAppointments = await Appointment.find({ _id: { $in: appointmentResult.map(item => item._id) } }).populate('relatedDoctor');
+    return res.status(200).send({ success: true, data: populatedAppointments, relatedAppointments: relatedAppointments })
 }
 
 exports.createPackageSelection = async (req, res, next) => {
