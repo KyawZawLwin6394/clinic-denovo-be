@@ -149,7 +149,6 @@ exports.createTreatmentSelection = async (req, res, next) => {
             originalDate: new Date(req.body.originalDate), // Convert to Date object
             phone: req.body.phone
         };
-        console.log(appointmentConfig)
         const numTreatments = req.body.treatmentTimes;
         const dataconfigs = [];
 
@@ -176,13 +175,11 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 var attachID = attachResult._id.toString()
             }
         }
-
         const patientUpdate = await Patient.findOneAndUpdate(
             { _id: req.body.relatedPatient },
             { $inc: { conditionAmount: req.body.totalAmount, conditionPurchaseFreq: 1, conditionPackageQty: 1 } },
             { new: true }
         )
-
         data = { ...data, relatedAppointments: relatedAppointments, remainingAppointments: relatedAppointments, createdBy: createdBy }
         console.log(data, 'data1')
         //first transaction 

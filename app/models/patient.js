@@ -105,7 +105,11 @@ let PatientSchema = new Schema({
   maritalStatus: {
     type: String,
     enum: ['Single', 'Married', 'N/A']
-  }
+  },
+  relatedPackageSelection: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'PackageSelections'
+  },
 });
 const patient = mongoose.model('Patients', PatientSchema)
 module.exports = patient;

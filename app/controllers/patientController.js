@@ -93,7 +93,18 @@ exports.getPatient = async (req, res) => {
       path: 'relatedTreatment',
       model: 'Treatments'
     }
-  })
+  }).populate({
+    path: 'relatedPackageSelection',
+    model: 'PackageSelections',
+    populate: {
+      path: 'relatedPackage',
+      model: 'Packages',
+      populate: {
+        path: 'relatedTreatments',
+        model: 'Treatments'
+      }
+    }
+  });
   if (!result)
     return res.status(500).json({ error: true, message: 'Query Failed!' });
   if (result.length === 0) return res.status(404).send({ error: true, message: 'No Record Found!' })
