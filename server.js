@@ -1,5 +1,6 @@
 const cors = require('cors');
 const path = require('path');
+const cronitor = require('cronitor')('bb06d5c8745f45f2a9fc62755b7414ea');
 const createIndexs = require('./dbIndexes').createIndex
 const express = require('express'),
   bodyParser = require('body-parser'),
@@ -146,14 +147,25 @@ server.listen(port, () => {
   console.log('We are live on port: ', port);
 });
 
-cron.schedule('55 23 * * *', () => {
-  (async () => {
-    const isLastDay = await userUtil.getLatestDay();
+cronitor.wraps(cron);
+cronitor.schedule('SendWelcomeEmail', '* * * * *', async function() {
+  console.log('Managing AccountBalance for every Accounting Accs!');
+  const isLastDay = await userUtil.getLatestDay();
     if (isLastDay === true) {
       await userUtil.createAccountBalance();
     } else {
       console.log('Today is not the right day for the scheduled task!');
     }
-  })();
 });
+
+// cron.schedule('55 23 * * *', () => {
+//   (async () => {
+//     const isLastDay = await userUtil.getLatestDay();
+//     if (isLastDay === true) {
+//       await userUtil.createAccountBalance();
+//     } else {
+//       console.log('Today is not the right day for the scheduled task!');
+//     }
+//   })();
+// });
 

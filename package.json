@@ -18,6 +18,7 @@
     "content-type-parser": "^1.0.2",
     "cookie-parser": "^1.4.3",
     "cors": "^2.8.4",
+    "cronitor": "^2.3.3",
     "crypto": "^1.0.1",
     "diff": "^5.0.0",
     "express": "^4.16.2",
