@@ -9,6 +9,10 @@ const Accounting = require('../models/accountingList');
 const Attachment = require('../models/attachment');
 const AdvanceRecords = require('../models/advanceRecord');
 const Package = require('../models/treatment');
+const Treatment = require('../models/treatment')
+const MedicineItems = require('../models/medicineItem');
+const AccessoryItems = require('../models/accessoryItem');
+const ProcedureItems = require('../models/procedureItem');
 
 exports.listAllPackageSelections = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -208,16 +212,8 @@ exports.createPackageSelection = async (req, res, next) => {
 
         //_________COGS___________
 
-        const treatmentResult = await Treatment.find({ _id: req.body.relatedTreatment }).populate('procedureMedicine.item_id').populate('medicineLists.item_id').populate('procedureAccessory.item_id')
-
-        const medicineResult = await MedicineItems.find({ _id: { $in: treatmentResult.medicineLists.map(item => item.item_id) } })
-        const medicineTotal = medicineResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
-        const procedureResult = await ProcedureItems.find({ _id: { $in: treatmentResult.procedureMedicine.map(item => item.item_id) } })
-        const procedureTotal = procedureResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
-        const accessoryResult = await AccessoryItems.find({ _id: { $in: treatmentResult.procedureAccessory.map(item => item.item_id) } })
-        const accessoryTotal = accessoryResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
-
-        const purchaseTotal = medicineTotal + procedureTotal + accessoryTotal
+        const treatmentResult = await Treatment.find({ _id: { $in: req.body.relatedTreatment } }).populate('procedureMedicine.item_id').populate('medicineLists.item_id').populate('procedureAccessory.item_id')
+        const purchaseTotal = treatmentResult.reduce((accumulator, currentValue) => accumulator + currentValue.estimateTotalPrice)
         const inventoryResult = Transaction.create({
             "amount": purchaseTotal,
             "date": Date.now(),
