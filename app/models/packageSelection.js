@@ -100,6 +100,9 @@ let PackageSelectionSchema = new Schema({
   },
   remark: {
     type: String
+  },
+  purchaseTotal: {
+    type: Number
   }
 
 });
