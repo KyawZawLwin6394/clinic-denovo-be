@@ -211,6 +211,7 @@ exports.TreatmentVoucherFilter = async (req, res) => {
         if (start && end) query.createdAt = { $gte: start, $lt: end }
         if (relatedBranch) query.relatedBranch = relatedBranch
         if (createdBy) query.createdBy = createdBy
+        if (relatedDoctor) query.relatedDoctor = relatedDoctor
         let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedAppointment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedBranch relatedAccounting payment createdBy')
         const { relatedBank, ...query2 } = query;
         query2.relatedCash = { $exists: true };

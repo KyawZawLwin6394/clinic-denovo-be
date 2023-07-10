@@ -238,9 +238,73 @@ exports.createTreatmentSelection = async (req, res, next) => {
             }
             tvcCreate = true;
         }
+        //_________COGS___________
+
+        const treatmentResult = await Treatment.find({ _id: req.body.relatedTreatment }).populate('procedureMedicine.item_id').populate('medicineLists.item_id').populate('procedureAccessory.item_id')
+
+        const medicineResult = await MedicineItems.find({ _id: { $in: treatmentResult.medicineLists.map(item => item.item_id) } })
+        const medicineTotal = medicineResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
+        const procedureResult = await ProcedureItems.find({ _id: { $in: treatmentResult.procedureMedicine.map(item => item.item_id) } })
+        const procedureTotal = procedureResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
+        const accessoryResult = await AccessoryItems.find({ _id: { $in: treatmentResult.procedureAccessory.map(item => item.item_id) } })
+        const accessoryTotal = accessoryResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
+
+        const purchaseTotal = medicineTotal + procedureTotal + accessoryTotal
+        const inventoryResult = Transaction.create({
+            "amount": purchaseTotal,
+            "date": Date.now(),
+            "remark": req.body.remark,
+            "relatedAccounting": "64a8e09055a87deaea39e181", //Treatement inventory
+            "type": "Credit",
+            "createdBy": createdBy
+        })
+        var inventoryAmountUpdate = await Accounting.findOneAndUpdate(
+            { _id: "64a8e09055a87deaea39e181" },  //Treatement inventory
+            { $inc: { amount: -purchaseTotal } }
+        )
+        if (req.body.purchaseType === 'Clinic') {
+            var COGSResult = Transaction.create({
+                "amount": purchaseTotal,
+                "date": Date.now(),
+                "remark": req.body.remark,
+                "relatedAccounting": "64a8e0e755a87deaea39e18d", //Clinic Treatement COGS
+                "type": "Debit",
+                "relatedTransaction": inventoryResult._id,
+                "createdBy": createdBy
+            })
+            var COGSUpdate = await Accounting.findOneAndUpdate(
+                { _id: "64a8e0e755a87deaea39e18d" },  //Clinic Treatement COGS
+                { $inc: { amount: purchaseTotal } }
+            )
+        } else {
+            var COGSResult = Transaction.create({
+                "amount": purchaseTotal,
+                "date": Date.now(),
+                "remark": req.body.remark,
+                "relatedAccounting": "64a8e0bb55a87deaea39e187", //Surgery COGS
+                "type": "Debit",
+                "relatedTransaction": inventoryResult._id,
+                "createdBy": createdBy
+            })
+            var COGSUpdate = await Accounting.findOneAndUpdate(
+                { _id: "64a8e0bb55a87deaea39e187" },  //Surgery COGS
+                { $inc: { amount: purchaseTotal } }
+            )
+        }
+
+        var inventoryUpdate = await Transaction.findOneAndUpdate(
+            { _id: inventoryResult._id },
+            {
+                relatedTransaction: COGSResult._id
+            },
+            { new: true }
+        )
+
+        //_________END_OF_COGS___________
         if (fTransResult && secTransResult) { data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id] } } //adding relatedTransactions to treatmentSelection model
-        if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id } }
+        if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id, purchaseTotal: purchaseTotal } }
         console.log(data, 'data2')
+
         const result = await TreatmentSelection.create(data)
 
         if (req.body.paymentMethod === 'Advance') {
@@ -536,69 +600,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
             )
         }
 
-        //_________COGS___________
 
-        const treatmentResult = await Treatment.find({ _id: req.body.relatedTreatment }).populate('procedureMedicine.item_id').populate('medicineLists.item_id').populate('procedureAccessory.item_id')
-
-        const medicineResult = await MedicineItems.find({ _id: { $in: treatmentResult.medicineLists.map(item => item.item_id) } })
-        const medicineTotal = medicineResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
-        const procedureResult = await ProcedureItems.find({ _id: { $in: treatmentResult.procedureMedicine.map(item => item.item_id) } })
-        const procedureTotal = procedureResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
-        const accessoryResult = await AccessoryItems.find({ _id: { $in: treatmentResult.procedureAccessory.map(item => item.item_id) } })
-        const accessoryTotal = accessoryResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
-
-        const purchaseTotal = medicineTotal + procedureTotal + accessoryTotal
-        const inventoryResult = Transaction.create({
-            "amount": purchaseTotal,
-            "date": Date.now(),
-            "remark": req.body.remark,
-            "relatedAccounting": "64a8e09055a87deaea39e181", //Treatement inventory
-            "type": "Credit",
-            "createdBy": createdBy
-        })
-        var inventoryAmountUpdate = await Accounting.findOneAndUpdate(
-            { _id: "64a8e09055a87deaea39e181" },  //Treatement inventory
-            { $inc: { amount: -purchaseTotal } }
-        )
-        if (req.body.purchaseType === 'Clinic') {
-            var COGSResult = Transaction.create({
-                "amount": purchaseTotal,
-                "date": Date.now(),
-                "remark": req.body.remark,
-                "relatedAccounting": "64a8e0e755a87deaea39e18d", //Clinic Treatement COGS
-                "type": "Debit",
-                "relatedTransaction": inventoryResult._id,
-                "createdBy": createdBy
-            })
-            var COGSUpdate = await Accounting.findOneAndUpdate(
-                { _id: "64a8e0e755a87deaea39e18d" },  //Clinic Treatement COGS
-                { $inc: { amount: purchaseTotal } }
-            )
-        } else {
-            var COGSResult = Transaction.create({
-                "amount": purchaseTotal,
-                "date": Date.now(),
-                "remark": req.body.remark,
-                "relatedAccounting": "64a8e0bb55a87deaea39e187", //Surgery COGS
-                "type": "Debit",
-                "relatedTransaction": inventoryResult._id,
-                "createdBy": createdBy
-            })
-            var COGSUpdate = await Accounting.findOneAndUpdate(
-                { _id: "64a8e0bb55a87deaea39e187" },  //Surgery COGS
-                { $inc: { amount: purchaseTotal } }
-            )
-        }
-
-        var inventoryUpdate = await Transaction.findOneAndUpdate(
-            { _id: inventoryResult._id },
-            {
-                relatedTransaction: COGSResult._id
-            },
-            { new: true }
-        )
-
-        //_________END_OF_COGS___________
 
 
         const populatedResult = await TreatmentSelection.find({ _id: result._id }).populate('createdBy relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentList').populate({
@@ -637,7 +639,8 @@ exports.createTreatmentSelection = async (req, res, next) => {
             success: true,
             data: populatedResult,
             appointmentAutoGenerate: appointmentResult,
-            patientFreqUpdate: freqUpdate
+            patientFreqUpdate: freqUpdate,
+            purchaseTotal: purchaseTotal
             // fTransResult: fTransResult,
             // secTransResult: secTransResult,
             // treatmentVoucherResult:treatmentVoucherResult

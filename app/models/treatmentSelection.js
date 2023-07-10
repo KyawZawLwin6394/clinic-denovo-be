@@ -107,6 +107,9 @@ let TreatmentSelectionSchema = new Schema({
   },
   deposit: {
     type: Number
+  },
+  purchaseTotal:{
+    type:Number
   }
 
 });
