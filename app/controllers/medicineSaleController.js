@@ -201,6 +201,7 @@ exports.createMedicineSale = async (req, res, next) => {
       { new: true },
     )
     data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy, purchaseTotal: purchaseTotal }
+    if (purchaseTotal) data.purchaseTotal = purchaseTotal
     const newMedicineSale = new MedicineSale(data)
     const medicineSaleResult = await newMedicineSale.save()
     res.status(200).send({

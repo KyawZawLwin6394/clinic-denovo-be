@@ -296,6 +296,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
         //_________END_OF_COGS___________
         if (fTransResult && secTransResult) { data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id] } } //adding relatedTransactions to treatmentSelection model
         if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id, purchaseTotal: purchaseTotal } }
+        if (purchaseTotal) data.purchaseTotal = purchaseTotal
         console.log(data, 'data2')
 
         const result = await TreatmentSelection.create(data)

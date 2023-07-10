@@ -254,6 +254,8 @@ exports.createPackageSelection = async (req, res, next) => {
 
         if (fTransResult && secTransResult) { data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id] } } //adding relatedTransactions to treatmentSelection model
         if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id, purchaseTotal: purchaseTotal } }
+        if (purchaseTotal) data.purchaseTotal = purchaseTotal
+        console.log(purchaseTotal)
         const result = await PackageSelection.create(data)
 
         // if (req.body.paymentMethod === 'Advance') {
