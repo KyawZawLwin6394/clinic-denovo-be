@@ -148,7 +148,7 @@ server.listen(port, () => {
 });
 
 cronitor.wraps(cron);
-cronitor.schedule('SendWelcomeEmail', '* * * * *', async function() {
+cronitor.schedule('AccountBalanceClosingAndOpening', '* * * * *', async function() {
   console.log('Managing AccountBalance for every Accounting Accs!');
   const isLastDay = await userUtil.getLatestDay();
     if (isLastDay === true) {
