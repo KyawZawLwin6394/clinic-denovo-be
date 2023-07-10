@@ -213,7 +213,7 @@ exports.createPackageSelection = async (req, res, next) => {
         //_________COGS___________
 
         const treatmentResult = await Treatment.find({ _id: { $in: req.body.relatedTreatment } }).populate('procedureMedicine.item_id').populate('medicineLists.item_id').populate('procedureAccessory.item_id')
-        const purchaseTotal = treatmentResult.reduce((accumulator, currentValue) => accumulator + currentValue.estimateTotalPrice)
+        const purchaseTotal = treatmentResult.reduce((accumulator, currentValue) => accumulator + currentValue.estimateTotalPrice, 0)
         const inventoryResult = Transaction.create({
             "amount": purchaseTotal,
             "date": Date.now(),
