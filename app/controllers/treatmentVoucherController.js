@@ -212,10 +212,24 @@ exports.TreatmentVoucherFilter = async (req, res) => {
         if (relatedBranch) query.relatedBranch = relatedBranch
         if (createdBy) query.createdBy = createdBy
         if (relatedDoctor) query.relatedDoctor = relatedDoctor
-        let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedAppointment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedBranch relatedAccounting payment createdBy')
+        let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedBranch relatedAccounting payment createdBy').populate({
+            path:'relatedAppointment',
+            model:'Appointments',
+            populate:{
+                path:'relatedDoctor',
+                model:'Doctors'
+            }
+        })
         const { relatedBank, ...query2 } = query;
         query2.relatedCash = { $exists: true };
-        let cashResult = await TreatmentVoucher.find(query2).populate('relatedTreatment relatedAppointment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedBranch relatedAccounting payment createdBy')
+        let cashResult = await TreatmentVoucher.find(query2).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedBranch relatedAccounting payment createdBy').populate({
+            path:'relatedAppointment',
+            model:'Appointments',
+            populate:{
+                path:'relatedDoctor',
+                model:'Doctors'
+            }
+        })
         if (purchaseType) {
             cashResult = cashResult.filter(item => item.relatedTreatmentSelection.purchaseType === purchaseType)
             bankResult = bankResult.filter(item => item.relatedTreatmentSelection.purchaseType === purchaseType)
