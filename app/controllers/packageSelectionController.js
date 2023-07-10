@@ -210,9 +210,11 @@ exports.createPackageSelection = async (req, res, next) => {
             tvcCreate = true;
         }
 
-        //_________COGS___________
+        //_________COGS___________\
+        console.log(req.body.relatedTreatment.toString())
+        let treatmentArray = JSON.parse(req.body.relatedTreatment.toString())
 
-        const treatmentResult = await Treatment.find({ _id: { $in: req.body.relatedTreatment } }).populate('procedureMedicine.item_id').populate('medicineLists.item_id').populate('procedureAccessory.item_id')
+        const treatmentResult = await Treatment.find({ _id: { $in: treatmentArray } }).populate('procedureMedicine.item_id').populate('medicineLists.item_id').populate('procedureAccessory.item_id')
         const purchaseTotal = treatmentResult.reduce((accumulator, currentValue) => accumulator + currentValue.estimateTotalPrice, 0)
         const inventoryResult = Transaction.create({
             "amount": purchaseTotal,
