@@ -180,6 +180,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 var attachID = attachResult._id.toString()
             }
         }
+        console.log(req.body.totalAmount)
         const patientUpdate = await Patient.findOneAndUpdate(
             { _id: req.body.relatedPatient },
             { $inc: { conditionAmount: req.body.totalAmount, conditionPurchaseFreq: 1, conditionPackageQty: 1 } },
@@ -242,7 +243,8 @@ exports.createTreatmentSelection = async (req, res, next) => {
         //_________COGS___________
 
         const treatmentResult = await Treatment.find({ _id: req.body.relatedTreatment })
-        const purchaseTotal = treatmentResult.reduce((accumulator, currentValue) => accumulator + currentValue.estimateTotalPrice)
+        const purchaseTotal = treatmentResult.reduce((accumulator, currentValue) => accumulator + currentValue.estimateTotalPrice, 0)
+        console.log(purchaseTotal)
         const inventoryResult = Transaction.create({
             "amount": purchaseTotal,
             "date": Date.now(),

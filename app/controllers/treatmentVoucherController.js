@@ -207,27 +207,26 @@ exports.getwithExactDate = async (req, res) => {
 exports.TreatmentVoucherFilter = async (req, res) => {
     let query = { relatedBank: { $exists: true }, isDeleted: false }
     try {
-        const { start, end, relatedBranch, createdBy, purchaseType,relatedDoctor } = req.query
+        const { start, end, createdBy, purchaseType, relatedDoctor } = req.query
         if (start && end) query.createdAt = { $gte: start, $lt: end }
-        if (relatedBranch) query.relatedBranch = relatedBranch
         if (createdBy) query.createdBy = createdBy
         if (relatedDoctor) query.relatedDoctor = relatedDoctor
-        let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedBranch relatedAccounting payment createdBy').populate({
-            path:'relatedAppointment',
-            model:'Appointments',
-            populate:{
-                path:'relatedDoctor',
-                model:'Doctors'
+        let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
+            path: 'relatedAppointment',
+            model: 'Appointments',
+            populate: {
+                path: 'relatedDoctor',
+                model: 'Doctors'
             }
         })
         const { relatedBank, ...query2 } = query;
         query2.relatedCash = { $exists: true };
-        let cashResult = await TreatmentVoucher.find(query2).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedBranch relatedAccounting payment createdBy').populate({
-            path:'relatedAppointment',
-            model:'Appointments',
-            populate:{
-                path:'relatedDoctor',
-                model:'Doctors'
+        let cashResult = await TreatmentVoucher.find(query2).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
+            path: 'relatedAppointment',
+            model: 'Appointments',
+            populate: {
+                path: 'relatedDoctor',
+                model: 'Doctors'
             }
         })
         if (purchaseType) {
