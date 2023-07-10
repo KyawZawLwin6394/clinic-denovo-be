@@ -241,6 +241,22 @@ exports.TreatmentVoucherFilter = async (req, res) => {
             cashResult = cashResult.filter(item => item.relatedTreatmentSelection.purchaseType === purchaseType)
             bankResult = bankResult.filter(item => item.relatedTreatmentSelection.purchaseType === purchaseType)
         }
+        if (relatedDoctor) {
+            cashResult = cashResult.filter(item => {
+                const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.filter(
+                    i => i.relatedDoctor._id === relatedDoctor
+                );
+
+                return hasMatchingAppointment;
+            });
+            bankResult = bankResult.filter(item => {
+                const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.filter(
+                  i => i.relatedDoctor._id === relatedDoctor
+                );
+                
+                return hasMatchingAppointment;
+              });
+        }
         //filter solid beauty
         const BankNames = bankResult.reduce((result, { relatedBank, amount }) => {
             const { name } = relatedBank;
