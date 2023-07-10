@@ -3,12 +3,15 @@ const path = require('path');
 const createIndexs = require('./dbIndexes').createIndex
 const express = require('express'),
   bodyParser = require('body-parser'),
+  cron = require('node-cron'),
   mongoose = require('mongoose'),
   config = require('./config/db'),
   app = express(),
   server = require('http').Server(app),
   port = 9000;
 app.use(cors({ origin: '*' }));
+
+const userUtil = require('./app/lib/userUtil');
 
 //mongoose.set('useCreateIndex', true) // to remove -> DeprecationWarning: collection.ensureIndex is deprecated. Use createIndex instead.
 
@@ -141,5 +144,16 @@ require('./config/express')(app, config);
 
 server.listen(port, () => {
   console.log('We are live on port: ', port);
+});
+
+cron.schedule('55 23 * * *', () => {
+  (async () => {
+    const isLastDay = await userUtil.getLatestDay();
+    if (isLastDay === true) {
+      await userUtil.createAccountBalance();
+    } else {
+      console.log('Today is not the right day for the scheduled task!');
+    }
+  })();
 });
 

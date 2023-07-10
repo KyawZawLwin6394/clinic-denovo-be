@@ -1,4 +1,6 @@
 const bcrypt = require('bcryptjs');
+const AccountBalance = require('../models/accountBalance');
+const Accounting = require('../models/accountingList');
 
 async function filterRequestAndResponse(reArr, reBody) {
   if (reArr.length > 0) {
@@ -19,6 +21,48 @@ async function bcryptHash(password) {
 async function bcryptCompare(plain, hash) {
   const result = await bcrypt.compare(plain, hash)
   return result
+}
+
+async function getLatestDay() {
+  const now = new Date();
+  const currentDay = now.getDate();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  // Get the number of days in the current month
+  const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+  return currentDay === lastDayOfMonth;
+}
+
+async function createAccountBalance() {
+  const accountingResult = await Accounting.find({})
+  for (const item of accountingResult) {
+    //get closing account
+    const query = { relatedAccounting: item._id, type: 'Closing' };
+    const sort = { _id: -1 }; // Sort by descending _id to get the latest document
+    const latestClosingDocument = await AccountBalance.findOne(query, null, { sort });
+    if (latestClosingDocument) {
+      var result = await AccountBalance.create({
+        relatedAccounting: item._id,
+        amount: latestClosingDocument.amount,
+        type: 'Opening',
+        date: Date.now(),
+        remark: null,
+        relatedBranch: null
+      })
+    } else {
+      var result = await AccountBalance.create({
+        relatedAccounting: item._id,
+        amount: 0,
+        type: 'Opening',
+        date: Date.now(),
+        remark: null,
+        relatedBranch: null
+      })
+    }
+    console.log('Successful', item.name)
+  }
 }
 
 async function mergeAndSum(data) {
@@ -52,4 +96,4 @@ async function mergeAndSum(data) {
   };
 }
 
-module.exports = { bcryptHash, bcryptCompare, filterRequestAndResponse, mergeAndSum };
+module.exports = { bcryptHash, bcryptCompare, filterRequestAndResponse, mergeAndSum, getLatestDay,createAccountBalance };
