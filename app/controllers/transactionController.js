@@ -1,5 +1,6 @@
 'use strict';
 const Transaction = require('../models/transaction');
+const AccountingList = require('../models/accountingList');
 
 exports.listAllTransactions = async (req, res) => {
   let { keyword, role, limit, skip } = req.query;
@@ -8,7 +9,7 @@ exports.listAllTransactions = async (req, res) => {
   try {
     limit = +limit <= 100 ? +limit : 10; //limit
     skip = +skip || 0;
-    let query = {isDeleted:false},
+    let query = { isDeleted: false },
       regexKeyword;
     role ? (query['role'] = role.toUpperCase()) : '';
     keyword && /\w/.test(keyword)
@@ -38,14 +39,14 @@ exports.listAllTransactions = async (req, res) => {
 };
 
 exports.getTransaction = async (req, res) => {
-  const result = await Transaction.find({ _id: req.params.id,isDeleted:false }).populate('relatedAccounting').populate('relatedTreatment').populate('relatedTransaction').populate('relatedBank').populate('relatedCash');
+  const result = await Transaction.find({ _id: req.params.id, isDeleted: false }).populate('relatedAccounting').populate('relatedTreatment').populate('relatedTransaction').populate('relatedBank').populate('relatedCash');
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
 };
 
 exports.getRelatedTransaction = async (req, res) => {
-  const result = await Transaction.find({ relatedAccounting: req.params.id,isDeleted:false }).populate('relatedAccounting').populate('relatedTreatment').populate('relatedTransaction').populate('relatedBank').populate('relatedCash');
+  const result = await Transaction.find({ relatedAccounting: req.params.id, isDeleted: false }).populate('relatedAccounting').populate('relatedTreatment').populate('relatedTransaction').populate('relatedBank').populate('relatedCash');
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
@@ -106,15 +107,15 @@ exports.activateTransaction = async (req, res, next) => {
   }
 };
 
-exports.trialBalanceWithID = async (req,res) => {
-  try{
-    const result = await Transaction.find({relatedAccounting:req.params.relatedAccounting, type:'Debit'}).populate('relatedAccounting relatedTreatment relatedBank relatedCash relatedTransaction relatedMedicineSale');
-    if (result.length === 0) return res.status(500).send({error:true, message:'Data Not Found!'})
-    return res.status(200).send({success:true, debit:result})
+exports.trialBalanceWithID = async (req, res) => {
+  try {
+    const result = await Transaction.find({ relatedAccounting: req.params.relatedAccounting, type: 'Debit' }).populate('relatedAccounting relatedTreatment relatedBank relatedCash relatedTransaction relatedMedicineSale');
+    if (result.length === 0) return res.status(500).send({ error: true, message: 'Data Not Found!' })
+    return res.status(200).send({ success: true, debit: result })
   } catch (err) {
-    return res.status(500).send({error:true, message:err.message})
+    return res.status(500).send({ error: true, message: err.message })
   }
-  
+
 }
 
 exports.trialBalance = async (req, res) => {
@@ -122,22 +123,22 @@ exports.trialBalance = async (req, res) => {
   let transaction = []
   let { start, end } = req.query
   try {
-    const allAccounts = await AccountingList.find({}).populate('relatedType relatedSubHeader relatedHeader')
+    const allAccounts = await AccountingList.find({}).populate('relatedType relatedHeader relatedTreatment relatedBank relatedBranch')
     for (let i = 0; i < allAccounts.length; i++) {
       const id = allAccounts[i]._id
       let netType = '';
       let netAmount = 0;
       console.log(id)
       const debit = await Transaction.find({ relatedAccounting: id, type: 'Debit', date: { $gte: start, $lte: end } })
-      for(let d = 0; d < debit.length;d++){
-        transaction.push({relatedAccounting: debit[d].relatedAccounting,type: "Debit", date: debit[d].date,amount: debit[d].amount,remark: debit[d].remark})
+      for (let d = 0; d < debit.length; d++) {
+        transaction.push({ relatedAccounting: debit[d].relatedAccounting, type: "Debit", date: debit[d].date, amount: debit[d].amount, remark: debit[d].remark })
       }
       // if (debit.length === 0) return res.status(500).send({error:true, message:'Debit Data Not Found!'})
       const totalDebit = debit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
 
       const credit = await Transaction.find({ relatedAccounting: id, type: 'Credit', date: { $gte: start, $lte: end } })
-      for(let c = 0; c < credit.length;c++){
-        transaction.push({relatedAccounting: credit[c].relatedAccounting,type: "Debit", date: credit[c].date,amount: credit[c].amount,remark: credit[c].remark})
+      for (let c = 0; c < credit.length; c++) {
+        transaction.push({ relatedAccounting: credit[c].relatedAccounting, type: "Debit", date: credit[c].date, amount: credit[c].amount, remark: credit[c].remark })
       }
       // if (credit.length === 0) return res.status(500).send({error:true, message:'Credit Data Not Found!'})
       const totalCredit = credit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
@@ -149,10 +150,11 @@ exports.trialBalance = async (req, res) => {
       netAmount = totalDebit - totalCredit
       if (netAmount > 0) netType = 'Debit'
       if (netAmount < 0) netType = 'Credit'
-      finalResult.push({ totalCredit: totalCredit, totalDebit: totalDebit, netType: netType, netAmount: netAmount, accName: allAccounts[i].name, type: allAccounts[i].relatedType, relatedAccountingId: allAccounts[i]._id , header: allAccounts[i].relatedHeader.name, subHeader: allAccounts[i].relatedSubHeader.name})
+      finalResult.push({ totalCredit: totalCredit, totalDebit: totalDebit, netType: netType, netAmount: netAmount, accName: allAccounts[i].name, type: allAccounts[i].relatedType, relatedAccountingId: allAccounts[i]._id, header: allAccounts[i].relatedHeader.name, subHeader: allAccounts[i].subHeader })
     }
     if (allAccounts.length === finalResult.length) return res.status(200).send({ success: true, data: finalResult, transaction: transaction })
   } catch (err) {
+    console.log(err)
     return res.status(500).send({ error: true, message: err.message })
   }
 }
