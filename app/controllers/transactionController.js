@@ -131,7 +131,8 @@ const getNetAmount = async (id, start, end) => {
 }
 
 exports.incomeStatement = async (req, res) => {
-  let finalResult = []
+  let [sales, costOfSales, grossProfit] = [[], [], []];
+
   let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
   for (const monthName of months) {
@@ -140,14 +141,24 @@ exports.incomeStatement = async (req, res) => {
     let endDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName) + 1, 1));
     const surgeryNetAmount = await getNetAmount('648096bd7d7e4357442aa476', startDate, endDate) //Sales Surgery ID
     const clinicNetAmount = await getNetAmount('649416b44236f7602ba3411a', startDate, endDate) // Sales Clinic ID
-    finalResult.push({ surgery: surgeryNetAmount, clinic: clinicNetAmount, month: monthName })
+    sales.push({ surgery: surgeryNetAmount, clinic: clinicNetAmount, month: monthName })
     //Sales-> End of Clinic and Surgery
+
+    //COGS
+    const surgeryCOGSNetAmount = await getNetAmount('64a8e0bb55a87deaea39e187', startDate, endDate)  //Surgery COGS
+    const clinicCOGSNetAmount = await getNetAmount('64a8e0e755a87deaea39e18d', startDate, endDate)   //Clinic Treatement COGS
+    costOfSales.push({ surgery: surgeryCOGSNetAmount, clinic: clinicCOGSNetAmount, month: monthName })
+    //End of COGS
+    
+    grossProfit.push({ surgery: surgeryNetAmount - surgeryCOGSNetAmount, clinic: clinicNetAmount - clinicCOGSNetAmount, month: monthName })
 
   }
 
   return res.status(200).send({
     success: true, data: {
-      Sales: finalResult
+      Sales: sales,
+      CostOfSales: costOfSales,
+      GrossProfit: grossProfit
     }
   })
 
