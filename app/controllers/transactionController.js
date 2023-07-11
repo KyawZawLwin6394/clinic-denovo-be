@@ -118,6 +118,11 @@ exports.trialBalanceWithID = async (req, res) => {
 
 }
 
+exports.incomeStatement = async (req, res) => {
+  let saleSurgeryID = ''
+  let saleClinicID = ''
+}
+
 exports.trialBalance = async (req, res) => {
   let finalResult = []
   let transaction = []
