@@ -106,7 +106,7 @@ exports.activateTransaction = async (req, res, next) => {
   }
 };
 
-exports.trialBalance = async (req,res) => {
+exports.trialBalanceWithID = async (req,res) => {
   try{
     const result = await Transaction.find({relatedAccounting:req.params.relatedAccounting, type:'Debit'}).populate('relatedAccounting relatedTreatment relatedBank relatedCash relatedTransaction relatedMedicineSale');
     if (result.length === 0) return res.status(500).send({error:true, message:'Data Not Found!'})
@@ -115,4 +115,76 @@ exports.trialBalance = async (req,res) => {
     return res.status(500).send({error:true, message:err.message})
   }
   
+}
+
+exports.trialBalance = async (req, res) => {
+  let finalResult = []
+  let transaction = []
+  let { start, end } = req.query
+  try {
+    const allAccounts = await AccountingList.find({}).populate('relatedType relatedSubHeader relatedHeader')
+    for (let i = 0; i < allAccounts.length; i++) {
+      const id = allAccounts[i]._id
+      let netType = '';
+      let netAmount = 0;
+      console.log(id)
+      const debit = await Transaction.find({ relatedAccounting: id, type: 'Debit', date: { $gte: start, $lte: end } })
+      for(let d = 0; d < debit.length;d++){
+        transaction.push({relatedAccounting: debit[d].relatedAccounting,type: "Debit", date: debit[d].date,amount: debit[d].amount,remark: debit[d].remark})
+      }
+      // if (debit.length === 0) return res.status(500).send({error:true, message:'Debit Data Not Found!'})
+      const totalDebit = debit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
+
+      const credit = await Transaction.find({ relatedAccounting: id, type: 'Credit', date: { $gte: start, $lte: end } })
+      for(let c = 0; c < credit.length;c++){
+        transaction.push({relatedAccounting: credit[c].relatedAccounting,type: "Debit", date: credit[c].date,amount: credit[c].amount,remark: credit[c].remark})
+      }
+      // if (credit.length === 0) return res.status(500).send({error:true, message:'Credit Data Not Found!'})
+      const totalCredit = credit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
+
+      if (totalDebit === totalDebit) {
+        netType = null
+        netAmount = 0
+      }
+      netAmount = totalDebit - totalCredit
+      if (netAmount > 0) netType = 'Debit'
+      if (netAmount < 0) netType = 'Credit'
+      finalResult.push({ totalCredit: totalCredit, totalDebit: totalDebit, netType: netType, netAmount: netAmount, accName: allAccounts[i].name, type: allAccounts[i].relatedType, relatedAccountingId: allAccounts[i]._id , header: allAccounts[i].relatedHeader.name, subHeader: allAccounts[i].relatedSubHeader.name})
+    }
+    if (allAccounts.length === finalResult.length) return res.status(200).send({ success: true, data: finalResult, transaction: transaction })
+  } catch (err) {
+    return res.status(500).send({ error: true, message: err.message })
+  }
+}
+
+exports.trialBalanceWithType = async (req, res) => {
+  let finalResult = []
+  let { start, end, type } = req.query
+  try {
+    const allAccounts = await AccountingList.find({ relatedType: type }).populate('relatedType')
+    for (let i = 0; i < allAccounts.length; i++) {
+      const id = allAccounts[i]._id
+      let netType = '';
+      let netAmount = 0;
+      const debit = await Transaction.find({ relatedAccounting: id, type: 'Debit', date: { $gte: start, $lte: end } })
+      // if (debit.length === 0) return res.status(500).send({error:true, message:'Debit Data Not Found!'})
+      const totalDebit = debit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
+
+      const credit = await Transaction.find({ relatedAccounting: id, type: 'Credit', date: { $gte: start, $lte: end } })
+      // if (credit.length === 0) return res.status(500).send({error:true, message:'Credit Data Not Found!'})
+      const totalCredit = credit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
+
+      if (totalDebit === totalDebit) {
+        netType = null
+        netAmount = 0
+      }
+      netAmount = totalDebit - totalCredit
+      if (netAmount > 0) netType = 'Debit'
+      if (netAmount < 0) netType = 'Credit'
+      finalResult.push({ totalCredit: totalCredit, totalDebit: totalDebit, netType: netType, netAmount: netAmount, accName: allAccounts[i].name, type: allAccounts[i].relatedType })
+    }
+    if (allAccounts.length === finalResult.length) return res.status(200).send({ success: true, data: finalResult })
+  } catch (err) {
+    return res.status(500).send({ error: true, message: err.message })
+  }
 }
