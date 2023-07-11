@@ -242,23 +242,23 @@ exports.TreatmentVoucherFilter = async (req, res) => {
             bankResult = bankResult.filter(item => item.relatedTreatmentSelection.purchaseType === purchaseType)
         }
         if (relatedDoctor) {
-            cashResult = cashResult.map(item => {
-              const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.filter(
-                i => i.relatedDoctor._id === relatedDoctor
-              );
-              console.log(hasMatchingAppointment);
-              return hasMatchingAppointment.length > 0 ? hasMatchingAppointment : [];
+            cashResult = cashResult.filter(item => {
+                const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
+                    i => i.relatedDoctor._id.toString() === relatedDoctor
+                );
+                console.log(hasMatchingAppointment);
+                return hasMatchingAppointment
             });
-          
-            bankResult = bankResult.map(item => {
-              const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.filter(
-                i => i.relatedDoctor._id === relatedDoctor
-              );
-              console.log(hasMatchingAppointment);
-              return hasMatchingAppointment.length > 0 ? hasMatchingAppointment : [];
+
+            bankResult = bankResult.filter(item => {
+                const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
+                    i => i.relatedDoctor._id.toString() === relatedDoctor
+                );
+                console.log(hasMatchingAppointment);
+                return hasMatchingAppointment
             });
-          }
-          
+        }
+
         console.log(bankResult, cashResult)
         //filter solid beauty
         const BankNames = bankResult.reduce((result, { relatedBank, amount }) => {
