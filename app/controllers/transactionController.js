@@ -132,14 +132,17 @@ const getNetAmount = async (id, start, end) => {
 
 exports.incomeStatement = async (req, res) => {
   let finalResult = []
-  let months = ['Jan']
+  let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
   for (const monthName of months) {
+    //Sales-> Clinic and Surgery
     let startDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName), 1));
     let endDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName) + 1, 1));
     const surgeryNetAmount = await getNetAmount('648096bd7d7e4357442aa476', startDate, endDate) //Sales Surgery ID
     const clinicNetAmount = await getNetAmount('649416b44236f7602ba3411a', startDate, endDate) // Sales Clinic ID
     finalResult.push({ surgery: surgeryNetAmount, clinic: clinicNetAmount, month: monthName })
+    //Sales-> End of Clinic and Surgery
+
   }
 
   return res.status(200).send({
