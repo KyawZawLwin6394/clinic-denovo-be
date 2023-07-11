@@ -118,9 +118,36 @@ exports.trialBalanceWithID = async (req, res) => {
 
 }
 
+const getNetAmount = async (id, start, end) => {
+  console.log(id, start, end)
+  const debit = await Transaction.find({ relatedAccounting: id, type: 'Debit', date: { $gte: start, $lte: end } })
+  console.log(debit)
+  const totalDebit = debit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
+  const credit = await Transaction.find({ relatedAccounting: id, type: 'Credit', date: { $gte: start, $lte: end } })
+  console.log(credit)
+  const totalCredit = credit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
+  console.log(totalDebit, totalCredit)
+  return totalDebit - totalCredit
+}
+
 exports.incomeStatement = async (req, res) => {
-  let saleSurgeryID = ''
-  let saleClinicID = ''
+  let finalResult = []
+  let months = ['Jan']
+
+  for (const monthName of months) {
+    let startDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName), 1));
+    let endDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName) + 1, 1));
+    const surgeryNetAmount = await getNetAmount('648096bd7d7e4357442aa476', startDate, endDate) //Sales Surgery ID
+    const clinicNetAmount = await getNetAmount('649416b44236f7602ba3411a', startDate, endDate) // Sales Clinic ID
+    finalResult.push({ surgery: surgeryNetAmount, clinic: clinicNetAmount, month: monthName })
+  }
+
+  return res.status(200).send({
+    success: true, data: {
+      Sales: finalResult
+    }
+  })
+
 }
 
 exports.trialBalance = async (req, res) => {

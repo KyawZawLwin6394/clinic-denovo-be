@@ -201,6 +201,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "amount": req.body.paidAmount,
                 "date": Date.now(),
                 "remark": null,
+                "type": "Credit",
                 "relatedAccounting": "6495731a7e9b3fb309e0f6ab", //Advance Income
                 "createdBy": createdBy
             })
