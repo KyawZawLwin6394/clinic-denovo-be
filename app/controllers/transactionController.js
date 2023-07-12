@@ -150,7 +150,7 @@ exports.incomeStatement = async (req, res) => {
     costOfSales.push({ surgery: surgeryCOGSNetAmount, clinic: clinicCOGSNetAmount, month: monthName })
     //End of COGS
 
-    grossProfit.push({ surgery: surgeryCOGSNetAmount - surgeryNetAmount , clinic: clinicCOGSNetAmount - clinicNetAmount , month: monthName })
+    grossProfit.push({ surgery: surgeryCOGSNetAmount - Math.abs(surgeryNetAmount), clinic: clinicCOGSNetAmount - Math.abs(clinicNetAmount), month: monthName })
 
   }
 
