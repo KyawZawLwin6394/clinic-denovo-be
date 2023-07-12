@@ -481,7 +481,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "payment": attachID,
                 "relatedDiscount": req.body.relatedDiscount,
                 "discountAmount": req.body.discountAmount,
-                "discountType": req.body.discountType
+                "discountType": req.body.discountType   
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -852,7 +852,6 @@ exports.treatmentPayment = async (req, res, next) => {
             // treatmentVoucherResult:treatmentVoucherResult
         }
         if (treatmentVoucherResult) response.treatmentVoucherResult = treatmentVoucherResult;
-        if (rpRecordPopulated) response.rpRecordPopulated = rpRecordPopulated
         return res.status(200).send(response);
     } catch (error) {
         console.log(error)
