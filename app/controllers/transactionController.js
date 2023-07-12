@@ -149,7 +149,7 @@ exports.incomeStatement = async (req, res) => {
     const clinicCOGSNetAmount = await getNetAmount('64a8e0e755a87deaea39e18d', startDate, endDate)   //Clinic Treatement COGS
     costOfSales.push({ surgery: surgeryCOGSNetAmount, clinic: clinicCOGSNetAmount, month: monthName })
     //End of COGS
-    
+
     grossProfit.push({ surgery: surgeryNetAmount - surgeryCOGSNetAmount, clinic: clinicNetAmount - clinicCOGSNetAmount, month: monthName })
 
   }
@@ -196,7 +196,7 @@ exports.trialBalance = async (req, res) => {
       netAmount = totalDebit - totalCredit
       if (netAmount > 0) netType = 'Debit'
       if (netAmount < 0) netType = 'Credit'
-      finalResult.push({ totalCredit: totalCredit, totalDebit: totalDebit, netType: netType, netAmount: netAmount, accName: allAccounts[i].name, type: allAccounts[i].relatedType, relatedAccountingId: allAccounts[i]._id, header: allAccounts[i].relatedHeader.name, subHeader: allAccounts[i].subHeader })
+      finalResult.push({ totalCredit: totalCredit, totalDebit: totalDebit, netType: netType, netAmount: netAmount, accName: allAccounts[i].name, type: allAccounts[i].relatedType, relatedAccountingId: allAccounts[i]._id, header: allAccounts[i].relatedHeader ? allAccounts[i].relatedHeader.name : undefined, subHeader: allAccounts[i].subHeader })
     }
     if (allAccounts.length === finalResult.length) return res.status(200).send({ success: true, data: finalResult, transaction: transaction })
   } catch (err) {
