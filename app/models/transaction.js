@@ -11,7 +11,7 @@ let TransactionSchema = new Schema({
     ref: 'AccountingLists'
   },
   amount: {
-    type: String,
+    type: Number,
   },
   date: {
     type: Date,
