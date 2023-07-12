@@ -479,7 +479,9 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "createdBy": createdBy,
                 "remark": req.body.remark,
                 "payment": attachID,
-                "relatedDiscount": req.body.relatedDiscount
+                "relatedDiscount": req.body.relatedDiscount,
+                "discountAmount": req.body.discountAmount,
+                "discountType": req.body.discountType
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -505,7 +507,9 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "relatedCash": req.body.relatedCash, //must be cash acc from accounting accs
                 "createdBy": createdBy,
                 "remark": req.body.remark,
-                "payment": attachID
+                "payment": attachID,
+                "discountAmount": req.body.discountAmount,
+                "discountType": req.body.discountType
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -531,7 +535,9 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "relatedCash": req.body.relatedCash, //must be cash acc from accounting accs
                 "createdBy": createdBy,
                 "remark": req.body.remark,
-                "payment": attachID
+                "payment": attachID,
+                "discountAmount": req.body.discountAmount,
+                "discountType": req.body.discountType
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -709,7 +715,9 @@ exports.treatmentPayment = async (req, res, next) => {
                 "createdBy": createdBy, //must be cash acc from accounting accs
                 "remark": req.body.remark,
                 "payment": attachID,
-                "relatedDiscount": req.body.relatedDiscount
+                "relatedDiscount": req.body.relatedDiscount,
+                "discountAmount": req.body.discountAmount,
+                "discountType": req.body.discountType
 
             }
             let today = new Date().toISOString()

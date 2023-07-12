@@ -89,6 +89,12 @@ let TreatmentVoucherSchema = new Schema({
     relatedDiscount:{
         type:mongoose.Schema.Types.ObjectId,
         ref:'Discounts'
+    },
+    discountAmount:{
+        type:Number
+    },
+    discountType:{
+        type:Number
     }
 });
 

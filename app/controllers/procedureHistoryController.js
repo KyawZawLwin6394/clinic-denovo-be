@@ -49,7 +49,7 @@ exports.getProcedureHistory = async (req, res) => {
 exports.getRelatedProcedureHistory = async (req, res) => {
   let { relatedAppointment, relatedTreatmentSelection } = req.query
   const result = await ProcedureHistory.find({ relatedTreatmentSelection: relatedTreatmentSelection, relatedAppointment: relatedAppointment, isDeleted: false }).populate('medicineItems.item_id customTreatmentPackages.item_id pHistory relatedAppointment relatedTreatmentSelection')
-  if (result.length===0)
+  if (result.length === 0)
     return res.status(404).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
 };
@@ -58,14 +58,16 @@ exports.uploadImage = async (req, res) => {
   let data = req.body
   let files = req.files
   try {
-    let imgPath = files.phistory[0].path.split('cherry-k')[1];
-    const attachData = {
-      fileName: files.phistory[0].originalname,
-      imgUrl: imgPath,
-      image: imgPath.split('\\')[2]
-    };
-    const newAttachment = new Attachment(attachData);
-    const attachResult = await newAttachment.save();
+    if (files.phistory){
+      let imgPath = files.phistory[0].path.split('cherry-k')[1];
+      const attachData = {
+        fileName: files.phistory[0].originalname,
+        imgUrl: imgPath,
+        image: imgPath.split('\\')[2]
+      };
+      const newAttachment = new Attachment(attachData);
+      const attachResult = await newAttachment.save();
+    }
     const result = await ProcedureHistory.findOneAndUpdate(
       { _id: data.id },
       { pHistory: attachResult._id.toString() },
