@@ -39,7 +39,15 @@ exports.listAllDiscounts = async (req, res) => {
 exports.getDiscount = async (req, res) => {
     let query = { isDeleted: false }
     if (req.params.id) query._id = req.params.id
-    const result = await Discount.find(query).populate('relatedFOCID')
+    const result = await Discount.find(query).populate({
+        path:'relatedFOCID',
+        model:'Treatments',
+        populate:{
+            path:'treatmentName',
+            model:'TreatmentLists'
+        }
+
+    })
     if (result.length === 0)
         return res.status(500).json({ error: true, message: 'No Record Found' });
     return res.status(200).send({ success: true, data: result });
