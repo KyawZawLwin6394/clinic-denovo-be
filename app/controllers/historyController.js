@@ -41,8 +41,8 @@ exports.createHistory = async (req, res, next) => {
         data = { ...data, consent: attachResult._id.toString() }
       }
     }
-    data = { ...data, skinCareAndCosmetic: JSON.parse(req.body.skinCareAndCosmetic) }
-    console.log(data)
+    // data = { ...data, skinCareAndCosmetic: JSON.parse(req.body.skinCareAndCosmetic) }
+    // console.log(data)
     const result = await History.create(data);
     res.status(200).send({
       message: 'History create success',
