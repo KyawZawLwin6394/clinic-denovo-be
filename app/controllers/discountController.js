@@ -67,7 +67,15 @@ exports.updateDiscount = async (req, res, next) => {
             { _id: req.body.id },
             req.body,
             { new: true },
-        ).populate('relatedFOCID')
+        ).populate({
+            path:'relatedFOCID',
+            model:'Treatments',
+            populate:{
+                path:'treatmentName',
+                model:'TreatmentLists'
+            }
+
+        })
         return res.status(200).send({ success: true, data: result });
     } catch (error) {
         return res.status(500).send({ "error": true, "message": error.message })
