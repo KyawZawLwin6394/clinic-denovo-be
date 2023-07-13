@@ -43,6 +43,7 @@ exports.createHistory = async (req, res, next) => {
     }
     // data = { ...data, skinCareAndCosmetic: JSON.parse(req.body.skinCareAndCosmetic) }
     // console.log(data)
+    if (data.skinCareAndCosmetic) data = { ...data, skinCareAndCosmetic: JSON.parse(req.body.skinCareAndCosmetic) }
     const result = await History.create(data);
     res.status(200).send({
       message: 'History create success',
@@ -73,6 +74,7 @@ exports.updateHistory = async (req, res, next) => {
     }
     // data = { ...data, skinCareAndCosmetic: JSON.parse(req.body.skinCareAndCosmetic) }
     // console.log(data)
+    if (data.skinCareAndCosmetic) data = { ...data, skinCareAndCosmetic: JSON.parse(req.body.skinCareAndCosmetic) }
     const result = await History.findOneAndUpdate(
       { _id: data.id },
       data,
