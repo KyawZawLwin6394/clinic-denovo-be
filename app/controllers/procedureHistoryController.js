@@ -86,7 +86,7 @@ exports.createProcedureHistory = async (req, res, next) => {
   data = { ...data, pHistory: [] };
   let files = req.files;
   try {
-    if (files.phistory.length > 0) {
+    if (files.phistory) {
       for (const element of files.phistory) {
         let imgPath = element.path.split('cherry-k')[1];
         const attachData = {
