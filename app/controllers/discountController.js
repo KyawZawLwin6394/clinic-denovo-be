@@ -37,7 +37,7 @@ exports.listAllDiscounts = async (req, res) => {
 };
 
 exports.getDiscount = async (req, res) => {
-    let query = req.mongoQuery
+    let query = { isDeleted: false }
     if (req.params.id) query._id = req.params.id
     const result = await Discount.find(query).populate('relatedFOCID')
     if (result.length === 0)

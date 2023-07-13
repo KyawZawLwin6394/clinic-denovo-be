@@ -25,7 +25,7 @@ exports.trialBalance = async (req, res) => {
             }
             netAmount = totalDebit - totalCredit
             if (netAmount > 0) netType = 'Debit'
-            if (netAmount < 0) netType = 'Credit'
+            if (netAmount < 0) netType = 'Credit'   
             finalResult.push({ totalCredit: totalCredit, totalDebit: totalDebit, netType: netType, netAmount: netAmount, accName: allAccounts[i].name, type: allAccounts[i].relatedType })
         }
         if (allAccounts.length === finalResult.length) return res.status(200).send({ success: true, data: finalResult })
