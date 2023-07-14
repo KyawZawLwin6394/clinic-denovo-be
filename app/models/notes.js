@@ -27,6 +27,10 @@ let Note = new Schema({
     }],
     name: {
         type: String
+    },
+    relatedSurgery:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'AccountingLists'
     }
 });
 

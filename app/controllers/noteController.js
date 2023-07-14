@@ -115,19 +115,20 @@ exports.getNotesByAccounts = async (req, res) => {
         const total = prep.reduce((accumulator, element) => {
             if (element.operator === 'Plus') {
                 accumulator = accumulator + element.amount
-            } else (
+            } else if (element.operator === 'Minus') (
                 accumulator = accumulator - element.amount
-
             )
             return accumulator
         }, 0)
+        const surgeryNetAmount = await getNetAmount(result[0].relatedSurgery, start, end)
         console.log(total)
         return res.status(200).send({
             success: true,
             data: {
                 table: prep,
                 total: total,
-                notesName: result[0].name
+                notesName: result[0].name,
+                surgeryNetAmount: surgeryNetAmount
             }
         })
     } catch (error) {
