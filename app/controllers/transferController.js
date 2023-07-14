@@ -30,7 +30,21 @@ exports.transferFilter = async (req, res) => {
 }
 
 exports.getTransfer = async (req, res) => {
-  const result = await Transfer.find({ _id: req.params.id, isDeleted: false }).populate('fromAcc toAcc')
+  const result = await Transfer.find({ _id: req.params.id, isDeleted: false }).populate({
+    path: 'fromAcc',
+    model: 'AccountingLists',
+    populate: {
+      path: 'relatedType',
+      model: 'AccountTypes'
+    }
+  }).populate({
+    path: 'toAcc',
+    model: 'AccountingLists',
+    populate: {
+      path: 'relatedType',
+      model: 'AccountTypes'
+    }
+  })
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
