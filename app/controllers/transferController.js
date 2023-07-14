@@ -5,7 +5,21 @@ const Transaction = require('../models/transaction');
 
 exports.listAllTransfers = async (req, res) => {
   try {
-    let result = await Transfer.find({ isDeleted: false }).populate('fromAcc toAcc')
+    let result = await Transfer.find({ isDeleted: false }).populate({
+      path: 'fromAcc',
+      model: 'AccountingLists',
+      populate: {
+        path: 'relatedType',
+        model: 'AccountTypes'
+      }
+    }).populate({
+      path: 'toAcc',
+      model: 'AccountingLists',
+      populate: {
+        path: 'relatedType',
+        model: 'AccountTypes'
+      }
+    })
     let count = await Transfer.find({ isDeleted: false }).count();
     res.status(200).send({
       success: true,
@@ -30,21 +44,7 @@ exports.transferFilter = async (req, res) => {
 }
 
 exports.getTransfer = async (req, res) => {
-  const result = await Transfer.find({ _id: req.params.id, isDeleted: false }).populate({
-    path: 'fromAcc',
-    model: 'AccountingLists',
-    populate: {
-      path: 'relatedType',
-      model: 'AccountTypes'
-    }
-  }).populate({
-    path: 'toAcc',
-    model: 'AccountingLists',
-    populate: {
-      path: 'relatedType',
-      model: 'AccountTypes'
-    }
-  })
+  const result = await Transfer.find({ _id: req.params.id, isDeleted: false }).populate('fromAcc toAcc')
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
