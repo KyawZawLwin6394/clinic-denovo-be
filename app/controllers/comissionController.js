@@ -4,6 +4,8 @@ const Appointment = require('../models/appointment');
 const Doctor = require('../models/doctor');
 const ComissionPay = require('../models/commissionPay');
 const { ObjectId } = require('mongodb');
+const Transaction = require('../models/transaction');
+const Accounting = require('../models/accountingList')
 
 exports.listAllComissiones = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -69,7 +71,20 @@ exports.createComission = async (req, res, next) => {
             commissionAmount: comission,
             relatedDoctor: req.body.doctorID,
             percent: percent
-        });
+        }).then(async (response) => {
+            const TransactionResult = await Transaction.create({
+                "amount": comission,
+                "date": Date.now(),
+                "remark": data.remark,
+                "type": "Credit",
+                "relatedTransaction": null,
+                "relatedAccounting": "64ae1d0012b3d31436d48027", //Sales Comission
+            })
+            const amountUpdate = await Accounting.findOneAndUpdate(
+                { _id: '64ae1d0012b3d31436d48027' },
+                { $inc: { amount: comission } }
+            )
+        })
         res.status(200).send({
             message: 'Comission create success',
             success: true,

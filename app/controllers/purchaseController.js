@@ -81,21 +81,43 @@ exports.createPurchase = async (req, res, next) => {
             "amount": data.totalPrice,
             "date": Date.now(),
             "remark": data.remark,
-            "type": "Credit",
+            "type": "Debit",
             "relatedTransaction": null,
-            "relatedAccounting": "646733d659a9bc811d97efa9", //Opening Stock
+            "relatedAccounting": "64ae1fd412b3d31436d48059", //Opening Inventory
             "relatedBranch": relatedBranch
         })
+        const transResultAmtUpdate = await accountingList.findOneAndUpdate(
+            { _id: '64ae1fd412b3d31436d48059' },
+            { $inc: { amount: data.totalPrice } }
+        )
         const SectransResult = await Transaction.create({
             "amount": data.totalPrice,
             "date": Date.now(),
             "remark": data.remark,
-            "type": "Debit",
-            "relatedTransaction": null, //bank or cash mhr credit - , treatment inventory mhr debit +
-            "relatedBank": req.body.relatedBank, //Opening Stock
+            "type": "Credit",
+            "relatedTransaction": null,
+            "relatedBank": req.body.relatedBank, //Bank or cashk
             "relatedCash": req.body.relatedCash,
             "relatedTransaction": transResult._id
         })
+        var fTransUpdate = await Transaction.findOneAndUpdate(
+            { _id: transResult._id },
+            {
+                relatedTransaction: SectransResult._id
+            },
+            { new: true }
+        )
+        if (req.body.relatedBank) {
+            var amountUpdate = await Accounting.findOneAndUpdate(
+                { _id: req.body.relatedBank },
+                { $inc: { amount: req.body.totalPrice } }
+            )
+        } else if (req.body.relatedCash) {
+            var amountUpdate = await Accounting.findOneAndUpdate(
+                { _id: req.body.relatedCash },
+                { $inc: { amount: req.body.totalPrice } }
+            )
+        }
         const transUpdate = await Transaction.findOneAndUpdate({ _id: transResult._id }, { "relatedTransaction": SectransResult._id })
         res.status(200).send({
             message: 'Purchase create success',

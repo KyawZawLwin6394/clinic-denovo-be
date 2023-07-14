@@ -52,7 +52,14 @@ exports.getSaleReturn = async (req, res) => {
 exports.createSaleReturn = async (req, res, next) => {
     let newBody = req.body;
     let createdBy = req.credentials.id
-    let { relatedTreatmentSelection, relatedSubTreatment, returnType, deferAmount, relatedBank, relatedCash, paidAmount, totalAmount, cashBack } = req.body;
+    let accID = ''
+    let { relatedTreatmentSelection, relatedSubTreatment, purchaseType, returnType, deferAmount, relatedBank, relatedCash, paidAmount, totalAmount, cashBack } = req.body;
+    if (purchaseType === 'Clinic') {
+        accID = '64ae1d3812b3d31436d48033' // Sales Return
+
+    } else if (purchaseType === 'Surgery') {
+        accID = '64ae1f3e12b3d31436d4803f' //Surgery Sale Return
+    }
     try {
         const TSResult = await TreatmentSelection.find({ _id: relatedTreatmentSelection }).populate('relatedTreatment')
         if (returnType === 'Full Cash' && relatedTreatmentSelection) {
@@ -62,6 +69,18 @@ exports.createSaleReturn = async (req, res, next) => {
                 { new: true }
             )
             if (cashBack > 0) {
+                const TransactionResult = await Transaction.create({
+                    "amount": cashBack,
+                    "date": Date.now(),
+                    "remark": data.remark,
+                    "type": "Credit",
+                    "relatedTransaction": null,
+                    "relatedAccounting": accID, //Sales Comission
+                })
+                const transactionAmtUpdate = await Accounting.findOneAndUpdate(
+                    { _id: accID },
+                    { $inc: { amount: comission } }
+                )
                 //649a4fbd23608d77fb20afb6
                 var fTransResult = await Transaction.create({
                     "amount": cashBack,
@@ -116,6 +135,18 @@ exports.createSaleReturn = async (req, res, next) => {
                 { new: true }
             );
             if (cashBack > 0) {
+                const TransactionResult = await Transaction.create({
+                    "amount": cashBack,
+                    "date": Date.now(),
+                    "remark": data.remark,
+                    "type": "Credit",
+                    "relatedTransaction": null,
+                    "relatedAccounting": accID, //Sales Comission
+                })
+                const transactionAmtUpdate = await Accounting.findOneAndUpdate(
+                    { _id: accID },
+                    { $inc: { amount: comission } }
+                )
                 var fTransResult = await Transaction.create({
                     "amount": cashBack,
                     "date": Date.now(),
