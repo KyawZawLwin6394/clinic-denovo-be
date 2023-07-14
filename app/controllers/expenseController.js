@@ -2,6 +2,7 @@
 const Expense = require('../models/expense');
 const Transaction = require('../models/transaction');
 const Accounting = require('../models/accountingList');
+const Currency = require('../models/currency');
 
 exports.listAllExpenses = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -10,15 +11,14 @@ exports.listAllExpenses = async (req, res) => {
     try {
         limit = +limit <= 100 ? +limit : 30; //limit
         skip = +skip || 0;
-        let query = { isDeleted: false },
+        let query = req.mongoQuery,
             regexKeyword;
         role ? (query['role'] = role.toUpperCase()) : '';
         keyword && /\w/.test(keyword)
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await Expense.find(query).populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
-        console.log(result)
+        let result = await Expense.find(query).populate('relatedBranch').populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
         count = await Expense.find(query).count();
         const division = count / limit;
         page = Math.ceil(division);
@@ -40,7 +40,9 @@ exports.listAllExpenses = async (req, res) => {
 };
 
 exports.getExpense = async (req, res) => {
-    const result = await Expense.find({ _id: req.params.id, isDeleted: false }).populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
+    let query = req.mongoQuery
+    if (req.params.id) query._id = req.params.id
+    const result = await Expense.find(query).populate('relatedBranch').populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
     if (!result)
         return res.status(500).json({ error: true, message: 'No Record Found' });
     return res.status(200).send({ success: true, data: result });
@@ -48,10 +50,13 @@ exports.getExpense = async (req, res) => {
 
 exports.createExpense = async (req, res, next) => {
     try {
-        const newBody = req.body;
+
+        let newBody = req.body;
+        newBody = { ...newBody, createdBy: req.credentials.id }
+        console.log(newBody)
         const newExpense = new Expense(newBody);
         const result = await newExpense.save();
-        const populatedResult = await Expense.find({ _id: result._id }).populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
+        const populatedResult = await Expense.find({ _id: result._id }).populate('relatedBranch').populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
         const firstTransaction =
         {
             "initialExchangeRate": newBody.initialExchangeRate,
@@ -63,11 +68,17 @@ exports.createExpense = async (req, res, next) => {
             "treatmentFlag": false,
             "relatedTransaction": null,
             "relatedAccounting": newBody.relatedAccounting,
-            "relatedExpense": result._id
+            "relatedExpense": result._id,
+            "relatedBranch": newBody.relatedBranch
         }
         const newTrans = new Transaction(firstTransaction)
         const fTransResult = await newTrans.save();
-        console.log(fTransResult)
+        if (newBody.relatedAccounting) {
+            var amountUpdate = await Accounting.findOneAndUpdate(
+                { _id: newBody.relatedAccounting },
+                { $inc: { amount: newBody.finalAmount } }
+            )
+        }
         if (req.body.relatedCredit) {
             //credit
             const secondTransaction = {
@@ -81,11 +92,19 @@ exports.createExpense = async (req, res, next) => {
                 "relatedTransaction": fTransResult._id,
                 "relatedAccounting": newBody.relatedAccounting,
                 "relatedExpense": result._id,
-                "relatedCredit": newBody.relatedCredit
+                "relatedCredit": newBody.relatedCredit,
+                "relatedBranch": newBody.relatedBranch
             }
             const secTrans = new Transaction(secondTransaction)
             var secTransResult = await secTrans.save();
-            console.log(secTransResult)
+            var fTransUpdate = await Transaction.findOneAndUpdate(
+                { _id: fTransResult._id },
+                {
+                    relatedTransaction: secTransResult._id
+                },
+                { new: true }
+            )
+
         } else {
             //bank or cash
 
@@ -101,19 +120,38 @@ exports.createExpense = async (req, res, next) => {
                 "relatedAccounting": (newBody.relatedBankAccount) ? newBody.relatedBankAccount : newBody.relatedCashAccount,
                 "relatedExpense": result._id,
                 "relatedBank": newBody.relatedBankAccount,
-                "relatedCash": newBody.relatedCashAccount
+                "relatedCash": newBody.relatedCashAccount,
+                "relatedBranch": newBody.relatedBranch
             }
 
 
             const secTrans = new Transaction(secondTransaction)
             var secTransResult = await secTrans.save();
-            console.log(secTransResult)
+            var fTransUpdate = await Transaction.findOneAndUpdate(
+                { _id: fTransResult._id },
+                {
+                    relatedTransaction: secTransResult._id
+                },
+                { new: true }
+            )
+            if (newBody.relatedBankAccount) {
+                var amountUpdate = await Accounting.findOneAndUpdate(
+                    { _id: newBody.relatedBankAccount },
+                    { $inc: { amount: -newBody.finalAmount } }
+                )
+            } else if (newBody.relatedCash) {
+                var amountUpdate = await Accounting.findOneAndUpdate(
+                    { _id: newBody.relatedCash },
+                    { $inc: { amount: -newBody.finalAmount } }
+                )
+            }
+
         }
         res.status(200).send({
             message: 'Expense create success',
             success: true,
             data: populatedResult,
-            firstTrans: fTransResult,
+            firstTrans: fTransUpdate,
             secTrans: secTransResult
         });
     } catch (error) {
@@ -127,7 +165,7 @@ exports.updateExpense = async (req, res, next) => {
             { _id: req.body.id },
             req.body,
             { new: true },
-        ).populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
+        ).populate('relatedAccounting').populate('relatedBranch').populate('relatedBankAccount').populate('relatedCashAccount')
         return res.status(200).send({ success: true, data: result });
     } catch (error) {
         return res.status(500).send({ "error": true, "message": error.message })
@@ -161,18 +199,30 @@ exports.activateExpense = async (req, res, next) => {
     }
 };
 
+exports.getwithExactDate = async (req, res) => {
+    try {
+        let { date } = req.query
+        let result = await Expense.find({ date: date }).populate('relatedBranch').populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
+        if (result.length === 0) return res.status(404).send({ error: true, message: 'Not Found!' })
+        return res.status(200).send({ success: true, data: result })
+    } catch (error) {
+        return res.status(500).send({ error: true, message: error.message })
+    }
+}
+
 exports.expenseFilter = async (req, res) => {
     let query = { relatedBankAccount: { $exists: true }, isDeleted: false }
     try {
-        const { start, end, createdBy } = req.query
+        let currencyList = await Currency.find({});
+        const { start, end, relatedBranch, createdBy } = req.query
         if (start && end) query.date = { $gte: start, $lt: end }
+        if (relatedBranch) query.relatedBranch = relatedBranch
         if (createdBy) query.createdBy = createdBy
-        const bankResult = await Expense.find(query).populate('relatedBankAccount relatedAccounting relatedCredit relatedCashAccount').populate('createdBy', 'givenName')
+        const bankResult = await Expense.find(query).populate('relatedBankAccount relatedAccounting relatedCredit relatedCashAccount relatedBranch').populate('createdBy', 'givenName')
         const { relatedBankAccount, ...query2 } = query;
         query2.relatedCashAccount = { $exists: true };
         console.log(query2)
-        const cashResult = await Expense.find(query2).populate('relatedBankAccount relatedAccounting relatedCredit relatedCashAccount').populate('createdBy', 'givenName')
-        console.log(bankResult)
+        const cashResult = await Expense.find(query2).populate('relatedBankAccount relatedAccounting relatedCredit relatedCashAccount relatedBranch').populate('createdBy', 'givenName')
         const BankNames = bankResult.reduce((result, { relatedBankAccount, finalAmount }) => {
             const { name } = relatedBankAccount;
             result[name] = (result[name] || 0) + finalAmount;
@@ -183,8 +233,17 @@ exports.expenseFilter = async (req, res) => {
             result[name] = (result[name] || 0) + finalAmount;
             return result;
         }, {});
-        const BankTotal = bankResult.reduce((total, sale) => total + sale.finalAmount, 0);
-        const CashTotal = cashResult.reduce((total, sale) => total + sale.finalAmount, 0);
+        const BankTotal = bankResult.reduce((total, sale) => {
+            let current = currencyList.filter(currency => currency.code === sale.finalCurrency)[0].exchangeRate
+            let ans = current * sale.finalAmount
+            return total + ans
+        }, 0);
+        const CashTotal = cashResult.reduce((total, sale) => {
+            let current = currencyList.filter(currency => currency.code === sale.finalCurrency)[0].exchangeRate
+            let ans = current * sale.finalAmount
+            return total + ans
+        }, 0);
+        console.log(BankNames)
 
         return res.status(200).send({
             success: true,
@@ -198,17 +257,72 @@ exports.expenseFilter = async (req, res) => {
             }
         });
     } catch (error) {
-        console.log(error)
         return res.status(500).send({ error: true, message: error.message })
     }
 }
 
-exports.getwithExactDate = async (req, res) => {
+exports.filterExpense = async (req, res, next) => {
     try {
-        let { date } = req.query
-        let result = await Expense.find({ date: date }).populate('relatedBranch').populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
-        if (result.length === 0) return res.status(404).send({ error: true, message: 'Not Found!' })
-        return res.status(200).send({ success: true, data: result })
+        let query = req.mongoQuery
+        let { startDate, endDate } = req.query
+        if (startDate && endDate) query.createdAt = { $gte: startDate, $lte: endDate }
+        if (Object.keys(query).length === 0) return res.status(404).send({ error: true, message: 'Please Specify A Query To Use This Function' })
+        const result = await Expense.find(query)
+        if (result.length === 0) return res.status(404).send({ error: true, message: "No Record Found!" })
+        res.status(200).send({ success: true, data: result })
+    } catch (err) {
+        return res.status(500).send({ error: true, message: err.message })
+    }
+
+}
+
+exports.searchExpense = async (req, res, next) => {
+    let query = { relatedBankAccount: { $exists: true }, isDeleted: false }
+    try {
+        let currencyList = await Currency.find({});
+        const { start, end, relatedBranch, createdBy, search } = req.query
+        if (start && end) query.date = { $gte: start, $lt: end }
+        if (relatedBranch) query.relatedBranch = relatedBranch
+        if (createdBy) query.createdBy = createdBy
+        if (search) query.$text = { $search: search }
+        const bankResult = await Expense.find(query).populate('relatedBankAccount relatedAccounting relatedCredit relatedCashAccount relatedBranch').populate('createdBy', 'givenName')
+        const { relatedBankAccount, ...query2 } = query;
+        query2.relatedCashAccount = { $exists: true };
+        console.log(query2)
+        const cashResult = await Expense.find(query2).populate('relatedBankAccount relatedAccounting relatedCredit relatedCashAccount relatedBranch').populate('createdBy', 'givenName')
+        const BankNames = bankResult.reduce((result, { relatedBankAccount, finalAmount }) => {
+            const { name } = relatedBankAccount;
+            result[name] = (result[name] || 0) + finalAmount;
+            return result;
+        }, {});
+        const CashNames = cashResult.reduce((result, { relatedCashAccount, finalAmount }) => {
+            const { name } = relatedCashAccount;
+            result[name] = (result[name] || 0) + finalAmount;
+            return result;
+        }, {});
+        const BankTotal = bankResult.reduce((total, sale) => {
+            let current = currencyList.filter(currency => currency.code === sale.finalCurrency)[0].exchangeRate
+            let ans = current * sale.finalAmount
+            return total + ans
+        }, 0);
+        const CashTotal = cashResult.reduce((total, sale) => {
+            let current = currencyList.filter(currency => currency.code === sale.finalCurrency)[0].exchangeRate
+            let ans = current * sale.finalAmount
+            return total + ans
+        }, 0);
+        console.log(BankNames)
+
+        return res.status(200).send({
+            success: true,
+            data: {
+                BankList: bankResult,
+                CashList: cashResult,
+                BankNames: BankNames,
+                CashNames: CashNames,
+                BankTotal: BankTotal,
+                CashTotal: CashTotal
+            }
+        });
     } catch (error) {
         return res.status(500).send({ error: true, message: error.message })
     }
