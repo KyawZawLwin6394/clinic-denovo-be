@@ -1,5 +1,7 @@
 'use strict';
-const Note = require('../models/note');
+const notes = require('../models/notes');
+const Note = require('../models/notes');
+const Transaction = require('../models/transaction')
 
 exports.listAllNotes = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -15,14 +17,7 @@ exports.listAllNotes = async (req, res) => {
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await Note.find(query).populate('relatedDiscount').populate({
-            path: 'relatedDiscount',
-            model: 'Discounts',
-            populate: {
-                path: 'relatedFOCID',
-                model: 'Treatments'
-            }
-        })
+        let result = await Note.find(query)
         count = await Note.find(query).count();
         const division = count / limit;
         page = Math.ceil(division);
@@ -46,7 +41,7 @@ exports.listAllNotes = async (req, res) => {
 exports.getNote = async (req, res) => {
     let query = req.mongoQuery
     if (req.params.id) query._id = req.params.id
-    const result = await Note.find(query).populate('relatedDiscount')
+    const result = await Note.find(query)
     if (result.length === 0)
         return res.status(500).json({ error: true, message: 'No Record Found' });
     return res.status(200).send({ success: true, data: result });
@@ -63,7 +58,7 @@ exports.createNote = async (req, res, next) => {
             data: result
         });
     } catch (error) {
-        // console.log(error )
+        console.log(error)
         return res.status(500).send({ "error": true, message: error.message })
     }
 };
@@ -74,7 +69,7 @@ exports.updateNote = async (req, res, next) => {
             { _id: req.body.id },
             req.body,
             { new: true },
-        ).populate('relatedDiscount')
+        )
         return res.status(200).send({ success: true, data: result });
     } catch (error) {
         return res.status(500).send({ "error": true, "message": error.message })
@@ -92,6 +87,52 @@ exports.deleteNote = async (req, res, next) => {
     } catch (error) {
         return res.status(500).send({ "error": true, "message": error.message })
 
+    }
+}
+
+const getNetAmount = async (id, start, end) => {
+    const debit = await Transaction.find({ relatedAccounting: id, type: 'Debit', date: { $gte: start, $lte: end } })
+    const totalDebit = debit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
+    const credit = await Transaction.find({ relatedAccounting: id, type: 'Credit', date: { $gte: start, $lte: end } })
+    const totalCredit = credit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
+    return totalDebit - totalCredit
+}
+
+exports.getNotesByAccounts = async (req, res) => {
+    let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    let { notesID, monthName } = req.query
+    let prep = []
+    let start = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName), 1));
+    let end = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName) + 1, 1));
+    try {
+        const result = await Note.find({ _id: notesID }).populate('item.relatedAccount')
+        // console.log(result[0].item)
+        for (const item of result[0].item) {
+            const res = await getNetAmount(item.relatedAccount._id, start, end)
+            prep.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
+        }
+        console.log(prep)
+        const total = prep.reduce((accumulator, element) => {
+            if (element.operator === 'Plus') {
+                accumulator = accumulator + element.amount
+            } else (
+                accumulator = accumulator - element.amount
+
+            )
+            return accumulator
+        }, 0)
+        console.log(total)
+        return res.status(200).send({
+            success: true,
+            data: {
+                table: prep,
+                total: total,
+                notesName: result[0].name
+            }
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({ error: true, message: error.message })
     }
 }
 

@@ -7,30 +7,27 @@ const validator = require('validator');
 
 
 let Note = new Schema({
-    relatedDiscount: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: 'Discounts'
-    },
-    name: {
-        type: String,
-    },
-    description: {
-        type: String,
-    },
-    conditionAmount: {
-        type: Number,
-    },
-    conditionPurchaseFreq: {
-        type: Number,
-    },
-    conditionPackageQty: {
-        type: Number
+    createdAt: {
+        type: Date,
+        default: Date.now
     },
     isDeleted: {
         type: Boolean,
-        required: true,
         default: false
     },
+    item: [{
+        relatedAccount: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'AccountingLists'
+        },
+        operator: {
+            type: String,
+            enum: ['Plus', 'Minus']
+        }
+    }],
+    name: {
+        type: String
+    }
 });
 
 module.exports = mongoose.model('Notes', Note);
