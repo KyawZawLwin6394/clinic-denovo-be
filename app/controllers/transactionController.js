@@ -60,6 +60,7 @@ exports.getTransaction = async (req, res) => {
 };
 
 exports.getRelatedTransaction = async (req, res) => {
+  console.log(req.params.id)
   const result = await Transaction.find({ relatedAccounting: req.params.id, isDeleted: false }).populate('relatedAccounting').populate('relatedTreatment').populate('relatedTransaction').populate('relatedBank').populate('relatedCash');
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });

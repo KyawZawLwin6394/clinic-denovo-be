@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const AccountBalance = require('../models/accountBalance');
 const Accounting = require('../models/accountingList');
+const FixedAsset = require('../models/fixedAsset');
 
 async function filterRequestAndResponse(reArr, reBody) {
   if (reArr.length > 0) {
@@ -33,6 +34,33 @@ async function getLatestDay() {
   const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
   return currentDay === lastDayOfMonth;
+}
+
+async function fixedAssetTransaction() {
+  try {
+    const assetResult = await FixedAsset.find({}).populate('fixedAssetAcc depriciationAcc')
+    for (const element of assetResult) {
+      let { yearDepriciation, fixedAssetAcc, usedYear } = element
+      if (yearDepriciation && fixedAssetAcc && usedYear) {
+        const amount = yearDepriciation / 12
+        var transResult = await Transaction.create({
+          "amount": amount,
+          "date": Date.now(),
+          "remark": data.remark,
+          "type": "Credit",
+          "relatedTransaction": null,
+          "relatedAccounting": fixedAssetAcc,
+        })
+        const transResultAmtUpdate = await Accounting.findOneAndUpdate(
+          { _id: fixedAssetAcc },
+          { $inc: { amount: -amount } }
+        )
+      }
+    }
+    console.log('Task is complete!')
+  } catch (error) {
+    console.log(error)
+  }
 }
 
 async function createAccountBalance() {
@@ -96,4 +124,4 @@ async function mergeAndSum(data) {
   };
 }
 
-module.exports = { bcryptHash, bcryptCompare, filterRequestAndResponse, mergeAndSum, getLatestDay,createAccountBalance };
+module.exports = { bcryptHash, bcryptCompare, filterRequestAndResponse, mergeAndSum, getLatestDay, createAccountBalance, fixedAssetTransaction };

@@ -54,6 +54,14 @@ let FixedAssetSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Branches'
   },
+  fixedAssetAcc:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'AccountingLists'
+  },
+  depriciationAcc:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'AccountingLists'
+  }
 });
 
 module.exports = mongoose.model('FixedAssets', FixedAssetSchema);

@@ -153,6 +153,7 @@ cronitor.schedule('AccountBalanceClosingAndOpening', '55 23 * * *', async functi
   const isLastDay = await userUtil.getLatestDay();
     if (isLastDay === true) {
       await userUtil.createAccountBalance();
+      await userUtil.fixedAssetTransaction();
     } else {
       console.log('Today is not the right day for the scheduled task!');
     }
