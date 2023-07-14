@@ -128,7 +128,7 @@ exports.getNotesByAccounts = async (req, res) => {
                 table: prep,
                 total: total,
                 notesName: result[0].name,
-                surgeryNetAmount: surgeryNetAmount
+                surgeryNetAmount: Math.abs(surgeryNetAmount)
             }
         })
     } catch (error) {
