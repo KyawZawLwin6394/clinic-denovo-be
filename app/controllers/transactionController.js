@@ -44,7 +44,7 @@ exports.getTransaction = async (req, res) => {
     model: 'AccountingLists',
     populate: {
       path: 'relatedHeader',
-      model: 'Headers'
+      model: 'AccountHeaders'
     }
   }).populate('relatedTreatment').populate({
     path: 'relatedTransaction',
@@ -66,7 +66,7 @@ exports.getRelatedTransaction = async (req, res) => {
     model: 'AccountingLists',
     populate: {
       path: 'relatedHeader',
-      model: 'Headers'
+      model: 'AccountHeaders'
     }
   }).populate('relatedTreatment').populate({
     path: 'relatedTransaction',
@@ -178,6 +178,10 @@ exports.incomeStatement = async (req, res) => {
     const clinicCOGSNetAmount = await getNetAmount('64a8e0e755a87deaea39e18d', startDate, endDate)   //Clinic Treatement COGS
     costOfSales.push({ surgery: surgeryCOGSNetAmount, clinic: clinicCOGSNetAmount, month: monthName })
     //End of COGS
+
+    //Other Income
+    
+    //End of Other Icome
 
     grossProfit.push({ surgery: Math.abs(surgeryNetAmount) - surgeryCOGSNetAmount, clinic: Math.abs(clinicNetAmount) - clinicCOGSNetAmount, month: monthName })
 
