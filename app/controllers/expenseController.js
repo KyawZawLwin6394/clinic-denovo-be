@@ -11,7 +11,7 @@ exports.listAllExpenses = async (req, res) => {
     try {
         limit = +limit <= 100 ? +limit : 30; //limit
         skip = +skip || 0;
-        let query = req.mongoQuery,
+        let query = {isDeleted:false},
             regexKeyword;
         role ? (query['role'] = role.toUpperCase()) : '';
         keyword && /\w/.test(keyword)
@@ -40,7 +40,7 @@ exports.listAllExpenses = async (req, res) => {
 };
 
 exports.getExpense = async (req, res) => {
-    let query = req.mongoQuery
+    let query = {isDeleted:false}
     if (req.params.id) query._id = req.params.id
     const result = await Expense.find(query).populate('relatedBranch').populate('relatedAccounting').populate('relatedBankAccount').populate('relatedCashAccount')
     if (!result)
@@ -263,7 +263,7 @@ exports.expenseFilter = async (req, res) => {
 
 exports.filterExpense = async (req, res, next) => {
     try {
-        let query = req.mongoQuery
+        let query = {isDeleted:false}
         let { startDate, endDate } = req.query
         if (startDate && endDate) query.createdAt = { $gte: startDate, $lte: endDate }
         if (Object.keys(query).length === 0) return res.status(404).send({ error: true, message: 'Please Specify A Query To Use This Function' })

@@ -152,7 +152,7 @@ const getNetAmount = async (id, start, end) => {
   const totalDebit = debit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
   const credit = await Transaction.find({ relatedAccounting: id, type: 'Credit', date: { $gte: start, $lte: end } })
   const totalCredit = credit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
-  return totalDebit - totalCredit
+  return Math.abs(totalDebit - totalCredit)
 }
 
 exports.incomeStatement = async (req, res) => {
