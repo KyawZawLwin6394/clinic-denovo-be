@@ -39,7 +39,7 @@ exports.listAllNotes = async (req, res) => {
 };
 
 exports.getNote = async (req, res) => {
-    let query = req.mongoQuery
+    let query = { isDeleted: false }
     if (req.params.id) query._id = req.params.id
     const result = await Note.find(query)
     if (result.length === 0)
