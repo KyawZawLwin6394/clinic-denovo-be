@@ -106,7 +106,7 @@ exports.getNotesByAccounts = async (req, res) => {
     let start = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName), 1));
     let end = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName) + 1, 1));
     try {
-        const result = await Note.find({ _id: notesID }).populate('item.relatedAccount')
+        const result = await Note.find({ _id: notesID }).populate('item.relatedAccount secondaryItem.relatedAccount')
         // console.log(result[0].item)
         for (const item of result[0].item) {
             const res = await getNetAmount(item.relatedAccount._id, start, end)
