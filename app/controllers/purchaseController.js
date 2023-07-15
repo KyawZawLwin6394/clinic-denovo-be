@@ -84,10 +84,23 @@ exports.createPurchase = async (req, res, next) => {
             "type": "Debit",
             "relatedTransaction": null,
             "relatedAccounting": "64ae1fd412b3d31436d48059", //Opening Inventory
-            "relatedBranch": relatedBranch
         })
         const transResultAmtUpdate = await accountingList.findOneAndUpdate(
             { _id: '64ae1fd412b3d31436d48059' },
+            { $inc: { amount: data.totalPrice } }
+        )
+
+        //64ae1fea12b3d31436d4805f Purchase
+        const purchaseResult = await Transaction.create({
+            "amount": data.totalPrice,
+            "date": Date.now(),
+            "remark": data.remark,
+            "type": "Debit",
+            "relatedTransaction": null,
+            "relatedAccounting": "64ae1fea12b3d31436d4805f", //Purchase
+        })
+        const purchaseAMTUpdate = await accountingList.findOneAndUpdate(
+            { _id: '64ae1fea12b3d31436d4805f' },
             { $inc: { amount: data.totalPrice } }
         )
         const SectransResult = await Transaction.create({
@@ -110,12 +123,12 @@ exports.createPurchase = async (req, res, next) => {
         if (req.body.relatedBank) {
             var amountUpdate = await Accounting.findOneAndUpdate(
                 { _id: req.body.relatedBank },
-                { $inc: { amount: req.body.totalPrice } }
+                { $inc: { amount: -req.body.totalPrice } }
             )
         } else if (req.body.relatedCash) {
             var amountUpdate = await Accounting.findOneAndUpdate(
                 { _id: req.body.relatedCash },
-                { $inc: { amount: req.body.totalPrice } }
+                { $inc: { amount: -req.body.totalPrice } }
             )
         }
         const transUpdate = await Transaction.findOneAndUpdate({ _id: transResult._id }, { "relatedTransaction": SectransResult._id })
