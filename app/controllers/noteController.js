@@ -101,7 +101,8 @@ const getNetAmount = async (id, start, end) => {
 exports.getNotesByAccounts = async (req, res) => {
     let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     let { notesID, monthName } = req.query
-    let prep = []
+    let [clinicTable, surgeryTable] = [[], []]
+
     let start = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName), 1));
     let end = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName) + 1, 1));
     try {
@@ -109,10 +110,13 @@ exports.getNotesByAccounts = async (req, res) => {
         // console.log(result[0].item)
         for (const item of result[0].item) {
             const res = await getNetAmount(item.relatedAccount._id, start, end)
-            prep.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
+            clinicTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
         }
-        console.log(prep)
-        const total = prep.reduce((accumulator, element) => {
+        for (const item of result[0].secondaryItem) {
+            const res = await getNetAmount(item.relatedAccount._id, start, end)
+            surgeryTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
+        }
+        const clinicTotal = clinicTable.reduce((accumulator, element) => {
             if (element.operator === 'Plus') {
                 accumulator = accumulator + element.amount
             } else if (element.operator === 'Minus') (
@@ -120,15 +124,22 @@ exports.getNotesByAccounts = async (req, res) => {
             )
             return accumulator
         }, 0)
-        const surgeryNetAmount = await getNetAmount(result[0].relatedSurgery, start, end)
-        console.log(total)
+        const surgeryTotal = surgeryTable.reduce((accumulator, element) => {
+            if (element.operator === 'Plus') {
+                accumulator = accumulator + element.amount
+            } else if (element.operator === 'Minus') (
+                accumulator = accumulator - element.amount
+            )
+            return accumulator
+        }, 0)
         return res.status(200).send({
             success: true,
             data: {
-                table: prep,
-                total: total,
-                notesName: result[0].name,
-                surgeryNetAmount: Math.abs(surgeryNetAmount)
+                clinicTable: clinicTable,
+                clinicTotal: clinicTotal,
+                surgeryTable: surgeryTable,
+                surgeryTotal: surgeryTotal,
+                notesName: result[0].name
             }
         })
     } catch (error) {

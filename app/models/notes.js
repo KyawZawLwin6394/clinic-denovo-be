@@ -25,6 +25,16 @@ let Note = new Schema({
             enum: ['Plus', 'Minus']
         }
     }],
+    secondaryItem: [{
+        relatedAccount: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'AccountingLists'
+        },
+        operator: {
+            type: String,
+            enum: ['Plus', 'Minus']
+        }
+    }],
     name: {
         type: String
     },
