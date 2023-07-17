@@ -8,10 +8,12 @@ module.exports = (app) => {
 
     app.route('/api/journal')
         .post(verifyToken, catchError(journal.createJournal))
-        
+        .put(verifyToken, catchError(journal.updateJournal))
+
     app.route('/api/journal/:id')
         .get(verifyToken, catchError(journal.getJournal))
-        .put(verifyToken, catchError(journal.updateJournal))
+        .delete(verifyToken, catchError(journal.deleteJournal))
+        .post(verifyToken, catchError(journal.activateJournal))
 
     app.route('/api/journals').get(verifyToken, catchError(journal.getAllJournals))
 };
