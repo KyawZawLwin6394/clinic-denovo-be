@@ -1,6 +1,9 @@
 'use strict';
 const Transaction = require('../models/transaction');
 const AccountingList = require('../models/accountingList');
+const Note = require('../models/notes');
+const getNetAmount = require('../lib/userUtil').getNetAmount
+const getTotal = require('../lib/userUtil').getTotal
 
 exports.listAllTransactions = async (req, res) => {
   let { keyword, role, limit, skip } = req.query;
@@ -147,14 +150,6 @@ exports.trialBalanceWithID = async (req, res) => {
 
 }
 
-const getNetAmount = async (id, start, end) => {
-  const debit = await Transaction.find({ relatedAccounting: id, type: 'Debit', date: { $gte: start, $lte: end } })
-  const totalDebit = debit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
-  const credit = await Transaction.find({ relatedAccounting: id, type: 'Credit', date: { $gte: start, $lte: end } })
-  const totalCredit = credit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
-  return Math.abs(totalDebit - totalCredit)
-}
-
 exports.incomeStatement = async (req, res) => {
   let [sales, costOfSales, grossProfit] = [[], [], []];
 
@@ -162,28 +157,23 @@ exports.incomeStatement = async (req, res) => {
 
   for (const monthName of months) {
     //Sales-> Clinic and Surgery
-    let startDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName), 1));
-    let endDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName) + 1, 1));
-    const surgeryNetAmount = await getNetAmount('648096bd7d7e4357442aa476', startDate, endDate) //Sales Surgery ID
-    let clinicNetAmount = await getNetAmount('649416b44236f7602ba3411a', startDate, endDate) // Sales Clinic ID
-    const salesConsignmentNetAmount = await getNetAmount('648096777d7e4357442aa470', startDate, endDate)// Sales Consignement ID
-    const salesReturnNetAmount = await getNetAmount('64ae1d3812b3d31436d48033', startDate, endDate)// Sales Return ID 
-    const salesComissionNetAmount = await getNetAmount('64ae1d0012b3d31436d48027', startDate, endDate)// Sales Comission ID 
-    clinicNetAmount = (clinicNetAmount + salesConsignmentNetAmount) - (salesReturnNetAmount + salesComissionNetAmount)
-    sales.push({ surgery: surgeryNetAmount, clinic: clinicNetAmount, month: monthName })
-    //Sales-> End of Clinic and Surgery
-
-    //COGS
-    const surgeryCOGSNetAmount = await getNetAmount('64a8e0bb55a87deaea39e187', startDate, endDate)  //Surgery COGS
-    const clinicCOGSNetAmount = await getNetAmount('64a8e0e755a87deaea39e18d', startDate, endDate)   //Clinic Treatement COGS
-    costOfSales.push({ surgery: surgeryCOGSNetAmount, clinic: clinicCOGSNetAmount, month: monthName })
-    //End of COGS
-
-    //Other Income
-    
-    //End of Other Icome
-
-    grossProfit.push({ surgery: Math.abs(surgeryNetAmount) - surgeryCOGSNetAmount, clinic: Math.abs(clinicNetAmount) - clinicCOGSNetAmount, month: monthName })
+    let [clinicTable, surgeryTable] = [[], []]
+    let start = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName), 1));
+    let end = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName) + 1, 1));
+    const result = await Note.find({ _id: '64b2124656ec42e1490bece9' }).populate('item.relatedAccount secondaryItem.relatedAccount')
+    for (const item of result[0].item) {
+      const res = await getNetAmount(item.relatedAccount._id, start, end)
+      clinicTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
+    }
+    for (const item of result[0].secondaryItem) {
+      const res = await getNetAmount(item.relatedAccount._id, start, end)
+      surgeryTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
+    }
+    const clinicTotal = await getTotal(clinicTable)
+    const surgeryTotal = await getTotal(surgeryTable)
+    sales.push({ surgery: surgeryTotal, clinic: clinicTotal, month: monthName })
+    // costOfSales.push({ surgery: surgeryCOGSNetAmount, clinic: clinicCOGSNetAmount, month: monthName })
+    // grossProfit.push({ surgery: Math.abs(surgeryNetAmount) - surgeryCOGSNetAmount, clinic: Math.abs(clinicNetAmount) - clinicCOGSNetAmount, month: monthName })
 
   }
 

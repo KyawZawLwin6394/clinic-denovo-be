@@ -39,7 +39,14 @@ exports.getAllJournals = async (req, res) => {
 
 exports.getJournal = async (req, res) => {
     try {
-        const result = await Transaction.find({ _id: req.params.id, isDeleted: false, JEFlag: true }).populate('relatedAccounting');
+        const result = await Transaction.find({ _id: req.params.id, isDeleted: false, JEFlag: true }).populate('relatedAccounting').populate({
+            path:'relatedTransaction',
+            model:'Transactions',
+            populate:{
+                path:'relatedAccounting',
+                model:'AccountingLists'
+            }
+        });
         if (!result)
             return res.status(500).json({ error: true, message: 'No Record Found' });
         return res.status(200).send({ success: true, data: result });

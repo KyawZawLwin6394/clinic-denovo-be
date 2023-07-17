@@ -10,6 +10,9 @@ let SupplierSchema = new Schema({
   name: {
     type: String,
   },
+  email: {
+    type: String
+  },
   phone: {
     type: String,
     unique: true,

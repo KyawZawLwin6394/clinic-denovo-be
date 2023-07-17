@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const AccountBalance = require('../models/accountBalance');
 const Accounting = require('../models/accountingList');
 const FixedAsset = require('../models/fixedAsset');
+const Transaction = require('../models/transaction')
 
 async function filterRequestAndResponse(reArr, reBody) {
   if (reArr.length > 0) {
@@ -124,4 +125,24 @@ async function mergeAndSum(data) {
   };
 }
 
-module.exports = { bcryptHash, bcryptCompare, filterRequestAndResponse, mergeAndSum, getLatestDay, createAccountBalance, fixedAssetTransaction };
+const getNetAmount = async (id, start, end) => {
+  const debit = await Transaction.find({ relatedAccounting: id, type: 'Debit', date: { $gte: start, $lte: end } })
+  const totalDebit = debit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
+  const credit = await Transaction.find({ relatedAccounting: id, type: 'Credit', date: { $gte: start, $lte: end } })
+  const totalCredit = credit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
+  return totalDebit - totalCredit
+}
+
+async function getTotal(table) {
+  const total = table.reduce((accumulator, element) => {
+    if (element.operator === 'Plus') {
+      accumulator = accumulator + element.amount
+    } else if (element.operator === 'Minus') (
+      accumulator = accumulator - element.amount
+    )
+    return accumulator
+  }, 0)
+  return total
+}
+
+module.exports = { bcryptHash, bcryptCompare, filterRequestAndResponse, mergeAndSum, getLatestDay, createAccountBalance, fixedAssetTransaction, getNetAmount, getTotal };

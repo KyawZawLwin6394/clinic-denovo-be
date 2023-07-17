@@ -2,6 +2,8 @@
 const notes = require('../models/notes');
 const Note = require('../models/notes');
 const Transaction = require('../models/transaction')
+const getNetAmount = require('../lib/userUtil').getNetAmount
+const getTotal = require('../lib/userUtil').getTotal
 
 exports.listAllNotes = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -90,13 +92,7 @@ exports.deleteNote = async (req, res, next) => {
     }
 }
 
-const getNetAmount = async (id, start, end) => {
-    const debit = await Transaction.find({ relatedAccounting: id, type: 'Debit', date: { $gte: start, $lte: end } })
-    const totalDebit = debit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
-    const credit = await Transaction.find({ relatedAccounting: id, type: 'Credit', date: { $gte: start, $lte: end } })
-    const totalCredit = credit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
-    return totalDebit - totalCredit
-}
+
 
 exports.getNotesByAccounts = async (req, res) => {
     let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -116,22 +112,8 @@ exports.getNotesByAccounts = async (req, res) => {
             const res = await getNetAmount(item.relatedAccount._id, start, end)
             surgeryTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
         }
-        const clinicTotal = clinicTable.reduce((accumulator, element) => {
-            if (element.operator === 'Plus') {
-                accumulator = accumulator + element.amount
-            } else if (element.operator === 'Minus') (
-                accumulator = accumulator - element.amount
-            )
-            return accumulator
-        }, 0)
-        const surgeryTotal = surgeryTable.reduce((accumulator, element) => {
-            if (element.operator === 'Plus') {
-                accumulator = accumulator + element.amount
-            } else if (element.operator === 'Minus') (
-                accumulator = accumulator - element.amount
-            )
-            return accumulator
-        }, 0)
+        const clinicTotal = await getTotal(clinicTable)
+        const surgeryTotal = await getTotal(surgeryTable)
         return res.status(200).send({
             success: true,
             data: {
