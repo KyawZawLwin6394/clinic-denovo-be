@@ -86,7 +86,7 @@ exports.createPurchase = async (req, res, next) => {
             "relatedTransaction": null,
             "relatedAccounting": "64ae1fd412b3d31436d48059", //Opening Inventory
         })
-        const transResultAmtUpdate = await accountingList.findOneAndUpdate(
+        const transResultAmtUpdate = await Accounting.findOneAndUpdate(
             { _id: '64ae1fd412b3d31436d48059' },
             { $inc: { amount: data.totalPrice } }
         )
@@ -100,7 +100,7 @@ exports.createPurchase = async (req, res, next) => {
             "relatedTransaction": null,
             "relatedAccounting": "64ae1fea12b3d31436d4805f", //Purchase
         })
-        const purchaseAMTUpdate = await accountingList.findOneAndUpdate(
+        const purchaseAMTUpdate = await Accounting.findOneAndUpdate(
             { _id: '64ae1fea12b3d31436d4805f' },
             { $inc: { amount: data.totalPrice } }
         )
