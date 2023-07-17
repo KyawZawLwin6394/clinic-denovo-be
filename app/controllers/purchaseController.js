@@ -4,7 +4,7 @@ const MedicineItems = require('../models/medicineItem');
 const ProcedureItems = require('../models/procedureItem');
 const AccessoryItems = require('../models/accessoryItem');
 const Transaction = require('../models/transaction');
-const AccountingList = require('../models/accountingList');
+const Accounting = require('../models/accountingList');
 
 exports.listAllPurchases = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
