@@ -481,7 +481,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "payment": attachID,
                 "relatedDiscount": req.body.relatedDiscount,
                 "discountAmount": req.body.discountAmount,
-                "discountType": req.body.discountType   
+                "discountType": req.body.discountType
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -622,11 +622,14 @@ exports.createTreatmentSelection = async (req, res, next) => {
                     model: 'Doctors'
                 }
             })
-        const accResult = await Appointment.findOneAndUpdate(
-            { _id: req.body.appointment },
-            { $addToSet: { relatedTreatmentSelection: result._id } },
-            { new: true },
-        )
+        for (const id of relatedAppointments) {
+            const accResult = await Appointment.findOneAndUpdate(
+                { _id: id },
+                { $addToSet: { relatedTreatmentSelection: result._id } },
+                { new: true },
+            )
+        }
+
         if (data.relatedPatient) {
             const patientResult = await Patient.findOneAndUpdate(
                 { _id: req.body.relatedPatient },

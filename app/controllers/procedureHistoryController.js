@@ -58,7 +58,7 @@ exports.uploadImage = async (req, res) => {
   let data = req.body
   let files = req.files
   try {
-    if (files.phistory){
+    if (files.phistory) {
       let imgPath = files.phistory[0].path.split('cherry-k')[1];
       const attachData = {
         fileName: files.phistory[0].originalname,
@@ -86,8 +86,22 @@ exports.createProcedureHistory = async (req, res, next) => {
   data = { ...data, pHistory: [] };
   let files = req.files;
   try {
-    if (files.phistory) {
-      for (const element of files.phistory) {
+    if (files.before) {
+      for (const element of files.before) {
+        let imgPath = element.path.split('cherry-k')[1];
+        const attachData = {
+          fileName: element.originalname,
+          imgUrl: imgPath,
+          image: imgPath.split('\\')[2]
+        };
+        const attachResult = await Attachment.create(attachData);
+        console.log('attach', attachResult._id.toString());
+        data.pHistory.push(attachResult._id.toString());
+      }
+    }
+
+    if (files.after) {
+      for (const element of files.after) {
         let imgPath = element.path.split('cherry-k')[1];
         const attachData = {
           fileName: element.originalname,
