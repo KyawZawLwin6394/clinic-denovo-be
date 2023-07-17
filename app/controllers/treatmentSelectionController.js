@@ -151,7 +151,8 @@ exports.createTreatmentSelection = async (req, res, next) => {
             relatedPatient: req.body.relatedPatient,
             relatedDoctor: req.body.relatedDoctor,
             originalDate: new Date(req.body.originalDate), // Convert to Date object
-            phone: req.body.phone
+            phone: req.body.phone,
+            purchaseType: req.body.purchaseType
         };
 
         const numTreatments = req.body.treatmentTimes;

@@ -7,6 +7,10 @@ const validator = require('validator');
 
 
 let AppointmentSchema = new Schema({
+  purchaseType: {
+    type: String,
+    enum: ['Clinic', 'Surgery']
+  },
   relatedPatient: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Patients'
