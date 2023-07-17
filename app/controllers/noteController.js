@@ -43,7 +43,7 @@ exports.listAllNotes = async (req, res) => {
 exports.getNote = async (req, res) => {
     let query = { isDeleted: false }
     if (req.params.id) query._id = req.params.id
-    const result = await Note.find(query)
+    const result = await Note.find(query).populate('item.relatedAccount secondaryItem.relatedAccount')
     if (result.length === 0)
         return res.status(500).json({ error: true, message: 'No Record Found' });
     return res.status(200).send({ success: true, data: result });
