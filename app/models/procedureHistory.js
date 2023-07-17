@@ -55,7 +55,11 @@ let ProcedureHistorySchema = new Schema({
         type: Date,
         default: Date.now()
     },
-    pHistory: {
+    before: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'Attachments'
+    },
+    after: {
         type: [mongoose.Schema.Types.ObjectId],
         ref: 'Attachments'
     },

@@ -96,7 +96,7 @@ exports.createProcedureHistory = async (req, res, next) => {
         };
         const attachResult = await Attachment.create(attachData);
         console.log('attach', attachResult._id.toString());
-        data.pHistory.push(attachResult._id.toString());
+        data.before.push(attachResult._id.toString());
       }
     }
 
@@ -110,7 +110,7 @@ exports.createProcedureHistory = async (req, res, next) => {
         };
         const attachResult = await Attachment.create(attachData);
         console.log('attach', attachResult._id.toString());
-        data.pHistory.push(attachResult._id.toString());
+        data.after.push(attachResult._id.toString());
       }
     }
     console.log(data)
