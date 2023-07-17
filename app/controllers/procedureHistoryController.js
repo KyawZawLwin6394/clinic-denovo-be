@@ -83,7 +83,7 @@ exports.uploadImage = async (req, res) => {
 
 exports.createProcedureHistory = async (req, res, next) => {
   let data = req.body;
-  data = { ...data, pHistory: [] };
+  data = { ...data, before: [],after: [] };
   let files = req.files;
   try {
     if (files.before) {
