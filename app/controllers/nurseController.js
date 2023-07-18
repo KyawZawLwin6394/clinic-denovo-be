@@ -15,14 +15,7 @@ exports.listAllNurses = async (req, res) => {
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await Nurse.find(query).populate('relatedDiscount').populate({
-            path: 'relatedDiscount',
-            model: 'Discounts',
-            populate: {
-                path: 'relatedFOCID',
-                model: 'Treatments'
-            }
-        })
+        let result = await Nurse.find(query).populate('relatedBranch')
         count = await Nurse.find(query).count();
         const division = count / limit;
         page = Math.ceil(division);
@@ -46,7 +39,7 @@ exports.listAllNurses = async (req, res) => {
 exports.getNurse = async (req, res) => {
     let query = { isDeleted: false }
     if (req.params.id) query._id = req.params.id
-    const result = await Nurse.find(query).populate('relatedDiscount')
+    const result = await Nurse.find(query).populate('relatedBranch')
     if (result.length === 0)
         return res.status(500).json({ error: true, message: 'No Record Found' });
     return res.status(200).send({ success: true, data: result });
@@ -74,7 +67,7 @@ exports.updateNurse = async (req, res, next) => {
             { _id: req.body.id },
             req.body,
             { new: true },
-        ).populate('relatedDiscount')
+        ).populate('relatedBranch')
         return res.status(200).send({ success: true, data: result });
     } catch (error) {
         return res.status(500).send({ "error": true, "message": error.message })

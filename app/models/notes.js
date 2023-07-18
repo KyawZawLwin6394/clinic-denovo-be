@@ -18,6 +18,10 @@ let Note = new Schema({
         type: Boolean,
         default: false
     },
+    type:{
+        type:String,
+        enum:['income','balance']
+    },
     item: [{
         relatedAccount: {
             type: mongoose.Schema.Types.ObjectId,
