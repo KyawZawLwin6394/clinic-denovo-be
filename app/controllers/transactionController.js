@@ -151,12 +151,16 @@ exports.trialBalanceWithID = async (req, res) => {
 }
 
 exports.incomeStatement = async (req, res) => {
-  let [sales, costOfSales, grossProfit] = [[], [], []];
-
+  let finalResult = {
+    Sales: null,
+    CostOfSales: null,
+    GrossProfit: null
+  }
   let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   const noteResult = await Note.find({ isDeleted: false })
+  let keys = Object.keys(finalResult)
   for (const element of noteResult) {
-    
+    let totalArray = []
     for (const monthName of months) {
       //Sales-> Clinic and Surgery
       let [clinicTable, surgeryTable] = [[], []]
@@ -173,20 +177,16 @@ exports.incomeStatement = async (req, res) => {
       }
       const clinicTotal = await getTotal(clinicTable)
       const surgeryTotal = await getTotal(surgeryTable)
-      sales.push({ surgery: surgeryTotal, clinic: clinicTotal, month: monthName })
+      totalArray.push({ surgery: surgeryTotal, clinic: clinicTotal, month: monthName })
       // costOfSales.push({ surgery: surgeryCOGSNetAmount, clinic: clinicCOGSNetAmount, month: monthName })
       // grossProfit.push({ surgery: Math.abs(surgeryNetAmount) - surgeryCOGSNetAmount, clinic: Math.abs(clinicNetAmount) - clinicCOGSNetAmount, month: monthName })
-
     }
+    finalResult[element.description] = totalArray
   }
 
 
   return res.status(200).send({
-    success: true, data: {
-      Sales: sales,
-      CostOfSales: costOfSales,
-      GrossProfit: grossProfit
-    }
+    success: true, data: finalResult
   })
 
 }
