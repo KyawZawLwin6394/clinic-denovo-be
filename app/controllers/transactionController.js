@@ -154,28 +154,32 @@ exports.incomeStatement = async (req, res) => {
   let [sales, costOfSales, grossProfit] = [[], [], []];
 
   let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const noteResult = await Note.find({ isDeleted: false })
+  for (const element of noteResult) {
+    
+    for (const monthName of months) {
+      //Sales-> Clinic and Surgery
+      let [clinicTable, surgeryTable] = [[], []]
+      let start = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName), 1));
+      let end = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName) + 1, 1));
+      const result = await Note.find({ _id: element._id }).populate('item.relatedAccount secondaryItem.relatedAccount')
+      for (const item of result[0].item) {
+        const res = await getNetAmount(item.relatedAccount._id, start, end)
+        clinicTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
+      }
+      for (const item of result[0].secondaryItem) {
+        const res = await getNetAmount(item.relatedAccount._id, start, end)
+        surgeryTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
+      }
+      const clinicTotal = await getTotal(clinicTable)
+      const surgeryTotal = await getTotal(surgeryTable)
+      sales.push({ surgery: surgeryTotal, clinic: clinicTotal, month: monthName })
+      // costOfSales.push({ surgery: surgeryCOGSNetAmount, clinic: clinicCOGSNetAmount, month: monthName })
+      // grossProfit.push({ surgery: Math.abs(surgeryNetAmount) - surgeryCOGSNetAmount, clinic: Math.abs(clinicNetAmount) - clinicCOGSNetAmount, month: monthName })
 
-  for (const monthName of months) {
-    //Sales-> Clinic and Surgery
-    let [clinicTable, surgeryTable] = [[], []]
-    let start = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName), 1));
-    let end = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName) + 1, 1));
-    const result = await Note.find({ _id: '64b2124656ec42e1490bece9' }).populate('item.relatedAccount secondaryItem.relatedAccount')
-    for (const item of result[0].item) {
-      const res = await getNetAmount(item.relatedAccount._id, start, end)
-      clinicTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
     }
-    for (const item of result[0].secondaryItem) {
-      const res = await getNetAmount(item.relatedAccount._id, start, end)
-      surgeryTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
-    }
-    const clinicTotal = await getTotal(clinicTable)
-    const surgeryTotal = await getTotal(surgeryTable)
-    sales.push({ surgery: surgeryTotal, clinic: clinicTotal, month: monthName })
-    // costOfSales.push({ surgery: surgeryCOGSNetAmount, clinic: clinicCOGSNetAmount, month: monthName })
-    // grossProfit.push({ surgery: Math.abs(surgeryNetAmount) - surgeryCOGSNetAmount, clinic: Math.abs(clinicNetAmount) - clinicCOGSNetAmount, month: monthName })
-
   }
+
 
   return res.status(200).send({
     success: true, data: {

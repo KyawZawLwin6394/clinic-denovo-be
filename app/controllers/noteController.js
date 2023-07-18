@@ -98,7 +98,6 @@ exports.getNotesByAccounts = async (req, res) => {
     let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     let { notesID, monthName } = req.query
     let [clinicTable, surgeryTable] = [[], []]
-
     let start = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName), 1));
     let end = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName) + 1, 1));
     try {
