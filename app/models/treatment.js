@@ -106,6 +106,12 @@ let TreatmentSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Branches'
   },
+  TCLSellingPrice:{
+    type:Number
+  },
+  TCLEstimateTotalPrice:{
+    type:Number
+  }
 });
 
 module.exports = mongoose.model('Treatments', TreatmentSchema);
