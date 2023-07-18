@@ -11,6 +11,9 @@ let Note = new Schema({
         type: Date,
         default: Date.now
     },
+    description:{
+        type:String
+    },
     isDeleted: {
         type: Boolean,
         default: false
