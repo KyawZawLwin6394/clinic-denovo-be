@@ -151,11 +151,7 @@ exports.trialBalanceWithID = async (req, res) => {
 }
 
 exports.incomeStatement = async (req, res) => {
-  let finalResult = {
-    Sales: null,
-    CostOfSales: null,
-    GrossProfit: null
-  }
+  let finalResult = {}
   let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   const noteResult = await Note.find({ isDeleted: false })
   let keys = Object.keys(finalResult)
@@ -178,8 +174,6 @@ exports.incomeStatement = async (req, res) => {
       const clinicTotal = await getTotal(clinicTable)
       const surgeryTotal = await getTotal(surgeryTable)
       totalArray.push({ surgery: surgeryTotal, clinic: clinicTotal, month: monthName })
-      // costOfSales.push({ surgery: surgeryCOGSNetAmount, clinic: clinicCOGSNetAmount, month: monthName })
-      // grossProfit.push({ surgery: Math.abs(surgeryNetAmount) - surgeryCOGSNetAmount, clinic: Math.abs(clinicNetAmount) - clinicCOGSNetAmount, month: monthName })
     }
     finalResult[element.description] = totalArray
   }
