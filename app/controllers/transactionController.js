@@ -233,7 +233,7 @@ exports.trialBalance = async (req, res) => {
 
       const credit = await Transaction.find({ relatedAccounting: id, type: 'Credit', date: { $gte: start, $lte: end } })
       for (let c = 0; c < credit.length; c++) {
-        transaction.push({ relatedAccounting: credit[c].relatedAccounting, type: "Debit", date: credit[c].date, amount: credit[c].amount, remark: credit[c].remark })
+        transaction.push({ relatedAccounting: credit[c].relatedAccounting, type: "Credit", date: credit[c].date, amount: credit[c].amount, remark: credit[c].remark })
       }
       // if (credit.length === 0) return res.status(500).send({error:true, message:'Credit Data Not Found!'})
       const totalCredit = credit.reduce((acc, curr) => acc + Number.parseInt(curr.amount), 0);
