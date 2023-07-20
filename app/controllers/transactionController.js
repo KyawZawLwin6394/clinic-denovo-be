@@ -150,6 +150,29 @@ exports.trialBalanceWithID = async (req, res) => {
 
 }
 
+const getTotalData = async (data) => {
+  const result = data.OtherIncome.map((item, index) => ({
+    month: item.month,
+    surgery: item.surgery + data.AdministrationExpenses[index].surgery + data.OperationExpenses[index].surgery + data.SalesAndMarketingExpenses[index].surgery,
+    clinic: item.clinic + data.AdministrationExpenses[index].clinic + data.OperationExpenses[index].clinic + data.SalesAndMarketingExpenses[index].clinic,
+  }));
+
+  return result;
+}
+
+const subtractCostOfSalesFromSales = async (Sales, CostOfSales) => {
+  const result = Sales.map((salesItem, index) => {
+    const costOfSalesItem = CostOfSales[index];
+    return {
+      month: salesItem.month,
+      surgery: salesItem.surgery - costOfSalesItem.surgery,
+      clinic: salesItem.clinic - costOfSalesItem.clinic,
+    };
+  });
+
+  return result;
+}
+
 exports.incomeStatement = async (req, res) => {
   let finalResult = {}
   let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -176,9 +199,13 @@ exports.incomeStatement = async (req, res) => {
       totalArray.push({ surgery: surgeryTotal, clinic: clinicTotal, month: monthName })
     }
     finalResult[element.description] = totalArray
+    console.log(totalArray)
   }
+  let GrossProfit = await subtractCostOfSalesFromSales(finalResult.Sales, finalResult.CostOfSales)
 
-
+  let net = await getTotalData(finalResult)
+  let netProfit = await subtractCostOfSalesFromSales(GrossProfit, net)
+  finalResult = { ...finalResult, GrossProfit: GrossProfit, NetProfit: netProfit }
   return res.status(200).send({
     success: true, data: finalResult
   })
