@@ -213,6 +213,7 @@ exports.incomeStatement = async (req, res) => {
 }
 
 exports.trialBalance = async (req, res) => {
+  console.log('here')
   let finalResult = []
   let transaction = []
   let { start, end } = req.query
@@ -246,6 +247,7 @@ exports.trialBalance = async (req, res) => {
       if (netAmount < 0) netType = 'Credit'
       finalResult.push({ totalCredit: totalCredit, totalDebit: totalDebit, netType: netType, netAmount: netAmount, accName: allAccounts[i].name, type: allAccounts[i].relatedType, relatedAccountingId: allAccounts[i]._id, header: allAccounts[i].relatedHeader ? allAccounts[i].relatedHeader.name : undefined, subHeader: allAccounts[i].subHeader })
     }
+    console.log('Transaction:', transaction)
     if (allAccounts.length === finalResult.length) return res.status(200).send({ success: true, data: finalResult, transaction: transaction })
   } catch (err) {
     console.log(err)
