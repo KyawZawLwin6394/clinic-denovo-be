@@ -1,7 +1,12 @@
 'use strict';
 const Therapist = require('../models/therapist');
 const Comission = require('../models/comission');
+const Appointment = require('../models/appointment');
+const Doctor = require('../models/doctor');
+const ComissionPay = require('../models/commissionPay');
 const { ObjectId } = require('mongodb');
+const Transaction = require('../models/transaction');
+const Accounting = require('../models/accountingList')
 
 exports.listAllTherapists = async (req, res) => {
   try {
@@ -104,7 +109,7 @@ exports.createComission = async (req, res, next) => {
       const TransactionResult = await Transaction.create({
         "amount": comission,
         "date": Date.now(),
-        "remark": data.remark,
+        "remark": req.body.remark,
         "type": "Credit",
         "relatedTransaction": null,
         "relatedAccounting": "64ae1d0012b3d31436d48027", //Sales Comission

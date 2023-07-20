@@ -38,6 +38,14 @@ let TherapistSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Branches'
   },
+  commissionAmount: {
+    type: Number,
+
+  },
+  commissionPercent: {
+    type: Number,
+
+  },
 });
 
 module.exports = mongoose.model('Therapists', TherapistSchema);
