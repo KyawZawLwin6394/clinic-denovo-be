@@ -23,4 +23,5 @@ module.exports = (app) => {
     app.route('/api/transactions/trial-balance').get(catchError(transaction.trialBalance))
     app.route('/api/transactions/trial-balance/type').get(catchError(transaction.trialBalanceWithType))
     app.route('/api/transactions/income-statement').get(catchError(transaction.incomeStatement))
+    app.route('/api/transactions/report').get(verifyToken, catchError(transaction.bankCashTransactionReport))
 };
