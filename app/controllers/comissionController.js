@@ -50,7 +50,7 @@ exports.getComission = async (req, res) => {
 };
 
 exports.createComission = async (req, res, next) => {
-    let percent = 0.02
+    let percent = 0.05
     let appointmentResult = await Appointment.find({ _id: req.body.appointmentID })
     if (appointmentResult[0].isCommissioned === true) return res.status(500).send({ error: true, message: 'Alread Commissioned!' })
     let comission = (req.body.totalAmount / req.body.treatmentTimes) * percent

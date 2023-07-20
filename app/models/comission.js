@@ -19,6 +19,10 @@ let ComissionSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Doctors',
     },
+    relatedTherapist: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Therapists',
+    },
     percent: {
         type: Number
     },
