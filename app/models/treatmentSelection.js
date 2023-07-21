@@ -115,6 +115,9 @@ let TreatmentSelectionSchema = new Schema({
     type: String,
     enum: ['TS', 'TSMulti']
   },
+  discount:{
+    type:Number
+  },
   multiTreatment: [{
     item_id: {
       type: mongoose.Schema.Types.ObjectId,
