@@ -15,7 +15,8 @@ module.exports = (app) => {
         .delete(verifyToken, catchError(treatmentVoucher.deleteTreatmentVoucher))
         .post(verifyToken, catchError(treatmentVoucher.activateTreatmentVoucher))
 
-    app.route('/api/treatment-vouchers').get(verifyToken, catchError(treatmentVoucher.listAllTreatmentVouchers))
+    app.route('/api/treatment-vouchers')
+    .get(verifyToken, catchError(treatmentVoucher.listAllTreatmentVouchers))
     app.route('/api/treatment-vouchers/search')
         .post(verifyToken, catchError(treatmentVoucher.searchTreatmentVoucher))
     app.route('/api/treatment-vouchers/filter')
@@ -28,5 +29,5 @@ module.exports = (app) => {
     app.route('/api/treatment-vouchers/filter')
         .get(verifyToken, catchError(treatmentVoucher.filterTreatmentVoucher))
     app.route('/api/treatment-vouchers/ms/single').post(verifyToken, catchError(treatmentVoucher.createSingleMedicineSale))
-    app.route('/api/treatment-vouchers/ms/combine').post(verifyToken, catchError(treatmentVoucher.combineMedicineSale))
+    app.route('/api/treatment-vouchers/ms/combine').put(verifyToken, catchError(treatmentVoucher.combineMedicineSale))
 };

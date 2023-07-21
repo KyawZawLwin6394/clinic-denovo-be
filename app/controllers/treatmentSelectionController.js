@@ -239,7 +239,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
             var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
         }
         if (fTransResult && secTransResult) { data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id] } } //adding relatedTransactions to treatmentSelection model
-        if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id } }
+        if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id, multiTreatment: JSON.parse(req.body.multiTreatment) } }
         console.log(data, 'checking data...')
         const result = await TreatmentSelection.create(data)
 

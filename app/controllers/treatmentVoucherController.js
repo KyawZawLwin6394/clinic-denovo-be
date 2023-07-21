@@ -312,6 +312,7 @@ exports.filterTreatmentVoucher = async (req, res, next) => {
 }
 
 exports.createSingleMedicineSale = async (req, res) => {
+    console.log('here')
     let data = req.body;
     let { remark, relatedBank, relatedCash, msPaidAmount, medicineItems } = req.body;
     let createdBy = req.credentials.id;
@@ -405,11 +406,14 @@ exports.createSingleMedicineSale = async (req, res) => {
     if (relatedCash) objID = relatedCash
     //transaction
     const acc = await Accounting.find({ _id: objID })
-    const accResult = await Accounting.findOneAndUpdate(
-        { _id: objID },
-        { amount: parseInt(data.msPaidAmount) + parseInt(acc[0].amount) },
-        { new: true },
-    )
+    if (acc.length > 0) {
+        const accResult = await Accounting.findOneAndUpdate(
+            { _id: objID },
+            { amount: data.msPaidAmount + parseInt(acc[0].amount) },
+            { new: true },
+        )
+    }
+
     data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy, purchaseTotal: purchaseTotal }
     if (purchaseTotal) data.purchaseTotal = purchaseTotal
     //..........END OF TRANSACTION.....................
@@ -518,11 +522,13 @@ exports.combineMedicineSale = async (req, res) => {
     if (relatedCash) objID = relatedCash
     //transaction
     const acc = await Accounting.find({ _id: objID })
-    const accResult = await Accounting.findOneAndUpdate(
-        { _id: objID },
-        { amount: parseInt(msPaidAmount) + parseInt(acc[0].amount) },
-        { new: true },
-    )
+    if (acc.length > 0) {
+        const accResult = await Accounting.findOneAndUpdate(
+            { _id: objID },
+            { amount: parseInt(msPaidAmount) + parseInt(acc[0].amount) },
+            { new: true },
+        )
+    }
     data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy, purchaseTotal: purchaseTotal }
     if (purchaseTotal) data.purchaseTotal = purchaseTotal
     //..........END OF TRANSACTION.....................
