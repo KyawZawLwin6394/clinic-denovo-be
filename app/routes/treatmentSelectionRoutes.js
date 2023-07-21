@@ -22,7 +22,7 @@ module.exports = (app) => {
 
     app.route('/api/treatment-selections/multi')
         .get(verifyToken, catchError(treatmentSelection.listMultiTreatmentSelections))
-        .post(verifyToken, catchError(treatmentSelection.createMultiTreatmentSelection));
+        .post(upload, verifyToken, catchError(treatmentSelection.createMultiTreatmentSelection));
 
     app.route('/api/treatment-selections/transaction').post(verifyToken, catchError(treatmentSelection.createTreatmentTransaction))
     app.route('/api/treatment-selections/treatment/:id').get(verifyToken, catchError(treatmentSelection.getTreatementSelectionByTreatmentID))

@@ -190,7 +190,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
     let { relatedPatient, totalAmount, paymentMethod, paidAmount, relatedBank, relatedCash, relatedAppointment, bankType, paymentType, remark, relatedDiscount, relatedDoctor } = req.body
     let tvcCreate = false;
     try {
-        if (files.payment) {
+        if (files) {
             for (const element of files.payment) {
                 let imgPath = element.path.split('cherry-k')[1];
                 const attachData = {
@@ -210,6 +210,11 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
         data = { ...data, createdBy: createdBy, tsType: 'TSMulti' }
         //Adding TSMulti type
         tvcCreate = true;
+
+        // if (fTransResult && secTransResult) { data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id] } } //adding relatedTransactions to treatmentSelection model
+        if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id, multiTreatment: JSON.parse(req.body.multiTreatment) } }
+        console.log(data, 'checking data...')
+        const result = await TreatmentSelection.create(data)
         if (tvcCreate === true) {
             //--> treatment voucher create
             let dataTVC = {
@@ -238,11 +243,6 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
             }
             var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
         }
-        if (fTransResult && secTransResult) { data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id] } } //adding relatedTransactions to treatmentSelection model
-        if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id, multiTreatment: JSON.parse(req.body.multiTreatment) } }
-        console.log(data, 'checking data...')
-        const result = await TreatmentSelection.create(data)
-
         if (treatmentVoucherResult) {
             var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount')
         }
@@ -257,13 +257,13 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
         let response = {
             message: 'Treatment Selection create success',
             success: true,
-            data: populatedResult,
-            patientFreqUpdate: freqUpdate
+            data: populatedResult
         }
         if (populatedTV) response.treatmentVoucherResult = populatedTV
         res.status(200).send(response);
 
     } catch (error) {
+        console.log(error)
         return res.status(500).send({ error: true, message: error.message })
     }
 }
