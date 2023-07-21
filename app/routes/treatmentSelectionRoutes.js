@@ -1,5 +1,6 @@
 "use strict";
 
+const { verify } = require("crypto");
 const treatmentSelection = require("../controllers/treatmentSelectionController");
 const { catchError } = require("../lib/errorHandler");
 const verifyToken = require('../lib/verifyToken');
@@ -18,6 +19,10 @@ module.exports = (app) => {
         .post(verifyToken, catchError(treatmentSelection.activateTreatmentSelection))
 
     app.route('/api/treatment-selections').get(verifyToken, catchError(treatmentSelection.listAllTreatmentSelections))
+
+    app.route('/api/treatment-selections/multi')
+        .get(verifyToken, catchError(treatmentSelection.listMultiTreatmentSelections))
+        .post(verifyToken, catchError(treatmentSelection.createMultiTreatmentSelection));
 
     app.route('/api/treatment-selections/transaction').post(verifyToken, catchError(treatmentSelection.createTreatmentTransaction))
     app.route('/api/treatment-selections/treatment/:id').get(verifyToken, catchError(treatmentSelection.getTreatementSelectionByTreatmentID))

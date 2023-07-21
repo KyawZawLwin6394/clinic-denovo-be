@@ -36,7 +36,7 @@ exports.getwithExactDate = async (req, res) => {
     }
 };
 
-exports.listAllTreatmentSelections = async (req, res) => {
+exports.listMultiTreatmentSelections = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
     let count = 0;
     let page = 0;
@@ -50,7 +50,51 @@ exports.listAllTreatmentSelections = async (req, res) => {
         keyword && /\w/.test(keyword)
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
+        query.tsType = 'TSMulti'
         regexKeyword ? (query['name'] = regexKeyword) : '';
+        let result = await TreatmentSelection.find(query).populate('createdBy relatedTreatmentList relatedAppointments relatedPatient finishedAppointments remainingAppointments relatedTransaction').populate({
+            path: 'relatedTreatment',
+            model: 'Treatments',
+            populate: {
+                path: 'relatedDoctor',
+                model: 'Doctors'
+            }
+        })
+        let count = await TreatmentSelection.find(query).count();
+        const division = count / limit;
+        page = Math.ceil(division);
+        res.status(200).send({
+            success: true,
+            count: count,
+            _metadata: {
+                current_page: skip / limit + 1,
+                per_page: limit,
+                page_count: page,
+                total_count: count,
+            },
+            list: result,
+        });
+    } catch (error) {
+        return res.status(500).send({ error: true, message: 'No Record Found!' });
+    }
+};
+
+exports.listAllTreatmentSelections = async (req, res) => {
+    let { keyword, role, limit, skip, tsType } = req.query;
+    let count = 0;
+    let page = 0;
+
+    try {
+        limit = +limit <= 100 ? +limit : 10; //limit
+        skip = +skip || 0;
+        let query = { isDeleted: false },
+            regexKeyword;
+        role ? (query['role'] = role.toUpperCase()) : '';
+        keyword && /\w/.test(keyword)
+            ? (regexKeyword = new RegExp(keyword, 'i'))
+            : '';
+        regexKeyword ? (query['name'] = regexKeyword) : '';
+        if (tsType) query.tsType = tsType
         let result = await TreatmentSelection.find(query).populate('createdBy relatedTreatmentList relatedAppointments relatedPatient finishedAppointments remainingAppointments relatedTransaction').populate({
             path: 'relatedTreatment',
             model: 'Treatments',
@@ -139,6 +183,92 @@ exports.createTreatmentSelectionCode = async (req, res) => {
     }
 }
 
+exports.createMultiTreatmentSelection = async (req, res, next) => {
+    let files = req.files
+    let data = req.body
+    let createdBy = req.credentials.id
+    let { relatedPatient, totalAmount, paymentMethod, paidAmount, relatedBank, relatedCash, relatedAppointment, bankType, paymentType, remark, relatedDiscount, relatedDoctor } = req.body
+    let tvcCreate = false;
+    try {
+        if (files.payment) {
+            for (const element of files.payment) {
+                let imgPath = element.path.split('cherry-k')[1];
+                const attachData = {
+                    fileName: element.originalname,
+                    imgUrl: imgPath,
+                    image: imgPath.split('\\')[2]
+                };
+                const attachResult = await Attachment.create(attachData);
+                var attachID = attachResult._id.toString()
+            }
+        }
+        const patientUpdate = await Patient.findOneAndUpdate(
+            { _id: relatedPatient },
+            { $inc: { conditionAmount: totalAmount, conditionPurchaseFreq: 1, conditionPackageQty: 1 } },
+            { new: true }
+        )
+        data = { ...data, createdBy: createdBy, tsType: 'TSMulti' }
+        //Adding TSMulti type
+        tvcCreate = true;
+        if (tvcCreate === true) {
+            //--> treatment voucher create
+            let dataTVC = {
+                "relatedTreatmentSelection": result._id,
+                "relatedAppointment": relatedAppointment,
+                "relatedPatient": relatedPatient,
+                "paymentMethod": "Advanced", //enum: ['by Appointment','Lapsum','Total','Advanced']
+                "amount": paidAmount,
+                "relatedBank": relatedBank,
+                "bankType": bankType,//must be bank acc from accounting accs
+                "paymentType": paymentType, //enum: ['Bank','Cash']
+                "relatedCash": relatedCash, //must be cash acc from accounting accs
+                "createdBy": createdBy,
+                "remark": remark,
+                "payment": attachID,
+                "relatedDiscount": relatedDiscount,
+                "relatedDoctor": relatedDoctor,
+                "tsType": "TSMulti"
+            }
+            let today = new Date().toISOString()
+            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
+            if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
+            if (latestDocument.length > 0) {
+                const increment = latestDocument[0].seq + 1
+                dataTVC = { ...dataTVC, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-" + increment, seq: increment }
+            }
+            var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
+        }
+        if (fTransResult && secTransResult) { data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id] } } //adding relatedTransactions to treatmentSelection model
+        if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id } }
+        console.log(data, 'checking data...')
+        const result = await TreatmentSelection.create(data)
+
+        if (treatmentVoucherResult) {
+            var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount')
+        }
+        const populatedResult = await TreatmentSelection.find({ _id: result._id }).populate('createdBy relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentList').populate({
+            path: 'relatedTreatment',
+            model: 'Treatments',
+            populate: {
+                path: 'relatedDoctor',
+                model: 'Doctors'
+            }
+        })
+        let response = {
+            message: 'Treatment Selection create success',
+            success: true,
+            data: populatedResult,
+            patientFreqUpdate: freqUpdate
+        }
+        if (populatedTV) response.treatmentVoucherResult = populatedTV
+        res.status(200).send(response);
+
+    } catch (error) {
+        return res.status(500).send({ error: true, message: error.message })
+    }
+}
+
+
 exports.createTreatmentSelection = async (req, res, next) => {
     let data = req.body;
     let relatedAppointments = []
@@ -187,7 +317,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
             { $inc: { conditionAmount: req.body.totalAmount, conditionPurchaseFreq: 1, conditionPackageQty: 1 } },
             { new: true }
         )
-        data = { ...data, relatedAppointments: relatedAppointments, remainingAppointments: relatedAppointments, createdBy: createdBy }
+        data = { ...data, relatedAppointments: relatedAppointments, remainingAppointments: relatedAppointments, createdBy: createdBy, tsType: 'TS' }
         console.log(data, 'data1')
         //first transaction 
         if (req.body.paymentMethod === 'Cash Down') {
@@ -482,7 +612,8 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "payment": attachID,
                 "relatedDiscount": req.body.relatedDiscount,
                 "discountAmount": req.body.discountAmount,
-                "discountType": req.body.discountType
+                "discountType": req.body.discountType,
+                "tsType": 'TS'
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -510,7 +641,8 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "remark": req.body.remark,
                 "payment": attachID,
                 "discountAmount": req.body.discountAmount,
-                "discountType": req.body.discountType
+                "discountType": req.body.discountType,
+                "tsType": 'TS'
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -538,7 +670,8 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "remark": req.body.remark,
                 "payment": attachID,
                 "discountAmount": req.body.discountAmount,
-                "discountType": req.body.discountType
+                "discountType": req.body.discountType,
+                "tsType": 'TS'
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -989,3 +1122,4 @@ exports.profitAndLossForEveryMonth = async (req, res) => {
     }, {});
     return res.status(200).send({ success: true, data: treatmentSelectionResult })
 }
+

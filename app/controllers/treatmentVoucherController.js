@@ -1,8 +1,11 @@
 'use strict';
 const TreatmentVoucher = require('../models/treatmentVoucher');
+const MedicineItems = require('../models/medicineItem');
+const Transaction = require('../models/transaction');
+const Accounting = require('../models/accountingList');
 
 exports.listAllTreatmentVouchers = async (req, res) => {
-    let { keyword, role, limit, skip } = req.query;
+    let { keyword, role, limit, skip, tsType } = req.query;
     let count = 0;
     let page = 0;
     try {
@@ -14,6 +17,7 @@ exports.listAllTreatmentVouchers = async (req, res) => {
         keyword && /\w/.test(keyword)
             ? (regexKeyword = new RegExp(keyword, 'i'))
             : '';
+        if (tsType) query.tsType = tsType
         regexKeyword ? (query['name'] = regexKeyword) : '';
         let result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient payment relatedTreatmentSelection relatedBranch')
         count = await TreatmentVoucher.find(query).count();
@@ -211,7 +215,7 @@ exports.TreatmentVoucherFilter = async (req, res) => {
         if (start && end) query.createdAt = { $gte: start, $lt: end }
         if (createdBy) query.createdBy = createdBy
         if (relatedDoctor) query.relatedDoctor = relatedDoctor
-        let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
+        let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy relatedPackage').populate({
             path: 'relatedTreatmentSelection',
             model: 'TreatmentSelections',
             populate: {
@@ -225,7 +229,7 @@ exports.TreatmentVoucherFilter = async (req, res) => {
         })
         const { relatedBank, ...query2 } = query;
         query2.relatedCash = { $exists: true };
-        let cashResult = await TreatmentVoucher.find(query2).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
+        let cashResult = await TreatmentVoucher.find(query2).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy relatedPackage').populate({
             path: 'relatedTreatmentSelection',
             model: 'TreatmentSelections',
             populate: {
@@ -305,4 +309,233 @@ exports.filterTreatmentVoucher = async (req, res, next) => {
         console.log(err)
         return res.status(500).send({ error: true, message: err.message })
     }
+}
+
+exports.createSingleMedicineSale = async (req, res) => {
+    let data = req.body;
+    let { remark, relatedBank, relatedCash, msPaidAmount, medicineItems } = req.body;
+    let createdBy = req.credentials.id;
+
+    //_________COGS___________
+    const medicineResult = await MedicineItems.find({ _id: { $in: medicineItems.map(item => item.item_id) } })
+    const purchaseTotal = medicineResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
+
+    const inventoryResult = Transaction.create({
+        "amount": purchaseTotal,
+        "date": Date.now(),
+        "remark": remark,
+        "relatedAccounting": "64a8e06755a87deaea39e17b", //Medicine inventory
+        "type": "Credit",
+        "createdBy": createdBy
+    })
+    var inventoryAmountUpdate = await Accounting.findOneAndUpdate(
+        { _id: "64a8e06755a87deaea39e17b" },  // Medicine inventory
+        { $inc: { amount: -purchaseTotal } }
+    )
+    const COGSResult = Transaction.create({
+        "amount": purchaseTotal,
+        "date": Date.now(),
+        "remark": remark,
+        "relatedAccounting": "64a8e10b55a87deaea39e193", //Medicine Sales COGS
+        "type": "Debit",
+        "relatedTransaction": inventoryResult._id,
+        "createdBy": createdBy
+    })
+    var inventoryUpdate = await Transaction.findOneAndUpdate(
+        { _id: inventoryResult._id },
+        {
+            relatedTransaction: COGSResult._id
+        },
+        { new: true }
+    )
+    var COGSUpdate = await Accounting.findOneAndUpdate(
+        { _id: "64a8e10b55a87deaea39e193" },  //Medicine Sales COGS
+        { $inc: { amount: purchaseTotal } }
+    )
+    //_________END_OF_COGS___________
+
+    //..........Transaction.............................
+    const fTransaction = new Transaction({
+        "amount": data.msPaidAmount,
+        "date": Date.now(),
+        "remark": remark,
+        "relatedAccounting": "648095b57d7e4357442aa457", //Sales Medicines
+        "type": "Credit",
+        "createdBy": createdBy
+    })
+    const fTransResult = await fTransaction.save()
+    var amountUpdate = await Accounting.findOneAndUpdate(
+        { _id: "648095b57d7e4357442aa457" },  //Sales Medicines
+        { $inc: { amount: data.msPaidAmount } }
+    )
+    //sec transaction
+    const secTransaction = new Transaction(
+        {
+            "amount": data.msPaidAmount,
+            "date": Date.now(),
+            "remark": remark,
+            "relatedBank": relatedBank,
+            "relatedCash": relatedCash,
+            "type": "Debit",
+            "relatedTransaction": fTransResult._id,
+            "createdBy": createdBy
+        }
+    )
+    const secTransResult = await secTransaction.save();
+    var fTransUpdate = await Transaction.findOneAndUpdate(
+        { _id: fTransResult._id },
+        {
+            relatedTransaction: secTransResult._id
+        },
+        { new: true }
+    )
+    if (relatedBank) {
+        var amountUpdate = await Accounting.findOneAndUpdate(
+            { _id: relatedBank },
+            { $inc: { amount: data.msPaidAmount } }
+        )
+    } else if (relatedCash) {
+        var amountUpdate = await Accounting.findOneAndUpdate(
+            { _id: relatedCash },
+            { $inc: { amount: data.msPaidAmount } }
+        )
+    }
+    let objID = ''
+    if (relatedBank) objID = relatedBank
+    if (relatedCash) objID = relatedCash
+    //transaction
+    const acc = await Accounting.find({ _id: objID })
+    const accResult = await Accounting.findOneAndUpdate(
+        { _id: objID },
+        { amount: parseInt(data.msPaidAmount) + parseInt(acc[0].amount) },
+        { new: true },
+    )
+    data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy, purchaseTotal: purchaseTotal }
+    if (purchaseTotal) data.purchaseTotal = purchaseTotal
+    //..........END OF TRANSACTION.....................
+
+    const newMedicineSale = new TreatmentVoucher(data)
+    const medicineSaleResult = await newMedicineSale.save()
+    res.status(200).send({
+        message: 'MedicineSale Transaction success',
+        success: true,
+        data: medicineSaleResult
+    });
+
+}
+
+exports.combineMedicineSale = async (req, res) => {
+    let data = req.body;
+    let { remark, relatedBank, relatedCash, msPaidAmount, medicineItems, id } = req.body;
+    let createdBy = req.credentials.id;
+
+    //_________COGS___________
+    const medicineResult = await MedicineItems.find({ _id: { $in: medicineItems.map(item => item.item_id) } })
+    const purchaseTotal = medicineResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
+
+    const inventoryResult = Transaction.create({
+        "amount": purchaseTotal,
+        "date": Date.now(),
+        "remark": remark,
+        "relatedAccounting": "64a8e06755a87deaea39e17b", //Medicine inventory
+        "type": "Credit",
+        "createdBy": createdBy
+    })
+    var inventoryAmountUpdate = await Accounting.findOneAndUpdate(
+        { _id: "64a8e06755a87deaea39e17b" },  // Medicine inventory
+        { $inc: { amount: -purchaseTotal } }
+    )
+    const COGSResult = Transaction.create({
+        "amount": purchaseTotal,
+        "date": Date.now(),
+        "remark": remark,
+        "relatedAccounting": "64a8e10b55a87deaea39e193", //Medicine Sales COGS
+        "type": "Debit",
+        "relatedTransaction": inventoryResult._id,
+        "createdBy": createdBy
+    })
+    var inventoryUpdate = await Transaction.findOneAndUpdate(
+        { _id: inventoryResult._id },
+        {
+            relatedTransaction: COGSResult._id
+        },
+        { new: true }
+    )
+    var COGSUpdate = await Accounting.findOneAndUpdate(
+        { _id: "64a8e10b55a87deaea39e193" },  //Medicine Sales COGS
+        { $inc: { amount: purchaseTotal } }
+    )
+    //_________END_OF_COGS___________
+
+    //..........Transaction.............................
+    const fTransaction = new Transaction({
+        "amount": data.msPaidAmount,
+        "date": Date.now(),
+        "remark": remark,
+        "relatedAccounting": "648095b57d7e4357442aa457", //Sales Medicines
+        "type": "Credit",
+        "createdBy": createdBy
+    })
+    const fTransResult = await fTransaction.save()
+    var amountUpdate = await Accounting.findOneAndUpdate(
+        { _id: "648095b57d7e4357442aa457" },  //Sales Medicines
+        { $inc: { amount: data.msPaidAmount } }
+    )
+    //sec transaction
+    const secTransaction = new Transaction(
+        {
+            "amount": data.msPaidAmount,
+            "date": Date.now(),
+            "remark": remark,
+            "relatedBank": relatedBank,
+            "relatedCash": relatedCash,
+            "type": "Debit",
+            "relatedTransaction": fTransResult._id,
+            "createdBy": createdBy
+        }
+    )
+    const secTransResult = await secTransaction.save();
+    var fTransUpdate = await Transaction.findOneAndUpdate(
+        { _id: fTransResult._id },
+        {
+            relatedTransaction: secTransResult._id
+        },
+        { new: true }
+    )
+    if (relatedBank) {
+        var amountUpdate = await Accounting.findOneAndUpdate(
+            { _id: relatedBank },
+            { $inc: { amount: data.msPaidAmount } }
+        )
+    } else if (relatedCash) {
+        var amountUpdate = await Accounting.findOneAndUpdate(
+            { _id: relatedCash },
+            { $inc: { amount: data.msPaidAmount } }
+        )
+    }
+    let objID = ''
+    if (relatedBank) objID = relatedBank
+    if (relatedCash) objID = relatedCash
+    //transaction
+    const acc = await Accounting.find({ _id: objID })
+    const accResult = await Accounting.findOneAndUpdate(
+        { _id: objID },
+        { amount: parseInt(msPaidAmount) + parseInt(acc[0].amount) },
+        { new: true },
+    )
+    data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy, purchaseTotal: purchaseTotal }
+    if (purchaseTotal) data.purchaseTotal = purchaseTotal
+    //..........END OF TRANSACTION.....................
+
+    const medicineSaleResult = await TreatmentVoucher.findOneAndUpdate(
+        { _id: id },
+        data,
+        { new: true }
+    )
+    res.status(200).send({
+        message: 'MedicineSale Combination success',
+        success: true,
+        data: medicineSaleResult
+    });
+
 }
