@@ -1133,16 +1133,6 @@ exports.sendEmail = async (req, res) => {
             from: config.senderEmail, // Sender email address
             to: recipent, // Recipient email address (can be a comma-separated list for multiple recipients)
             subject: `${voucherType} Voucher (${voucherNo})`, // Email subject
-            // text: `
-            // Dear Customer,
-
-            // Please recieve your ${voucherType} voucher (${voucherNo}) which was purchased on ${voucherDate} as attached.
-
-            // Best Regards,
-            // Clinic Denovo
-            // Address:
-            // PhNo:
-            // `, // Plain text body
             html: `
                 <p>Dear Customer,</p>
     

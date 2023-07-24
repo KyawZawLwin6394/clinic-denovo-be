@@ -128,10 +128,8 @@ exports.getOpeningAndClosingWithExactDate = async (req, res) => {
         console.log(latestDocument)
         if (latestDocument === null) return res.status(404).send({ error: true, message: 'Not Found!' })
 
-        const openingTotal = await AccountBalance.find({ _id: latestDocument._id }).populate('relatedAccounting').then(result => {
-            const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.amount }, 0)
-            return total
-        })
+        let openingTotal = latestDocument.length > 0 ? latestDocument[0].amount : 0
+
         const medicineTotal = await MedicineSale.find({ createdAt: { $gte: startDate, $lt: endDate }, relatedBranch: relatedBranch, relatedCash: relatedCash, relatedBank: relatedBank }).then(msResult => {
             const msTotal = msResult.reduce((accumulator, currentValue) => { return accumulator + currentValue.totalAmount }, 0)
             return msTotal
