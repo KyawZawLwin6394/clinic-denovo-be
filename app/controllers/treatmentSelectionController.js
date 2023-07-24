@@ -13,6 +13,8 @@ const MedicineItems = require('../models/medicineItem');
 const AccessoryItems = require('../models/accessoryItem');
 const ProcedureItems = require('../models/procedureItem');
 const treatment = require('../models/treatment');
+const { sendEmail } = require('../lib/userUtil');
+const config = require('../../config/db');
 
 exports.getwithExactDate = async (req, res) => {
     try {
@@ -214,7 +216,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
         // if (fTransResult && secTransResult) { data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id] } } //adding relatedTransactions to treatmentSelection model
         if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id } }
         data.multiTreatment = parsedMulti
-         console.log(data, 'checking data...')
+        console.log(data, 'checking data...')
         const result = await TreatmentSelection.create(data)
         if (tvcCreate === true) {
             //--> treatment voucher create
@@ -1124,3 +1126,41 @@ exports.profitAndLossForEveryMonth = async (req, res) => {
     return res.status(200).send({ success: true, data: treatmentSelectionResult })
 }
 
+exports.sendEmail = async (req, res) => {
+    try {
+        let { recipent, voucherType, voucherNo, voucherDate } = req.body;
+        const mailOptions = {
+            from: config.senderEmail, // Sender email address
+            to: recipent, // Recipient email address (can be a comma-separated list for multiple recipients)
+            subject: `${voucherType} Voucher (${voucherNo})`, // Email subject
+            // text: `
+            // Dear Customer,
+
+            // Please recieve your ${voucherType} voucher (${voucherNo}) which was purchased on ${voucherDate} as attached.
+
+            // Best Regards,
+            // Clinic Denovo
+            // Address:
+            // PhNo:
+            // `, // Plain text body
+            html: `
+                <p>Dear Customer,</p>
+    
+                <p>Please recieve your ${voucherType} voucher (${voucherNo}) which was purchased on ${voucherDate} as attached.</p>
+    
+                <p>Best regards,<br>Clinic Denovo</p>
+
+                <em>Address: Blk A, No. 001, Corner of Hantharwadi Road and Hnin Si Street, Yuzana Highway Complex,, Yangon, Myanmar, 11041</em>
+
+                <br/>
+                
+                <em>Ph No: 09 968 119 995</em>
+  `
+        };
+        if (req.files.email) mailOptions.attachments = req.files.email
+        const emailResult = await sendEmail(mailOptions)
+        return res.status(200).send({ success: true, result: emailResult })
+    } catch (error) {
+        return res.status(500).send({ error: true, message: error.message })
+    }
+}   

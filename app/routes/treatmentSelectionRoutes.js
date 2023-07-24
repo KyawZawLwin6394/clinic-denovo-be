@@ -19,6 +19,7 @@ module.exports = (app) => {
         .post(verifyToken, catchError(treatmentSelection.activateTreatmentSelection))
 
     app.route('/api/treatment-selections').get(verifyToken, catchError(treatmentSelection.listAllTreatmentSelections))
+    app.route('/api/treatment-selections/email').post(verifyToken, upload, catchError(treatmentSelection.sendEmail))
 
     app.route('/api/treatment-selections/multi')
         .get(verifyToken, catchError(treatmentSelection.listMultiTreatmentSelections))

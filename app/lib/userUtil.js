@@ -2,7 +2,27 @@ const bcrypt = require('bcryptjs');
 const AccountBalance = require('../models/accountBalance');
 const Accounting = require('../models/accountingList');
 const FixedAsset = require('../models/fixedAsset');
-const Transaction = require('../models/transaction')
+const Transaction = require('../models/transaction');
+const nodemailer = require('nodemailer');
+const config = require('../../config/db');
+
+
+//https://myaccount.google.com/apppasswords
+
+// Create a transporter using your Gmail account credentials
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: config.senderEmail, // Replace with your Gmail email address
+    pass: config.senderPassword // Replace with your Gmail password or an app-specific password if you have enabled 2-step verification
+  }
+});
+
+// Send the email
+async function sendEmail(mailOptions) {
+  const result = transporter.sendMail(mailOptions);
+  return result
+}
 
 async function filterRequestAndResponse(reArr, reBody) {
   if (reArr.length > 0) {
@@ -145,4 +165,4 @@ async function getTotal(table) {
   return total
 }
 
-module.exports = { bcryptHash, bcryptCompare, filterRequestAndResponse, mergeAndSum, getLatestDay, createAccountBalance, fixedAssetTransaction, getNetAmount, getTotal };
+module.exports = { bcryptHash, bcryptCompare, filterRequestAndResponse, mergeAndSum, getLatestDay, createAccountBalance, fixedAssetTransaction, getNetAmount, getTotal, sendEmail };

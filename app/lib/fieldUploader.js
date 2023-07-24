@@ -28,6 +28,8 @@ var storage = multer.diskStorage({
             cb(null, './uploads/cherry-k/consent');
         } else if (file.fieldname === "payment") {
             cb(null, './uploads/cherry-k/payment');
+        } else if (file.fieldname === "email") {
+            cb(null, './uploads/cherry-k/email');
         }
 
     },
@@ -47,6 +49,8 @@ var storage = multer.diskStorage({
             cb(null, "CS-" + name + randomText + Date.now() + "." + ext)
         } else if (file.fieldname === "payment") {
             cb(null, "PY-" + name + randomText + Date.now() + "." + ext)
+        } else if (file.fieldname === "email") {
+            cb(null, "EM-" + name + randomText + Date.now() + "." + ext)
         }
 
 
@@ -102,6 +106,10 @@ exports.upload = multer({
         {
             name: 'payment',
             maxCount: 1
+        },
+        {
+            name: 'email',
+            maxCount: 4
         }
     ]
 );
