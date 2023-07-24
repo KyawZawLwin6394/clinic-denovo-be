@@ -50,7 +50,7 @@ exports.getPurchase = async (req, res) => {
 
 exports.createPurchase = async (req, res, next) => {
     let data = req.body
-    let { relatedBranch } = data
+    let { relatedBranch, relatedPurchaseAccount } = data
     try {
 
         data.medicineItems.map(async function (element, index) {
@@ -98,10 +98,10 @@ exports.createPurchase = async (req, res, next) => {
             "remark": data.remark,
             "type": "Debit",
             "relatedTransaction": null,
-            "relatedAccounting": "64ae1fea12b3d31436d4805f", //Purchase
+            "relatedAccounting": relatedPurchaseAccount, //Purchase
         })
         const purchaseAMTUpdate = await Accounting.findOneAndUpdate(
-            { _id: '64ae1fea12b3d31436d4805f' },
+            { _id: relatedPurchaseAccount },
             { $inc: { amount: data.totalPrice } }
         )
         const SectransResult = await Transaction.create({

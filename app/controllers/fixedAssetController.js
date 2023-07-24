@@ -49,7 +49,7 @@ exports.getFixedAsset = async (req, res) => {
 exports.createFixedAsset = async (req, res, next) => {
   try {
     const data = req.body;
-    const { initialPrice, depriciationTotal, depriciationAcc, fixedAssetAcc } = req.body;
+    const { initialPrice, depriciationTotal, depriciationAcc, fixedAssetAcc, relatedBank, relatedCash } = req.body;
     const newBody = req.body;
     const newFixedAsset = new FixedAsset(newBody);
     const result = await newFixedAsset.save().then(async response => {
@@ -82,34 +82,34 @@ exports.createFixedAsset = async (req, res, next) => {
         )
       }
 
-      // const SectransResult = await Transaction.create({
-      //   "amount": data.totalPrice,
-      //   "date": Date.now(),
-      //   "remark": data.remark,
-      //   "type": "Credit",
-      //   "relatedTransaction": null,
-      //   "relatedBank": req.body.relatedBank, //Bank or cashk
-      //   "relatedCash": req.body.relatedCash,
-      //   "relatedTransaction": transResult._id
-      // })
-      // var fTransUpdate = await Transaction.findOneAndUpdate(
-      //   { _id: transResult._id },
-      //   {
-      //     relatedTransaction: SectransResult._id
-      //   },
-      //   { new: true }
-      // )
-      // if (req.body.relatedBank) {
-      //   var amountUpdate = await Accounting.findOneAndUpdate(
-      //     { _id: req.body.relatedBank },
-      //     { $inc: { amount: req.body.totalPrice } }
-      //   )
-      // } else if (req.body.relatedCash) {
-      //   var amountUpdate = await Accounting.findOneAndUpdate(
-      //     { _id: req.body.relatedCash },
-      //     { $inc: { amount: req.body.totalPrice } }
-      //   )
-      // }
+      const SectransResult = await Transaction.create({
+        "amount": data.totalPrice,
+        "date": Date.now(),
+        "remark": data.remark,
+        "type": "Credit",
+        "relatedTransaction": null,
+        "relatedBank": relatedBank, //Bank or cashk
+        "relatedCash": relatedCash,
+        "relatedTransaction": transResult._id
+      })
+      var fTransUpdate = await Transaction.findOneAndUpdate(
+        { _id: transResult._id },
+        {
+          relatedTransaction: SectransResult._id
+        },
+        { new: true }
+      )
+      if (relatedBank) {
+        var amountUpdate = await Accounting.findOneAndUpdate(
+          { _id: relatedBank },
+          { $inc: { amount: totalPrice } }
+        )
+      } else if (relatedCash) {
+        var amountUpdate = await Accounting.findOneAndUpdate(
+          { _id: relatedCash },
+          { $inc: { amount: totalPrice } }
+        )
+      }
     })
     res.status(200).send({
       message: 'FixedAsset create success',
