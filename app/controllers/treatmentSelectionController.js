@@ -210,10 +210,11 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
         data = { ...data, createdBy: createdBy, tsType: 'TSMulti' }
         //Adding TSMulti type
         tvcCreate = true;
-
+        let parsedMulti = JSON.parse(req.body.multiTreatment)
         // if (fTransResult && secTransResult) { data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id] } } //adding relatedTransactions to treatmentSelection model
-        if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id, multiTreatment: JSON.parse(req.body.multiTreatment) } }
-        console.log(data, 'checking data...')
+        if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id } }
+        data.multiTreatment = parsedMulti
+         console.log(data, 'checking data...')
         const result = await TreatmentSelection.create(data)
         if (tvcCreate === true) {
             //--> treatment voucher create
