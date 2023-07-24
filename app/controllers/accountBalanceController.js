@@ -114,3 +114,48 @@ exports.getClosing = async (req, res) => {
         return res.status(500).send({ "error": true, "message": error.message })
     }
 }
+
+exports.getOpeningAndClosingWithExactDate = async (req, res) => {
+    let { exact, relatedBranch, relatedCash, type, relatedAccounting, relatedBank } = req.query;
+    const query = { relatedAccounting: relatedAccounting, type: type };
+    const sort = { _id: -1 }; // Sort by descending _id to get the latest document
+    try {
+        const date = new Date(exact);
+        const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Set start date to the beginning of the day
+        const endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1); // Set end date to the beginning of the next day
+
+        const latestDocument = await AccountBalance.findOne(query, null, { sort });
+        console.log(latestDocument)
+        if (latestDocument === null) return res.status(404).send({ error: true, message: 'Not Found!' })
+
+        const openingTotal = await AccountBalance.find({ _id: latestDocument._id }).populate('relatedAccounting').then(result => {
+            const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.amount }, 0)
+            return total
+        })
+        const medicineTotal = await MedicineSale.find({ createdAt: { $gte: startDate, $lt: endDate }, relatedBranch: relatedBranch, relatedCash: relatedCash, relatedBank: relatedBank }).then(msResult => {
+            const msTotal = msResult.reduce((accumulator, currentValue) => { return accumulator + currentValue.totalAmount }, 0)
+            return msTotal
+        }
+        )
+        const expenseTotal = await Expense.find({ date: { $gte: startDate, $lt: endDate }, relatedBranch: relatedBranch, relatedCashAccount: relatedCash, relatedBankAccount: relatedBank }).then(result => {
+            const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.finalAmount }, 0)
+            return total
+        }
+        )
+        const TVTotal = await TreatmentVoucher.find({ createdAt: { $gte: startDate, $lt: endDate }, relatedBranch: relatedBranch, relatedCash: relatedCash, relatedBank: relatedBank }).then(result => {
+            const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.amount }, 0)
+            return total
+        }
+        )
+
+        const incomeTotal = await Income.find({ date: { $gte: startDate, $lt: endDate }, relatedBranch: relatedBranch, relatedCashAccount: relatedCash, relatedBankAccount: relatedBank }).then(result => {
+            const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.finalAmount }, 0)
+            return total
+        }
+        )
+        return res.status(200).send({ success: true, openingTotal: openingTotal, medicineTotal: medicineTotal, expenseTotal: expenseTotal, TVTotal: TVTotal, incomeTotal: incomeTotal, total: medicineTotal + TVTotal + incomeTotal + openingTotal, closingCsh: (medicineTotal + TVTotal + incomeTotal + openingTotal) - expenseTotal })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({ error: true, message: error.message })
+    }
+}
