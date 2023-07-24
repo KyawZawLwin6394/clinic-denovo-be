@@ -249,6 +249,9 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
         if (treatmentVoucherResult) {
             var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount')
         }
+        if (result) {
+            var updatePatient = await Patient.findOneAndUpdate({ _id: relatedPatient }, { $addToSet: { relatedTreatmentSelection: result._id } })
+        }
         const populatedResult = await TreatmentSelection.find({ _id: result._id }).populate('createdBy relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentList').populate({
             path: 'relatedTreatment',
             model: 'Treatments',
