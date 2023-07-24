@@ -86,12 +86,12 @@ exports.createFixedAsset = async (req, res, next) => {
         if (relatedBank) {
           var amountUpdate = await Accounting.findOneAndUpdate(
             { _id: relatedBank },
-            { $inc: { amount: totalPrice } }
+            { $inc: { amount: initialPrice } }
           )
         } else if (relatedCash) {
           var amountUpdate = await Accounting.findOneAndUpdate(
             { _id: relatedCash },
-            { $inc: { amount: totalPrice } }
+            { $inc: { amount: initialPrice } }
           )
         }
       }
@@ -129,12 +129,12 @@ exports.createFixedAsset = async (req, res, next) => {
       if (relatedBank) {
         var amountUpdate = await Accounting.findOneAndUpdate(
           { _id: relatedBank },
-          { $inc: { amount: totalPrice } }
+          { $inc: { amount: depriciationTotal } }
         )
       } else if (relatedCash) {
         var amountUpdate = await Accounting.findOneAndUpdate(
           { _id: relatedCash },
-          { $inc: { amount: totalPrice } }
+          { $inc: { amount: depriciationTotal } }
         )
       }
     })
