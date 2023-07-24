@@ -66,6 +66,34 @@ exports.createFixedAsset = async (req, res, next) => {
           { _id: fixedAssetAcc },
           { $inc: { amount: initialPrice } }
         )
+        const SectransResult = await Transaction.create({
+          "amount": initialPrice,
+          "date": Date.now(),
+          "remark": data.remark,
+          "type": "Credit",
+          "relatedTransaction": null,
+          "relatedBank": relatedBank, //Bank or cashk
+          "relatedCash": relatedCash,
+          "relatedTransaction": transResult._id
+        })
+        var fTransUpdate = await Transaction.findOneAndUpdate(
+          { _id: transResult._id },
+          {
+            relatedTransaction: SectransResult._id
+          },
+          { new: true }
+        )
+        if (relatedBank) {
+          var amountUpdate = await Accounting.findOneAndUpdate(
+            { _id: relatedBank },
+            { $inc: { amount: totalPrice } }
+          )
+        } else if (relatedCash) {
+          var amountUpdate = await Accounting.findOneAndUpdate(
+            { _id: relatedCash },
+            { $inc: { amount: totalPrice } }
+          )
+        }
       }
       if (depriciationAcc) {
         var transResult = await Transaction.create({
@@ -81,9 +109,8 @@ exports.createFixedAsset = async (req, res, next) => {
           { $inc: { amount: depriciationTotal } }
         )
       }
-
       const SectransResult = await Transaction.create({
-        "amount": data.totalPrice,
+        "amount": depriciationTotal,
         "date": Date.now(),
         "remark": data.remark,
         "type": "Credit",
