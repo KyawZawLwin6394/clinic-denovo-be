@@ -134,8 +134,8 @@ exports.appointmentGenerate = async (req, res) => {
         relatedAppointments.push(element._id)
     })
     const populatedAppointments = await Appointment.find({ _id: { $in: appointmentResult.map(item => item._id) } }).populate('relatedDoctor');
-    if (relatedTreatmentSelection) var tsResult = await TreatmentSelection.findOneAndUpdate({ _id: relatedTreatmentSelection }, { $addToSet: { relatedAppointments: relatedAppointments } })
-    return res.status(200).send({ success: true, data: populatedAppointments, relatedAppointments: relatedAppointments })
+    if (relatedTreatmentSelection) var tsResult = await TreatmentSelection.findOneAndUpdate({ _id: relatedTreatmentSelection }, { $addToSet: { relatedAppointments: relatedAppointments } }, { new: true })
+    return res.status(200).send({ success: true, data: populatedAppointments, relatedAppointments: relatedAppointments, tsResult: tsResult })
 }
 
 exports.createPackageSelection = async (req, res, next) => {
