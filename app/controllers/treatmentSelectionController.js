@@ -189,8 +189,13 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
     let files = req.files
     let data = req.body
     let createdBy = req.credentials.id
-    let { relatedPatient, totalAmount, paymentMethod, paidAmount, relatedBank, relatedCash, relatedAppointment, bankType, paymentType, remark, relatedDiscount, relatedDoctor } = req.body
+    let { relatedPatient, totalAmount, tvDiscount, multiTreatment, paidAmount, relatedBank, relatedCash, relatedAppointment, bankType, paymentType, remark, relatedDiscount, relatedDoctor } = req.body
     let tvcCreate = false;
+    let TSArray = []
+    let response = {
+        message: 'Treatment Selection create success',
+        success: true
+    }
     try {
         if (files.length > 0) {
             for (const element of files.payment) {
@@ -212,16 +217,20 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
         data = { ...data, createdBy: createdBy, tsType: 'TSMulti' }
         //Adding TSMulti type
         tvcCreate = true;
-        let parsedMulti = JSON.parse(req.body.multiTreatment)
-        // if (fTransResult && secTransResult) { data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id] } } //adding relatedTransactions to treatmentSelection model
+        let parsedMulti = JSON.parse(multiTreatment)
         if (treatmentVoucherResult) { data = { ...data, relatedTreatmentVoucher: treatmentVoucherResult._id } }
-        data.multiTreatment = parsedMulti
-        console.log(data, 'checking data...')
-        const result = await TreatmentSelection.create(data)
+        for (const i of parsedMulti) {
+            data.multiTreatment = parsedMulti
+            data.relatedTreatment = i.item_id
+            data.totalAmount = i.price
+            data.discount = i.discountAmount
+            let result = await TreatmentSelection.create(data)
+            TSArray.push(result._id)
+        }
         if (tvcCreate === true) {
             //--> treatment voucher create
             let dataTVC = {
-                "relatedTreatmentSelection": result._id,
+                "relatedTreatmentSelection": TSArray,
                 "relatedAppointment": relatedAppointment,
                 "relatedPatient": relatedPatient,
                 "paymentMethod": "Advanced", //enum: ['by Appointment','Lapsum','Total','Advanced']
@@ -235,8 +244,11 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
                 "payment": attachID,
                 "relatedDiscount": relatedDiscount,
                 "relatedDoctor": relatedDoctor,
+                "tvDiscount": tvDiscount,
                 "tsType": "TSMulti"
             }
+            console.log(parsedMulti)
+            dataTVC.multiTreatment = parsedMulti
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
             if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
@@ -247,24 +259,11 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
             var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
         }
         if (treatmentVoucherResult) {
-            var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount')
+            var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount multiTreatment.item_id')
         }
-        if (result) {
-            var updatePatient = await Patient.findOneAndUpdate({ _id: relatedPatient }, { $addToSet: { relatedTreatmentSelection: result._id } })
-        }
-        const populatedResult = await TreatmentSelection.find({ _id: result._id }).populate('createdBy relatedAppointments remainingAppointments relatedTransaction relatedPatient relatedTreatmentList').populate({
-            path: 'relatedTreatment',
-            model: 'Treatments',
-            populate: {
-                path: 'relatedDoctor',
-                model: 'Doctors'
-            }
-        })
-        let response = {
-            message: 'Treatment Selection create success',
-            success: true,
-            data: populatedResult
-        }
+        var updatePatient = await Patient.findOneAndUpdate({ _id: relatedPatient }, { $addToSet: { relatedTreatmentSelection: TSArray } })
+
+
         if (populatedTV) response.treatmentVoucherResult = populatedTV
         res.status(200).send(response);
 
