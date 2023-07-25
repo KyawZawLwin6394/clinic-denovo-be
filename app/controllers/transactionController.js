@@ -64,6 +64,20 @@ exports.getTransaction = async (req, res) => {
   return res.status(200).send({ success: true, data: result });
 };
 
+exports.getRelatedTransactionExpense = async (req, res) => {
+  const result = await Transaction.find({ relatedExpense: req.params.id, isDeleted: false }).populate('relatedAccounting').populate('relatedTransaction').populate('relatedBank').populate('relatedCash').populate('relatedExpense');
+  if (!result)
+    return res.status(500).json({ error: true, message: 'No Record Found' });
+  return res.status(200).send({ success: true, data: result });
+};
+
+exports.getRelatedTransactionIncome = async (req, res) => {
+  const result = await Transaction.find({ relatedIncome: req.params.id, isDeleted: false }).populate('relatedAccounting').populate('relatedTransaction').populate('relatedBank').populate('relatedCash').populate('relatedIncome');
+  if (!result)
+    return res.status(500).json({ error: true, message: 'No Record Found' });
+  return res.status(200).send({ success: true, data: result });
+};
+
 exports.getRelatedTransaction = async (req, res) => {
   console.log(req.params.id)
   const result = await Transaction.find({ relatedAccounting: req.params.id, isDeleted: false }).populate({
@@ -85,16 +99,6 @@ exports.getRelatedTransaction = async (req, res) => {
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
 };
-
-exports.getIncomeExpense = async (req, res, next) => {
-  try {
-    let { relatedIncome, relatedExpense } = req.query
-    const result = Transaction.find({ relatedIncome: relatedIncome, relatedExpense: relatedExpense, isDeleted: false })
-    return res.status(200).send({ success: true, data: result })
-  } catch (error) {
-    return res.status(500).send({ error: true, message: error.message })
-  }
-}
 
 exports.createTransaction = async (req, res, next) => {
   try {
