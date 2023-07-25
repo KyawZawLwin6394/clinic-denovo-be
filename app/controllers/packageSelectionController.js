@@ -109,7 +109,7 @@ exports.createPackageSelectionCode = async (req, res) => {
 exports.appointmentGenerate = async (req, res) => {
     let relatedAppointments = []
     const dataconfigs = [];
-    let { relatedPatient, relatedDoctor, originalDate, relatedBranch, treatmentTimes, inBetweenDuration, relatedPackageSelection, relatedTreatment, phone } = req.body
+    let { relatedPatient, relatedDoctor, originalDate, relatedBranch, treatmentTimes, inBetweenDuration, relatedPackageSelection, relatedTreatmentSelection, relatedTreatment, phone } = req.body
     if (originalDate === undefined) return res.status(500).send({ error: true, message: 'Original Date is required' })
     const appointmentConfig = {
         relatedPatient: relatedPatient,
@@ -118,6 +118,7 @@ exports.appointmentGenerate = async (req, res) => {
         phone: phone,
         relatedBranch: relatedBranch,
         relatedPackageSelection: relatedPackageSelection,
+        relatedTreatmentSelection: relatedTreatmentSelection,
         relatedTreatment: relatedTreatment,
     };
     const numTreatments = treatmentTimes;
@@ -272,7 +273,7 @@ exports.createPackageSelection = async (req, res, next) => {
         //             "createdBy": createdBy
         //         })
         //         var amountUpdate = await Accounting.findOneAndUpdate(
-        //             { _id: "6467379159a9bc811d97f4d2" },
+        //             { _id: "6467379159a9bc811d97f4d2" },a
         //             { $inc: { amount: -req.body.totalAmount } }
         //         )
         //         //sec transaction
