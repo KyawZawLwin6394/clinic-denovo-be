@@ -79,6 +79,15 @@ let TreatmentVoucherSchema = new Schema({
     remark: {
         type: String
     },
+    totalDiscount:{
+        type:Number
+    },
+    totalAmount:{
+        type:Number
+    },
+    totalPaidAmount:{
+        type:Number
+    },
     payment: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Attachments'
@@ -86,9 +95,6 @@ let TreatmentVoucherSchema = new Schema({
     relatedDiscount: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Discounts'
-    },
-    tvDiscount:{
-        type:Number
     },
     discountAmount: {
         type: Number

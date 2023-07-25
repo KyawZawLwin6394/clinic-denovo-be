@@ -189,7 +189,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
     let files = req.files
     let data = req.body
     let createdBy = req.credentials.id
-    let { relatedPatient, totalAmount, tvDiscount, multiTreatment, paidAmount, relatedBank, relatedCash, relatedAppointment, bankType, paymentType, remark, relatedDiscount, relatedDoctor } = req.body
+    let { relatedPatient, totalAmount, totalDiscount, totalPaidAmount, multiTreatment, paidAmount, relatedBank, relatedCash, relatedAppointment, bankType, paymentType, remark, relatedDiscount, relatedDoctor } = req.body
     let tvcCreate = false;
     let TSArray = []
     let response = {
@@ -244,7 +244,9 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
                 "payment": attachID,
                 "relatedDiscount": relatedDiscount,
                 "relatedDoctor": relatedDoctor,
-                "tvDiscount": tvDiscount,
+                "totalDiscount": totalDiscount,
+                "totalAmount": totalAmount,
+                "totalPaidAmount": totalPaidAmount,
                 "tsType": "TSMulti"
             }
             console.log(parsedMulti)
