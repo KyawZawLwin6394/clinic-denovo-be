@@ -4,6 +4,8 @@ const AccountingList = require('../models/accountingList');
 const Note = require('../models/notes');
 const getNetAmount = require('../lib/userUtil').getNetAmount
 const getTotal = require('../lib/userUtil').getTotal
+const Income = require('../models/income');
+const Expense = require('../models/expense');
 
 exports.listAllTransactions = async (req, res) => {
   let { keyword, role, limit, skip } = req.query;
@@ -83,6 +85,16 @@ exports.getRelatedTransaction = async (req, res) => {
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
 };
+
+exports.getIncomeExpense = async (req, res, next) => {
+  try {
+    let { relatedIncome, relatedExpense } = req.query
+    const result = Transaction.find({ relatedIncome: relatedIncome, relatedExpense: relatedExpense, isDeleted: false })
+    return res.status(200).send({ success: true, data: result })
+  } catch (error) {
+    return res.status(500).send({ error: true, message: error.message })
+  }
+}
 
 exports.createTransaction = async (req, res, next) => {
   try {

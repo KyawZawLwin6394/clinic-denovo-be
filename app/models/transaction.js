@@ -62,6 +62,14 @@ let TransactionSchema = new Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Users'
+  },
+  relatedIncome:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'Incomes'
+  },
+  relatedExpense:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:'Expenses'
   }
 });
 
