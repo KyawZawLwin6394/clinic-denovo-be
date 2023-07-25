@@ -51,8 +51,9 @@ exports.getComission = async (req, res) => {
 
 exports.createComission = async (req, res, next) => {
     let percent = 0.05
+    let data = req.body
     let appointmentResult = await Appointment.find({ _id: req.body.appointmentID })
-    if (appointmentResult[0].isCommissioned === true) return res.status(500).send({ error: true, message: 'Alread Commissioned!' })
+    //if (appointmentResult[0].isCommissioned === true) return res.status(500).send({ error: true, message: 'Alread Commissioned!' })
     let comission = (req.body.totalAmount / req.body.treatmentTimes) * percent
     let doctorUpdate = await Doctor.findOneAndUpdate(
         { _id: req.body.doctorID },
@@ -92,7 +93,7 @@ exports.createComission = async (req, res, next) => {
             doctorResult: doctorUpdate
         });
     } catch (error) {
-        // console.log(error )
+        console.log(error)
         return res.status(500).send({ "error": true, message: error.message })
     }
 };
