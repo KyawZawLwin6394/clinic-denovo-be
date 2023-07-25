@@ -217,6 +217,7 @@ exports.incomeStatement = async (req, res) => {
     finalResult[element.description] = totalArray
     console.log(totalArray)
   }
+  console.log(finalResult)
   let GrossProfit = await subtractCostOfSalesFromSales(finalResult.Sales, finalResult.CostOfSales)
 
   let net = await getTotalData(finalResult)

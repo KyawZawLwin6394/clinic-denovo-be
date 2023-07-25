@@ -8,6 +8,7 @@ const Repay = require('../models/repayRecord');
 const Accounting = require('../models/accountingList');
 const Attachment = require('../models/attachment');
 const AdvanceRecords = require('../models/advanceRecord');
+const TreatmentSelection = require('../models/treatmentSelection');
 const Package = require('../models/treatment');
 const Treatment = require('../models/treatment')
 const MedicineItems = require('../models/medicineItem');
@@ -133,6 +134,7 @@ exports.appointmentGenerate = async (req, res) => {
         relatedAppointments.push(element._id)
     })
     const populatedAppointments = await Appointment.find({ _id: { $in: appointmentResult.map(item => item._id) } }).populate('relatedDoctor');
+    if (relatedTreatmentSelection) var tsResult = await TreatmentSelection.findOneAndUpdate({ _id: relatedTreatmentSelection }, { $addToSet: { relatedAppointments: relatedAppointments } })
     return res.status(200).send({ success: true, data: populatedAppointments, relatedAppointments: relatedAppointments })
 }
 
