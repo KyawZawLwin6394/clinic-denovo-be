@@ -7,6 +7,102 @@ const getTotal = require('../lib/userUtil').getTotal
 const Income = require('../models/income');
 const Expense = require('../models/expense');
 
+exports.getBalanceSheet = async (req, res) => {
+  const finalResult = {}
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ]
+
+  const noteResult = await Note.find({ isDeleted: false, type: 'balance' })
+  console.log(noteResult)
+  for (const element of noteResult) {
+    const totalArray = []
+
+    for (const monthName of months) {
+      const yearToQuery = new Date().getFullYear()
+      const monthIndex = months.indexOf(monthName)
+      const lastDayOfMonth = getLastDayOfMonth(yearToQuery, monthIndex)
+
+      // Add 1 day to lastDayOfMonth to include documents created on that day
+      const nextDay = new Date(lastDayOfMonth)
+      nextDay.setDate(nextDay.getDate() + 1)
+
+      const result = await Note.find({
+        _id: element._id
+      }).populate('item.relatedAccount secondaryItem.relatedAccount')
+
+      const [clinicTable, surgeryTable] = [[], []]
+
+      for (const item of result[0].item) {
+        const res = await getClosingLastDay(
+          item.relatedAccount._id,
+          lastDayOfMonth,
+          nextDay
+        )
+        clinicTable.push({
+          amount: Math.abs(res),
+          operator: item.operator,
+          name: item.relatedAccount.name
+        })
+      }
+
+      for (const item of result[0].secondaryItem) {
+        const res = await getClosingLastDay(
+          item.relatedAccount._id,
+          lastDayOfMonth,
+          nextDay
+        )
+        surgeryTable.push({
+          amount: Math.abs(res),
+          operator: item.operator,
+          name: item.relatedAccount.name
+        })
+      }
+
+      const clinicTotal = await getTotal(clinicTable)
+      const surgeryTotal = await getTotal(surgeryTable)
+
+      totalArray.push({
+        surgery: surgeryTotal,
+        clinic: clinicTotal,
+        month: monthName
+      })
+    }
+
+    finalResult[element.description] = totalArray
+  }
+
+  // const GrossProfit = await subtractCostOfSalesFromSales(
+  //   finalResult.Sales,
+  //   finalResult.CostOfSales
+  // )
+
+  // const net = await getTotalData(finalResult)
+  // const netProfit = await subtractCostOfSalesFromSales(GrossProfit, net)
+
+  // finalResult = {
+  //   ...finalResult,
+  //   GrossProfit: GrossProfit,
+  //   NetProfit: netProfit
+  // }
+
+  return res.status(200).send({
+    success: true,
+    data: finalResult
+  })
+}
+
 exports.listAllTransactions = async (req, res) => {
   let { keyword, role, limit, skip } = req.query;
   let count = 0;
