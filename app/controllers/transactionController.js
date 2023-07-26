@@ -6,6 +6,7 @@ const getNetAmount = require('../lib/userUtil').getNetAmount
 const getTotal = require('../lib/userUtil').getTotal
 const Income = require('../models/income');
 const Expense = require('../models/expense');
+const getClosingLastDay = require('../lib/userUtil').getClosingLastDay
 
 exports.getBalanceSheet = async (req, res) => {
   const finalResult = {}
