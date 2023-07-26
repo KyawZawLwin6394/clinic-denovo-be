@@ -5,7 +5,10 @@ const { catchError } = require("../lib/errorHandler");
 const verifyToken = require('../lib/verifyToken');
 
 module.exports = (app) => {
-
+    app
+    .route('/api/transactions/balance-sheet')
+    .get(catchError(transaction.getBalanceSheet))
+    
     app.route('/api/transaction')
         .post(verifyToken, catchError(transaction.createTransaction))
         .put(verifyToken, catchError(transaction.updateTransaction))
