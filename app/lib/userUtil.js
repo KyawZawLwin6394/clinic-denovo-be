@@ -8,7 +8,18 @@ const config = require('../../config/db');
 
 
 //https://myaccount.google.com/apppasswords
-
+const getClosingLastDay = async (id, start, end) => {
+  const abResult = await AccountBalance.find({
+    relatedAccounting: id,
+    type: 'Closing',
+    date: { $gte: start, $lte: end }
+  })
+  const total = abResult.reduce(
+    (acc, curr) => acc + Number.parseInt(curr.amount),
+    0
+  )
+  return total
+}
 // Create a transporter using your Gmail account credentials
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -165,4 +176,4 @@ async function getTotal(table) {
   return total
 }
 
-module.exports = { bcryptHash, bcryptCompare, filterRequestAndResponse, mergeAndSum, getLatestDay, createAccountBalance, fixedAssetTransaction, getNetAmount, getTotal, sendEmail };
+module.exports = { bcryptHash, bcryptCompare, filterRequestAndResponse, getClosingLastDay, mergeAndSum, getLatestDay, createAccountBalance, fixedAssetTransaction, getNetAmount, getTotal, sendEmail };
