@@ -192,7 +192,7 @@ const subtractCostOfSalesFromSales = async (Sales, CostOfSales) => {
 exports.incomeStatement = async (req, res) => {
   let finalResult = {}
   let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const noteResult = await Note.find({ isDeleted: false })
+  const noteResult = await Note.find({ isDeleted: false, type:'income' })
   let keys = Object.keys(finalResult)
   for (const element of noteResult) {
     let totalArray = []
@@ -215,9 +215,7 @@ exports.incomeStatement = async (req, res) => {
       totalArray.push({ surgery: surgeryTotal, clinic: clinicTotal, month: monthName })
     }
     finalResult[element.description] = totalArray
-    console.log(totalArray)
   }
-  console.log(finalResult)
   let GrossProfit = await subtractCostOfSalesFromSales(finalResult.Sales, finalResult.CostOfSales)
 
   let net = await getTotalData(finalResult)
