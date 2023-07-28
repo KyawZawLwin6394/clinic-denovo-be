@@ -1163,8 +1163,8 @@ exports.sendEmail = async (req, res) => {
         const bufferData = Buffer.from(req.body.file, 'base64');
 
         // Step 2: Create the output folder if it doesn't exist
-        if (!fs.existsSync(outputFolder)) {
-            fs.mkdirSync(outputFolder);
+        if (!fs.existsSync(config.savePDF)) {
+            fs.mkdirSync(config.savePDF);
         }
         // Step 2: Write the Buffer data to a file
         fs.writeFile(outputFilePath, bufferData, (err) => {
