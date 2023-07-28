@@ -1158,7 +1158,7 @@ exports.sendEmail = async (req, res) => {
   `
         };
         // const outputFolder = path.join(__dirname, 'decoded_files');
-        const outputFilePath = path.join(config.savePDF, voucherNo + '@' + voucherDate + '.pdf');
+        const outputFilePath = path.join(config.savePDF, voucherNo + '@' + voucherDate + '.png');
 
         const bufferData = Buffer.from(req.body.file, 'base64');
 
