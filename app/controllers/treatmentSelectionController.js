@@ -1157,26 +1157,33 @@ exports.sendEmail = async (req, res) => {
                 <em>Ph No: 09 968 119 995</em>
   `
         };
+
         // const outputFolder = path.join(__dirname, 'decoded_files');
         const outputFilePath = path.join(config.savePDF, voucherNo + '@' + voucherDate + '.png');
-
-        const bufferData = Buffer.from(req.body.file, 'base64');
+        const base64String = req.body.file.replace(/^data:image\/png;base64,/, '');
+        const bufferData = Buffer.from(base64String, 'base64');
 
         // Step 2: Create the output folder if it doesn't exist
         if (!fs.existsSync(config.savePDF)) {
             fs.mkdirSync(config.savePDF);
         }
         // Step 2: Write the Buffer data to a file
-        fs.writeFile(outputFilePath, bufferData, (err) => {
+        fs.writeFile(outputFilePath, bufferData, async (err) => {
             if (err) {
                 console.error('Error writing the decoded file:', err);
                 return;
             }
             console.log('File successfully decoded and saved:', outputFilePath);
+            mailOptions.attachments = [
+                {
+                    filename: 'voucher.png',
+                    path: outputFilePath,
+                    contentType: 'image/png', // Set the correct content type for PDF
+                },
+            ];
+            const emailResult = await sendEmail(mailOptions)
+            return res.status(200).send({ success: true, result: emailResult })
         })
-        if (req.files.email) mailOptions.attachments = req.files.email
-        const emailResult = await sendEmail(mailOptions)
-        return res.status(200).send({ success: true, result: emailResult })
     } catch (error) {
         return res.status(500).send({ error: true, message: error.message })
     }
