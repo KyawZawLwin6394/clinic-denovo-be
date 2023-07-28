@@ -15,6 +15,11 @@ const ProcedureItems = require('../models/procedureItem');
 const treatment = require('../models/treatment');
 const { sendEmail } = require('../lib/userUtil');
 const config = require('../../config/db');
+const { Buffer } = require('buffer');
+const fs = require('fs');
+const path = require('path');
+
+
 
 exports.getwithExactDate = async (req, res) => {
     try {
@@ -1133,6 +1138,7 @@ exports.profitAndLossForEveryMonth = async (req, res) => {
 exports.sendEmail = async (req, res) => {
     try {
         let { recipent, voucherType, voucherNo, voucherDate } = req.body;
+        const filePath = '../'
         const mailOptions = {
             from: config.senderEmail, // Sender email address
             to: recipent, // Recipient email address (can be a comma-separated list for multiple recipients)
@@ -1151,6 +1157,23 @@ exports.sendEmail = async (req, res) => {
                 <em>Ph No: 09 968 119 995</em>
   `
         };
+        // const outputFolder = path.join(__dirname, 'decoded_files');
+        const outputFilePath = path.join(config.savePDF, voucherNo + '@' + voucherDate + '.pdf');
+
+        const bufferData = Buffer.from(req.body.file, 'base64');
+
+        // Step 2: Create the output folder if it doesn't exist
+        if (!fs.existsSync(outputFolder)) {
+            fs.mkdirSync(outputFolder);
+        }
+        // Step 2: Write the Buffer data to a file
+        fs.writeFile(outputFilePath, bufferData, (err) => {
+            if (err) {
+                console.error('Error writing the decoded file:', err);
+                return;
+            }
+            console.log('File successfully decoded and saved:', outputFilePath);
+        })
         if (req.files.email) mailOptions.attachments = req.files.email
         const emailResult = await sendEmail(mailOptions)
         return res.status(200).send({ success: true, result: emailResult })

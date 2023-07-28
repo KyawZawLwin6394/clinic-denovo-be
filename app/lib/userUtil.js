@@ -11,7 +11,7 @@ const config = require('../../config/db');
 const getClosingLastDay = async (id, start, end) => {
   const abResult = await AccountBalance.find({
     relatedAccounting: id,
-    type: 'Closing',
+    type: 'Closing',  
     date: { $gte: start, $lte: end }
   })
   const total = abResult.reduce(

@@ -19,7 +19,8 @@ const config = {
     jwtKey: 'm*qf63GOeu9*9oDetCb63Y',
     defaultPasswordExpire: 86400,
     senderEmail: 'info.clinicdenovo@gmail.com',
-    senderPassword: 'rftobtfnqwfgodoe'
+    senderPassword: 'rftobtfnqwfgodoe',
+    savePDF:'./uploads/cherry-k/sendEmail'
   },
 
   production: {
@@ -38,7 +39,8 @@ const config = {
     jwtKey: 'm*qf63GOeu9*9oDetCb63Y',
     defaultPasswordExpire: 86400,
     senderEmail: 'info.clinicdenovo@gmail.com',
-    senderPassword: 'rftobtfnqwfgodoe'
+    senderPassword: 'rftobtfnqwfgodoe',
+    savePDF:'./uploads/cherry-k/sendEmail'
   },
 };
 

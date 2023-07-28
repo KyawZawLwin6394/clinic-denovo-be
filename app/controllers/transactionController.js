@@ -8,6 +8,12 @@ const Income = require('../models/income');
 const Expense = require('../models/expense');
 const getClosingLastDay = require('../lib/userUtil').getClosingLastDay
 
+const getLastDayOfMonth = (year, month) => {
+  const firstDayOfNextMonth = new Date(Date.UTC(year, month + 1, 1))
+  const lastDayOfMonth = new Date(firstDayOfNextMonth.getTime() - 1)
+  return lastDayOfMonth
+}
+
 exports.getBalanceSheet = async (req, res) => {
   const finalResult = {}
   const months = [
@@ -37,7 +43,7 @@ exports.getBalanceSheet = async (req, res) => {
 
       // Add 1 day to lastDayOfMonth to include documents created on that day
       const nextDay = new Date(lastDayOfMonth)
-      nextDay.setDate(nextDay.getDate() + 1)
+      nextDay.setDate(nextDay.getDate() + 1)  
 
       const result = await Note.find({
         _id: element._id
@@ -289,7 +295,7 @@ const subtractCostOfSalesFromSales = async (Sales, CostOfSales) => {
 exports.incomeStatement = async (req, res) => {
   let finalResult = {}
   let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const noteResult = await Note.find({ isDeleted: false, type:'income' })
+  const noteResult = await Note.find({ isDeleted: false, type: 'income' })
   let keys = Object.keys(finalResult)
   for (const element of noteResult) {
     let totalArray = []
