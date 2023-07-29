@@ -143,17 +143,20 @@ exports.searchCommission = async (req, res) => {
     console.log('here')
     try {
         const { month, doctor } = req.query;
-        let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+        if (month) {
+            let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
-        //Check if the provided month value is valid
-        if (!months.includes(month)) {
-            return res.status(400).json({ error: 'Invalid month' });
+            //Check if the provided month value is valid
+            if (!months.includes(month)) {
+                return res.status(400).json({ error: 'Invalid month' });
+            }
+
+            // Get the start and end dates for the specified month
+            var startDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(month), 1));
+            var endDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(month) + 1, 1));
+        } else {
+            var {startDate, endDate} = req.query;
         }
-
-        // Get the start and end dates for the specified month
-        const startDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(month), 1));
-        const endDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(month) + 1, 1));
-        console.log(startDate, endDate)
         let query = { status: 'Unclaimed' }
         if (month) query.date = { $gte: startDate, $lte: endDate }
         if (doctor) query.relatedDoctor = doctor
