@@ -144,7 +144,8 @@ exports.getNotesByAccounts = async (req, res) => {
                 clinicTotal: clinicTotal,
                 surgeryTable: surgeryTable,
                 surgeryTotal: surgeryTotal,
-                notesName: result[0].name
+                notesName: result[0].name,
+                month: monthName ? monthName : lastDayOfMonth.getMonth()
             }
         })
     } catch (error) {
