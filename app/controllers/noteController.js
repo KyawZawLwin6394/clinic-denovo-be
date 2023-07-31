@@ -4,6 +4,7 @@ const Note = require('../models/notes');
 const Transaction = require('../models/transaction')
 const getNetAmount = require('../lib/userUtil').getNetAmount
 const getTotal = require('../lib/userUtil').getTotal
+const getClosingLastDay = require('../lib/userUtil').getClosingLastDay
 
 exports.listAllNotes = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -12,7 +13,7 @@ exports.listAllNotes = async (req, res) => {
     try {
         limit = +limit <= 100 ? +limit : 10; //limit
         skip = +skip || 0;
-        let query = {isDeleted:false},
+        let query = { isDeleted: false },
             regexKeyword;
         role ? (query['role'] = role.toUpperCase()) : '';
         keyword && /\w/.test(keyword)
@@ -103,13 +104,24 @@ exports.getNotesByAccounts = async (req, res) => {
     try {
         const result = await Note.find({ _id: notesID }).populate('item.relatedAccount secondaryItem.relatedAccount')
         // console.log(result[0].item)
-        for (const item of result[0].item) {
-            const res = await getNetAmount(item.relatedAccount._id, start, end)
-            clinicTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
-        }
-        for (const item of result[0].secondaryItem) {
-            const res = await getNetAmount(item.relatedAccount._id, start, end)
-            surgeryTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
+        if (result[0].type === 'income') {
+            for (const item of result[0].item) {
+                const res = await getNetAmount(item.relatedAccount._id, start, end)
+                clinicTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
+            }
+            for (const item of result[0].secondaryItem) {
+                const res = await getNetAmount(item.relatedAccount._id, start, end)
+                surgeryTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
+            }
+        } else if (result[0].type === 'balance') {
+            for (const item of result[0].item) {
+                const res = await getClosingLastDay(item.relatedAccount._id, start, end)
+                clinicTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
+            }
+            for(const item of result[0].secondaryItem) {
+                const res = await getClosingLastDay(item.relatedAccount._id, start, end)
+                surgeryTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
+            }
         }
         const clinicTotal = await getTotal(clinicTable)
         const surgeryTotal = await getTotal(surgeryTable)
