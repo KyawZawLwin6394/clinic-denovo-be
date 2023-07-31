@@ -100,7 +100,14 @@ exports.getNotesByAccounts = async (req, res) => {
     let { notesID, monthName } = req.query
     let [clinicTable, surgeryTable] = [[], []]
     let start = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName), 1));
-    let end = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName) + 1, 1));
+    let end = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(monthName) + 1, 1))
+    const yearToQuery = new Date().getFullYear()
+    const monthIndex = months.indexOf(monthName)
+    const lastDayOfMonth = getLastDayOfMonth(yearToQuery, monthIndex)
+
+    // Add 1 day to lastDayOfMonth to include documents created on that day
+    const nextDay = new Date(lastDayOfMonth)
+    nextDay.setDate(nextDay.getDate() + 1)
     try {
         const result = await Note.find({ _id: notesID }).populate('item.relatedAccount secondaryItem.relatedAccount')
         // console.log(result[0].item)
@@ -114,12 +121,13 @@ exports.getNotesByAccounts = async (req, res) => {
                 surgeryTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
             }
         } else if (result[0].type === 'balance') {
+            console.log('here')
             for (const item of result[0].item) {
-                const res = await getClosingLastDay(item.relatedAccount._id, start, end)
+                const res = await getClosingLastDay(item.relatedAccount._id, lastDayOfMonth, nextDay)
                 clinicTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
             }
-            for(const item of result[0].secondaryItem) {
-                const res = await getClosingLastDay(item.relatedAccount._id, start, end)
+            for (const item of result[0].secondaryItem) {
+                const res = await getClosingLastDay(item.relatedAccount._id, lastDayOfMonth, nextDay)
                 surgeryTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
             }
         }
