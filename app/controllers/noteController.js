@@ -93,7 +93,11 @@ exports.deleteNote = async (req, res, next) => {
     }
 }
 
-
+const getLastDayOfMonth = (year, month) => {
+    const firstDayOfNextMonth = new Date(Date.UTC(year, month + 1, 1))
+    const lastDayOfMonth = new Date(firstDayOfNextMonth.getTime() - 1)
+    return lastDayOfMonth
+}
 
 exports.getNotesByAccounts = async (req, res) => {
     let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
