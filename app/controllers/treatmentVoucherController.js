@@ -61,13 +61,22 @@ exports.getTreatmentVoucher = async (req, res) => {
 exports.getRelatedTreatmentVoucher = async (req, res) => {
     try {
         let query = { isDeleted: false };
-        let { relatedPatient, relatedTreatment, start, end, treatmentSelection, createdBy } = req.body
-        if (start && end) query.createdAt = { $gte: start, $lte: end }
+        let { relatedPatient, startDate, endDate, createdBy, bankType, tsType } = req.body
+        if (startDate && endDate) query.createdAt = { $gte: start, $lte: end }
         if (relatedPatient) query.relatedPatient = relatedPatient
-        if (relatedTreatment) query.relatedTreatment = relatedTreatment
-        if (treatmentSelection) query.relatedTreatmentSelection = treatmentSelection
+        if (bankType) query.bankType = bankType
         if (createdBy) query.createdBy = createdBy
-        const result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient relatedTreatmentSelection')
+        if (tsType) query.tsType = tsType
+        let result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient relatedTreatmentSelection')
+        if (relatedDoctor) {
+            result = result.filter(item => {
+                const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
+                    i => i.relatedDoctor._id.toString() === relatedDoctor
+                );
+                console.log(hasMatchingAppointment);
+                return hasMatchingAppointment
+            });
+        }
         if (!result)
             return res.status(404).json({ error: true, message: 'No Record Found' });
         return res.status(200).send({ success: true, data: result });
