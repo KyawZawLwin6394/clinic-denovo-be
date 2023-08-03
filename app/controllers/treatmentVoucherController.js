@@ -80,7 +80,6 @@ exports.getRelatedTreatmentVoucher = async (req, res) => {
                 }
             }
         })
-        console.log(result)
         if (relatedDoctor) {
             result = result.filter(item => {
                 if (item.relatedTreatmentSelection && Array.isArray(item.relatedTreatmentSelection.relatedAppointments)) {
