@@ -93,11 +93,11 @@ exports.upload = multer({
         },
         {
             name: 'before',
-            maxCount: 2
+            maxCount: 5
         },
         {
             name: 'after',
-            maxCount: 2
+            maxCount: 5
         },
         {
             name: 'consent',
