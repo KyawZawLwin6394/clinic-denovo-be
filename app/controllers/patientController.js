@@ -213,7 +213,7 @@ exports.filterPatients = async (req, res, next) => {
     if (gender) query.gender = gender
     if (status) query.patientStatus = status
     if (startDate && endDate) query.createdAt = { $gte: startDate, $lte: endDate }
-    if (Object.keys(query).length === 0) return res.status(404).send({ error: true, message: 'Please Specify A Query To Use This Function' })
+    // if (Object.keys(query).length === 0) return res.status(404).send({ error: true, message: 'Please Specify A Query To Use This Function' })
     const result = await Patient.find(query)
     if (result.length === 0) return res.status(404).send({ error: true, message: "No Record Found!" })
     res.status(200).send({ success: true, data: result })
