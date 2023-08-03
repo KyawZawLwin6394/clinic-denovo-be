@@ -9,7 +9,7 @@ module.exports = (app) => {
 
     app.route('/api/procedure-history')
         .post(upload, verifyToken, catchError(procedureHistory.createProcedureHistory))
-        .put(verifyToken, catchError(procedureHistory.updateProcedureHistory))
+        .put(upload, verifyToken, catchError(procedureHistory.updateProcedureHistory))
 
     app.route('/api/procedure-history/:id')
         .get(verifyToken, catchError(procedureHistory.getProcedureHistory))
