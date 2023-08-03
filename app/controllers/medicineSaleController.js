@@ -106,107 +106,107 @@ exports.createMedicineSale = async (req, res, next) => {
       const increment = latestDocument[0].seq + 1
       data = { ...data, voucherCode: "MVC-" + increment, seq: increment }
     }
-    //_________COGS___________
-    const medicineResult = await MedicineItems.find({ _id: { $in: req.body.medicineItems.map(item => item.item_id) } })
-    const purchaseTotal = medicineResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
+    // //_________COGS___________
+    // const medicineResult = await MedicineItems.find({ _id: { $in: req.body.medicineItems.map(item => item.item_id) } })
+    // const purchaseTotal = medicineResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
 
-    const inventoryResult = Transaction.create({
-      "amount": purchaseTotal,
-      "date": Date.now(),
-      "remark": req.body.remark,
-      "relatedAccounting": "64a8e06755a87deaea39e17b", //Medicine inventory
-      "type": "Credit",
-      "createdBy": createdBy
-    })
-    var inventoryAmountUpdate = await Accounting.findOneAndUpdate(
-      { _id: "64a8e06755a87deaea39e17b" },  // Medicine inventory
-      { $inc: { amount: -purchaseTotal } }
-    )
-    const COGSResult = Transaction.create({
-      "amount": purchaseTotal,
-      "date": Date.now(),
-      "remark": req.body.remark,
-      "relatedAccounting": "64a8e10b55a87deaea39e193", //Medicine Sales COGS
-      "type": "Debit",
-      "relatedTransaction": inventoryResult._id,
-      "createdBy": createdBy
-    })
-    var inventoryUpdate = await Transaction.findOneAndUpdate(
-      { _id: inventoryResult._id },
-      {
-        relatedTransaction: COGSResult._id
-      },
-      { new: true }
-    )
-    var COGSUpdate = await Accounting.findOneAndUpdate(
-      { _id: "64a8e10b55a87deaea39e193" },  //Medicine Sales COGS
-      { $inc: { amount: purchaseTotal } }
-    )
-    //_________END_OF_COGS___________
+    // const inventoryResult = Transaction.create({
+    //   "amount": purchaseTotal,
+    //   "date": Date.now(),
+    //   "remark": req.body.remark,
+    //   "relatedAccounting": "64a8e06755a87deaea39e17b", //Medicine inventory
+    //   "type": "Credit",
+    //   "createdBy": createdBy
+    // })
+    // var inventoryAmountUpdate = await Accounting.findOneAndUpdate(
+    //   { _id: "64a8e06755a87deaea39e17b" },  // Medicine inventory
+    //   { $inc: { amount: -purchaseTotal } }
+    // )
+    // const COGSResult = Transaction.create({
+    //   "amount": purchaseTotal,
+    //   "date": Date.now(),
+    //   "remark": req.body.remark,
+    //   "relatedAccounting": "64a8e10b55a87deaea39e193", //Medicine Sales COGS
+    //   "type": "Debit",
+    //   "relatedTransaction": inventoryResult._id,
+    //   "createdBy": createdBy
+    // })
+    // var inventoryUpdate = await Transaction.findOneAndUpdate(
+    //   { _id: inventoryResult._id },
+    //   {
+    //     relatedTransaction: COGSResult._id
+    //   },
+    //   { new: true }
+    // )
+    // var COGSUpdate = await Accounting.findOneAndUpdate(
+    //   { _id: "64a8e10b55a87deaea39e193" },  //Medicine Sales COGS
+    //   { $inc: { amount: purchaseTotal } }
+    // )
+    // //_________END_OF_COGS___________
 
-    //first transaction 
-    const fTransaction = new Transaction({
-      "amount": data.payAmount,
-      "date": Date.now(),
-      "remark": req.body.remark,
-      "relatedAccounting": "648095b57d7e4357442aa457", //Sales Medicines
-      "type": "Credit",
-      "createdBy": createdBy
-    })
-    const fTransResult = await fTransaction.save()
-    var amountUpdate = await Accounting.findOneAndUpdate(
-      { _id: "648095b57d7e4357442aa457" },  //Sales Medicines
-      { $inc: { amount: data.payAmount } }
-    )
-    //sec transaction
-    const secTransaction = new Transaction(
-      {
-        "amount": data.payAmount,
-        "date": Date.now(),
-        "remark": req.body.remark,
-        "relatedBank": req.body.relatedBank,
-        "relatedCash": req.body.relatedCash,
-        "type": "Debit",
-        "relatedTransaction": fTransResult._id,
-        "createdBy": createdBy
-      }
-    )
-    const secTransResult = await secTransaction.save();
-    var fTransUpdate = await Transaction.findOneAndUpdate(
-      { _id: fTransResult._id },
-      {
-        relatedTransaction: secTransResult._id
-      },
-      { new: true }
-    )
-    if (req.body.relatedBankAccount) {
-      var amountUpdate = await Accounting.findOneAndUpdate(
-        { _id: req.body.relatedBankAccount },
-        { $inc: { amount: data.payAmount } }
-      )
-    } else if (req.body.relatedCash) {
-      var amountUpdate = await Accounting.findOneAndUpdate(
-        { _id: req.body.relatedCash },
-        { $inc: { amount: data.payAmount } }
-      )
-    }
-    let objID = ''
-    if (req.body.relatedBank) objID = req.body.relatedBank
-    if (req.body.relatedCash) objID = req.body.relatedCash
-    //transaction
-    const acc = await Accounting.find({ _id: objID })
-    const accResult = await Accounting.findOneAndUpdate(
-      { _id: objID },
-      { amount: parseInt(req.body.payAmount) + parseInt(acc[0].amount) },
-      { new: true },
-    )
-    data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy, purchaseTotal: purchaseTotal }
-    if (purchaseTotal) data.purchaseTotal = purchaseTotal
+    // //first transaction 
+    // const fTransaction = new Transaction({
+    //   "amount": data.payAmount,
+    //   "date": Date.now(),
+    //   "remark": req.body.remark,
+    //   "relatedAccounting": "648095b57d7e4357442aa457", //Sales Medicines
+    //   "type": "Credit",
+    //   "createdBy": createdBy
+    // })
+    // const fTransResult = await fTransaction.save()
+    // var amountUpdate = await Accounting.findOneAndUpdate(
+    //   { _id: "648095b57d7e4357442aa457" },  //Sales Medicines
+    //   { $inc: { amount: data.payAmount } }
+    // )
+    // //sec transaction
+    // const secTransaction = new Transaction(
+    //   {
+    //     "amount": data.payAmount,
+    //     "date": Date.now(),
+    //     "remark": req.body.remark,
+    //     "relatedBank": req.body.relatedBank,
+    //     "relatedCash": req.body.relatedCash,
+    //     "type": "Debit",
+    //     "relatedTransaction": fTransResult._id,
+    //     "createdBy": createdBy
+    //   }
+    // )
+    // const secTransResult = await secTransaction.save();
+    // var fTransUpdate = await Transaction.findOneAndUpdate(
+    //   { _id: fTransResult._id },
+    //   {
+    //     relatedTransaction: secTransResult._id
+    //   },
+    //   { new: true }
+    // )
+    // if (req.body.relatedBankAccount) {
+    //   var amountUpdate = await Accounting.findOneAndUpdate(
+    //     { _id: req.body.relatedBankAccount },
+    //     { $inc: { amount: data.payAmount } }
+    //   )
+    // } else if (req.body.relatedCash) {
+    //   var amountUpdate = await Accounting.findOneAndUpdate(
+    //     { _id: req.body.relatedCash },
+    //     { $inc: { amount: data.payAmount } }
+    //   )
+    // }
+    // let objID = ''
+    // if (req.body.relatedBank) objID = req.body.relatedBank
+    // if (req.body.relatedCash) objID = req.body.relatedCash
+    // //transaction
+    // const acc = await Accounting.find({ _id: objID })
+    // const accResult = await Accounting.findOneAndUpdate(
+    //   { _id: objID },
+    //   { amount: parseInt(req.body.payAmount) + parseInt(acc[0].amount) },
+    //   { new: true },
+    // )
+    data = { ...data, createdBy: createdBy }
     const newMedicineSale = new MedicineSale(data)
     const medicineSaleResult = await newMedicineSale.save()
     res.status(200).send({
       message: 'MedicineSale Transaction success',
       success: true,
+      data:newMedicineSale
       // fTrans: fTransUpdate,
       // sTrans: secTransResult,
       // accResult: accResult,

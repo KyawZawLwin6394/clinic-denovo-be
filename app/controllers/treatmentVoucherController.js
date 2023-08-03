@@ -62,22 +62,39 @@ exports.getRelatedTreatmentVoucher = async (req, res) => {
     try {
         let { relatedPatient, startDate, endDate, createdBy, bankType, tsType, relatedDoctor } = req.query
         let query = { isDeleted: false };
-        if (startDate && endDate) query.createdAt = { $gte: start, $lte: end }
+        if (startDate && endDate) query.createdAt = { $gte: startDate, $lte: endDate }
         if (relatedPatient) query.relatedPatient = relatedPatient
         if (bankType) query.bankType = bankType
         if (createdBy) query.createdBy = createdBy
         if (tsType) query.tsType = tsType
-        console.log(query)
-        let result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient relatedTreatmentSelection')
+        console.log(query, relatedDoctor)
+        let result = await TreatmentVoucher.find(query).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
+            path: 'relatedTreatmentSelection',
+            model: 'TreatmentSelections',
+            populate: {
+                path: 'relatedAppointments',
+                model: 'Appointments',
+                populate: {
+                    path: 'relatedDoctor',
+                    model: 'Doctors'
+                }
+            }
+        })
+        console.log(result)
         if (relatedDoctor) {
             result = result.filter(item => {
-                const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
-                    i => i.relatedDoctor._id.toString() === relatedDoctor
-                );
-                console.log(hasMatchingAppointment);
-                return hasMatchingAppointment
+                if (item.relatedTreatmentSelection && Array.isArray(item.relatedTreatmentSelection.relatedAppointments)) {
+                    const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
+                        i => i.relatedDoctor && i.relatedDoctor._id && i.relatedDoctor._id.toString() === relatedDoctor
+                    );
+                    console.log(hasMatchingAppointment);
+                    return hasMatchingAppointment;
+                } else {
+                    return false; // Or handle the case when there are no relatedAppointments as needed
+                }
             });
         }
+
         if (!result)
             return res.status(404).json({ error: true, message: 'No Record Found' });
         return res.status(200).send({ success: true, data: result });
