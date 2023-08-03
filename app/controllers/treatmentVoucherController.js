@@ -60,13 +60,14 @@ exports.getTreatmentVoucher = async (req, res) => {
 
 exports.getRelatedTreatmentVoucher = async (req, res) => {
     try {
+        let { relatedPatient, startDate, endDate, createdBy, bankType, tsType, relatedDoctor } = req.query
         let query = { isDeleted: false };
-        let { relatedPatient, startDate, endDate, createdBy, bankType, tsType, relatedDoctor } = req.body
         if (startDate && endDate) query.createdAt = { $gte: start, $lte: end }
         if (relatedPatient) query.relatedPatient = relatedPatient
         if (bankType) query.bankType = bankType
         if (createdBy) query.createdBy = createdBy
         if (tsType) query.tsType = tsType
+        console.log(query)
         let result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient relatedTreatmentSelection')
         if (relatedDoctor) {
             result = result.filter(item => {
