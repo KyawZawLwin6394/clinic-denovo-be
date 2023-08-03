@@ -163,7 +163,7 @@ exports.updateProcedureHistory = async (req, res, next) => {
       }
     }
     console.log(data, 'heree')
-    const result = await procedureHistory.findOneAndUpdate({ _id: req.body._id }, data, { new: true }).populate('medicineItems.item_id customTreatmentPackages.item_id pHistory relatedAppointment relatedTreatmentSelection before after')
+    const result = await procedureHistory.findOneAndUpdate({ _id: req.body._id }, data, { new: true }).populate('medicineItems.item_id customTreatmentPackages.item_id relatedAppointment relatedTreatmentSelection before after')
     res.status(200).send({
       message: 'ProcedureHistory update success',
       success: true,
