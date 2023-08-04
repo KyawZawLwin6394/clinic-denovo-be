@@ -2,6 +2,7 @@
 const Log = require('../models/log');
 const ProcedureItem = require('../models/procedureItem');
 const AccessoryItem = require('../models/accessoryItem');
+const MedicineItem = require('../models/medicineItem')
 const Machine = require('../models/fixedAsset');
 const Usage = require('../models/usage');
 const UsageRecords = require('../models/usageRecord');
@@ -393,5 +394,35 @@ exports.getUsageRecordsByUsageID = async (req, res) => {
     return res.status(200).send({ success: true, data: result })
   } catch (error) {
     return res.status(500).send({ error: true, message: error.message })
+  }
+}
+
+exports.getStockTotalUnit = async (req, res) => {
+  try {
+    let accessoryResults = [];
+    let data = req.body;
+    if (data.procedureItems) var procedureItems = await ProcedureItem.find({ _id: { $in: data.procedureItems }, }).populate('relatedProcedureItems');
+    if (data.medicineItems) var medicineItems = await MedicineItem.find({ _id: { $in: data.medicineItems } }).populate('relatedMedicineItems');
+    if (data.accessoryItems) accessoryResults = await AccessoryItem.find({ _id: { $in: data.accessoryItems } }).populate('relatedAccessoryItems');
+    if (data.machine) var machine = await Machine.find({ _id: { $in: data.machine } }).populate('relatedMachine');
+    return res.status(200).send({
+      success: true,
+      procedureItems: procedureItems,
+      medicineItems: medicineItems,
+      accessoryItems: accessoryResults,
+      machine: machine
+    });
+  } catch (error) {
+    return res.status(500).send({ error: true, message: error.message });
+  }
+};
+
+exports.getUsage = async (req, res) => {
+  try {
+    const result = await Usage.find({ _id: req.params.id }).populate('procedureMedicine.item_id procedureAccessory.item_id machine.item_id machineError.item_id procedureItemsError.item_id accessoryItemsError.item_id')
+    if (result.length <= 0) return res.status(404).send({ error: true, message: 'Not Found!' })
+    return res.status(200).send({ success: true, data: result })
+  } catch (error) {
+    return res.status(500).send({ success: true, message: error.message })
   }
 }
