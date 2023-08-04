@@ -204,7 +204,6 @@ exports.createUsage = async (req, res) => {
         procedureMedicine: procedureItemsFinished,
         procedureAccessory: accessoryItemsFinished,
         machine: machineFinished,
-        relatedBranch: req.mongoQuery.relatedBranch,
         machineError: machineError,
         procedureItemsError: procedureItemsError,
         accessoryItemsError: accessoryItemsError
@@ -354,7 +353,6 @@ exports.createUsage = async (req, res) => {
           accessoryItemsError: accessoryItemsError,
           machineError: machineError,
           usageStatus: status,
-          relatedBranch: req.mongoQuery.relatedBranch
         },
         { new: true }
       );
@@ -364,7 +362,6 @@ exports.createUsage = async (req, res) => {
         procedureMedicine: procedureItemsFinished,
         procedureAccessory: accessoryItemsFinished,
         machine: machineFinished,
-        relatedBranch: req.mongoQuery.relatedBranch,
         machineError: machineError,
         procedureItemsError: procedureItemsError,
         accessoryItemsError: accessoryItemsError
