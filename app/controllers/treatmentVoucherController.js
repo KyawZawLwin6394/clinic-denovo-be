@@ -237,10 +237,12 @@ exports.getwithExactDate = async (req, res) => {
 exports.TreatmentVoucherFilter = async (req, res) => {
     let query = { relatedBank: { $exists: true }, isDeleted: false }
     try {
-        const { start, end, createdBy, purchaseType, relatedDoctor } = req.query
-        if (start && end) query.createdAt = { $gte: start, $lt: end }
+        const { startDate, endDate, createdBy, purchaseType, relatedDoctor, bankType, tsType, relatedPatient } = req.query
+        if (startDate && endDate) query.createdAt = { $gte: startDate, $lte: endDate }
+        if (relatedPatient) query.relatedPatient = relatedPatient
+        if (bankType) query.bankType = bankType
         if (createdBy) query.createdBy = createdBy
-        if (relatedDoctor) query.relatedDoctor = relatedDoctor
+        if (tsType) query.tsType = tsType
         let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
             path: 'relatedTreatmentSelection',
             model: 'TreatmentSelections',
