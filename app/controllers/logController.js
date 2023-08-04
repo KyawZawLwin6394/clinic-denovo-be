@@ -401,10 +401,10 @@ exports.getStockTotalUnit = async (req, res) => {
   try {
     let accessoryResults = [];
     let data = req.body;
-    if (data.procedureItems) var procedureItems = await ProcedureItem.find({ _id: { $in: data.procedureItems }, }).populate('relatedProcedureItems');
-    if (data.medicineItems) var medicineItems = await MedicineItem.find({ _id: { $in: data.medicineItems } }).populate('relatedMedicineItems');
-    if (data.accessoryItems) accessoryResults = await AccessoryItem.find({ _id: { $in: data.accessoryItems } }).populate('relatedAccessoryItems');
-    if (data.machine) var machine = await Machine.find({ _id: { $in: data.machine } }).populate('relatedMachine');
+    if (data.procedureItems) var procedureItems = await ProcedureItem.find({ _id: { $in: data.procedureItems }, })
+    if (data.medicineItems) var medicineItems = await MedicineItem.find({ _id: { $in: data.medicineItems } })
+    if (data.accessoryItems) accessoryResults = await AccessoryItem.find({ _id: { $in: data.accessoryItems } })
+    if (data.machine) var machine = await Machine.find({ _id: { $in: data.machine } })
     return res.status(200).send({
       success: true,
       procedureItems: procedureItems,
