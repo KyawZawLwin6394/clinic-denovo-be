@@ -24,7 +24,7 @@ let ProcedureHistorySchema = new Schema({
         subTotal: Number,
         SIG: String,
         subSIG: String,
-        remark:String
+        remark: String
     }],
     // treatmentPackages: [{
     //     item_id: {
@@ -83,6 +83,10 @@ let ProcedureHistorySchema = new Schema({
     },
     remark: {
         type: String
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
     }
 });
 
