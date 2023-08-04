@@ -4,7 +4,9 @@ const ProcedureItem = require('../models/procedureItem');
 const AccessoryItem = require('../models/accessoryItem');
 const Machine = require('../models/fixedAsset');
 const Usage = require('../models/usage');
+const Stock = require('../models/stock')
 const UsageRecords = require('../models/usageRecord');
+const Appointment = require('../models/appointment')
 
 exports.listAllLog = async (req, res) => {
   try {
