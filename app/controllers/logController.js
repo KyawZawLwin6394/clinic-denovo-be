@@ -4,13 +4,12 @@ const ProcedureItem = require('../models/procedureItem');
 const AccessoryItem = require('../models/accessoryItem');
 const Machine = require('../models/fixedAsset');
 const Usage = require('../models/usage');
-const Stock = require('../models/stock')
 const UsageRecords = require('../models/usageRecord');
-const Appointment = require('../models/appointment')
+const Appointment = require('../models/appointment');
 
 exports.listAllLog = async (req, res) => {
   try {
-    let result = await Log.find({ isDeleted: false }).populate('createdBy relatedTreatmentSelection relatedAppointment relatedProcedureItems relatedAccessoryItems relatedMachine').populate({
+    let result = await Log.find({ isDeleted: false }).populate('relatedTreatmentSelection relatedAppointment relatedProcedureItems relatedAccessoryItems relatedMachine').populate({
       path: 'relatedTreatmentSelection',
       populate: [{
         path: 'relatedTreatment',
@@ -31,7 +30,7 @@ exports.listAllLog = async (req, res) => {
 
 exports.getRelatedUsage = async (req, res) => {
   try {
-    let result = await Log.find({ isDeleted: false }).populate('createdBy relatedTreatmentSelection relatedAppointment');
+    let result = await Log.find({ isDeleted: false }).populate('relatedTreatmentSelection relatedAppointment');
     let count = await Log.find({ isDeleted: false }).count();
     if (result.length === 0) return res.status(404).send({ error: true, message: 'No Record Found!' });
     res.status(200).send({
@@ -48,140 +47,21 @@ exports.filterLogs = async (req, res, next) => {
   try {
     let query = { isDeleted: false }
     const { start, end, id } = req.query
+    console.log(start, end)
     if (start && end) query.date = { $gte: start, $lte: end }
     if (id) {
       query.$or = []
       query.$or.push(...[{ relatedProcedureItems: id }, { relatedAccessoryItems: id }, { relatedMachine: id }])
     }
+    console.log(query)
     if (Object.keys(query).length === 0) return res.status(404).send({ error: true, message: 'Please Specify A Query To Use This Function' })
-    const result = await Log.find(query).populate('createdBy relatedTreatmentSelection relatedAppointment relatedProcedureItems relatedAccessoryItems relatedMachine');
+    const result = await Log.find(query).populate('relatedTreatmentSelection relatedAppointment relatedProcedureItems relatedAccessoryItems relatedMachine');
     if (result.length === 0) return res.status(404).send({ error: true, message: "No Record Found!" })
     res.status(200).send({ success: true, data: result })
   } catch (err) {
     return res.status(500).send({ error: true, message: err.message })
   }
 }
-
-// exports.createUsage = async (req, res) => {
-//   const { relatedTreatmentSelection, relatedAppointment, procedureMedicine, procedureAccessory, machine } = req.body;
-//   const { relatedBranch } = {isDeleted:false}
-//   const machineError = [];
-//   const procedureItemsError = [];
-//   const accessoryItemsError = [];
-
-//   try {
-//     const processItems = async (items, Model, relatedField) => {
-//       for (const item of items) {
-//         if (item.stock < item.actual) {
-//           procedureItemsError.push(item);
-//         } else {
-//           const min = item.stock - item.actual;
-//           try {
-//             await Model.findOneAndUpdate(
-//               { _id: item.item_id, ...(relatedBranch && { relatedBranch }) },
-//               { totalUnit: min },
-//               { new: true }
-//             );
-//             await Log.create({
-//               relatedTreatmentSelection,
-//               relatedAppointment,
-//               [relatedField]: item.item_id,
-//               currentQty: item.stock,
-//               actualQty: item.actual,
-//               finalQty: min,
-//               ...(relatedBranch && { relatedBranch })
-//             });
-//           } catch (error) {
-//             procedureItemsError.push(item);
-//           }
-//         }
-//       }
-//     };
-
-//     if (relatedBranch === undefined) {
-//       if (procedureMedicine) {
-//         await processItems(procedureMedicine, Stock, "relatedProcedureItems");
-//       }
-
-//       if (procedureAccessory) {
-//         await processItems(procedureAccessory, AccessoryItem, "relatedAccessoryItems");
-//       }
-
-//       if (machine) {
-//         await processItems(machine, Machine, "relatedMachine");
-//       }
-//     } else if (relatedBranch) {
-//       if (procedureMedicine) {
-//         await processItems(procedureMedicine, Stock, "relatedProcedureItems");
-//       }
-
-//       if (procedureAccessory) {
-//         await processItems(procedureAccessory, Stock, "relatedAccessoryItems");
-//       }
-
-//       if (machine) {
-//         await processItems(machine, Stock, "relatedMachine");
-//       }
-//     }
-
-//     const usageResult = await Usage.create(req.body);
-//     const response = { success: true };
-
-//     if (machineError.length > 0) {
-//       response.machineError = machineError;
-//     }
-
-//     if (procedureItemsError.length > 0) {
-//       response.procedureItemsError = procedureItemsError;
-//     }
-
-//     if (accessoryItemsError.length > 0) {
-//       response.accessoryItemsError = accessoryItemsError;
-//     }
-
-//     if (usageResult) {
-//       response.usageResult = usageResult;
-//     }
-
-//     return res.status(200).send(response);
-//   } catch (error) {
-//     return res.status(500).send({ error: true, message: error.message });
-//   }
-// };
-
-exports.getStockTotalUnit = async (req, res) => {
-  try {
-    let accessoryResults = [];
-    let data = req.body;
-    if (data.procedureItems) var procedureItems = await Stock.find({ relatedProcedureItems: { $in: data.procedureItems }}).populate('relatedProcedureItems');
-    if (data.medicineItems) var medicineItems = await Stock.find({ relatedMedicineItems: { $in: data.medicineItems }}).populate('relatedMedicineItems');
-    if (data.accessoryItems) accessoryResults = await Stock.find({ relatedAccessoryItems: { $in: data.accessoryItems } }).populate('relatedAccessoryItems');
-    if (data.machine) var machine = await Stock.find({ relatedMachine: { $in: data.machine } }).populate('relatedMachine');
-    return res.status(200).send({
-      success: true,
-      procedureItems: procedureItems,
-      medicineItems: medicineItems,
-      accessoryItems: accessoryResults,
-      aicount: data.accessoryItems.length,
-      aireturn: accessoryResults.length,
-      machine: machine
-    });
-  } catch (error) {
-    return res.status(500).send({ error: true, message: error.message });
-  }
-};
-
-
-exports.getUsage = async (req, res) => {
-  try {
-    const result = await Usage.find({ _id: req.params.id }).populate('procedureMedicine.item_id procedureAccessory.item_id machine.item_id machineError.item_id procedureItemsError.item_id accessoryItemsError.item_id')
-    if (result.length <= 0) return res.status(404).send({ error: true, message: 'Not Found!' })
-    return res.status(200).send({ success: true, data: result })
-  } catch (error) {
-    return res.status(500).send({ success: true, message: error.message })
-  }
-}
-
 
 exports.createUsage = async (req, res) => {
   let { relatedTreatmentSelection, relatedAppointment, procedureMedicine, procedureAccessory, machine } = req.body;
@@ -196,19 +76,20 @@ exports.createUsage = async (req, res) => {
     const appResult = await Appointment.find({ _id: req.body.relatedAppointment })
     let status;
     if (appResult[0].relatedUsage === undefined) {
+
       if (procedureMedicine !== undefined) {
         for (const e of procedureMedicine) {
           if (e.stock < e.actual) {
             procedureItemsError.push(e);
           } else if (e.stock > e.actual) {
             let totalUnit = e.stock - e.actual;
-            const result = await Stock.find({ relatedProcedureItems: e.item_id });
+            const result = await ProcedureItem.find({ _id: e.item_id });
             const from = result[0].fromUnit;
             const to = result[0].toUnit;
             const currentQty = (from * totalUnit) / to;
             try {
-              const result = await Stock.findOneAndUpdate(
-                { relatedProcedureItems: e.item_id,  },
+              const result = await ProcedureItem.findOneAndUpdate(
+                { _id: e.item_id },
                 { totalUnit: totalUnit, currentQty: currentQty },
                 { new: true }
               );
@@ -229,21 +110,25 @@ exports.createUsage = async (req, res) => {
           }
         }
       }
+
+
+
       //procedureAccessory
+
       if (procedureAccessory !== undefined) {
         for (const e of procedureAccessory) {
           if (e.stock < e.actual) {
             accessoryItemsError.push(e)
           } else if (e.stock > e.actual) {
             let totalUnit = e.stock - e.actual
-            const result = await Stock.find({ relatedAccessoryItems: e.item_id })
+            const result = await AccessoryItem.find({ _id: e.item_id })
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
             try {
               accessoryItemsFinished.push(e)
-              const result = await Stock.findOneAndUpdate(
-                { relatedAccessoryItems: e.item_id },
+              const result = await AccessoryItem.findOneAndUpdate(
+                { _id: e.item_id },
                 { totalUnit: totalUnit, currentQty: currentQty },
                 { new: true },
               )
@@ -259,26 +144,29 @@ exports.createUsage = async (req, res) => {
               "actualQty": e.actual,
               "finalQty": totalUnit,
               "type": "Usage",
+
               "createdBy": createdBy
             })
           }
         }
       }
+
       //machine
+
       if (machine !== undefined) {
         for (const e of machine) {
           if (e.stock < e.actual) {
             machineError.push(e)
           } else if (e.stock > e.actual) {
-            const result = await Stock.find({ relatedMachine: e.item_id })
             let totalUnit = e.stock - e.actual
+            const result = await Machine.find({ _id: e.item_id })
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
             try {
               machineFinished.push(e)
-              const result = await Stock.findOneAndUpdate(
-                { relatedMachine: e.item_id },
+              const result = await Machine.findOneAndUpdate(
+                { _id: e.item_id },
                 { totalUnit: totalUnit, currentQty: currentQty },
                 { new: true },
               )
@@ -294,6 +182,7 @@ exports.createUsage = async (req, res) => {
               "actualQty": e.actual,
               "finalQty": totalUnit,
               "type": "Usage",
+
               "createdBy": createdBy
             })
           }
@@ -315,6 +204,7 @@ exports.createUsage = async (req, res) => {
         procedureMedicine: procedureItemsFinished,
         procedureAccessory: accessoryItemsFinished,
         machine: machineFinished,
+        relatedBranch: req.mongoQuery.relatedBranch,
         machineError: machineError,
         procedureItemsError: procedureItemsError,
         accessoryItemsError: accessoryItemsError
@@ -346,14 +236,14 @@ exports.createUsage = async (req, res) => {
             procedureItemsError.push(e)
           } else if (e.stock > e.actual) {
             let totalUnit = e.stock - e.actual
-            const result = await Stock.find({ relatedProcedureItems: e.item_id })
+            const result = await ProcedureItem.find({ _id: e.item_id })
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
             try {
               procedureItemsFinished.push(e)
-              const result = await Stock.findOneAndUpdate(
-                { relatedProcedureItems: e.item_id },
+              const result = await ProcedureItem.findOneAndUpdate(
+                { _id: e.item_id },
                 { totalUnit: totalUnit, currentQty: currentQty },
                 { new: true },
               )
@@ -383,14 +273,14 @@ exports.createUsage = async (req, res) => {
             accessoryItemsError.push(e)
           } else if (e.stock > e.actual) {
             let totalUnit = e.stock - e.actual
-            const result = await Stock.find({ relatedAccessoryItems: e.item_id })
+            const result = await AccessoryItem.find({ _id: e.item_id })
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
             try {
               accessoryItemsFinished.push(e)
-              const result = await Stock.findOneAndUpdate(
-                { relatedAccessoryItems: e.item_id},
+              const result = await AccessoryItem.findOneAndUpdate(
+                { _id: e.item_id },
                 { totalUnit: totalUnit, currentQty: currentQty },
                 { new: true },
               )
@@ -406,6 +296,7 @@ exports.createUsage = async (req, res) => {
               "actualQty": e.actual,
               "finalQty": totalUnit,
               "type": "Usage",
+
               "createdBy": createdBy
             })
           }
@@ -420,14 +311,14 @@ exports.createUsage = async (req, res) => {
             machineError.push(e)
           } else if (e.stock > e.actual) {
             let totalUnit = e.stock - e.actual
-            const result = await Stock.find({ relatedMachine: e.item_id})
+            const result = await Machine.find({ _id: e.item_id })
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
             try {
               machineFinished.push(e)
               const result = await Stock.findOneAndUpdate(
-                { relatedMachine: e.item_id },
+                { _id: e.item_id },
                 { totalUnit: totalUnit, currentQty: currentQty },
                 { new: true },
               )
@@ -463,6 +354,7 @@ exports.createUsage = async (req, res) => {
           accessoryItemsError: accessoryItemsError,
           machineError: machineError,
           usageStatus: status,
+          relatedBranch: req.mongoQuery.relatedBranch
         },
         { new: true }
       );
@@ -472,6 +364,7 @@ exports.createUsage = async (req, res) => {
         procedureMedicine: procedureItemsFinished,
         procedureAccessory: accessoryItemsFinished,
         machine: machineFinished,
+        relatedBranch: req.mongoQuery.relatedBranch,
         machineError: machineError,
         procedureItemsError: procedureItemsError,
         accessoryItemsError: accessoryItemsError
@@ -497,7 +390,7 @@ exports.createUsage = async (req, res) => {
 
 exports.getUsageRecordsByUsageID = async (req, res) => {
   try {
-    let query = {isDeleted:false}
+    let query = req.mongoQuery;
     if (req.params.id) query.relatedUsage = req.params.id
     const result = await UsageRecords.find(query).populate('relatedUsage procedureMedicine.item_id procedureAccessory.item_id machine.item_id machineError.item_id procedureItemsError.item_id accessoryItemsError.item_id')
     return res.status(200).send({ success: true, data: result })
