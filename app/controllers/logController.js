@@ -185,7 +185,6 @@ exports.getUsage = async (req, res) => {
 
 exports.createUsage = async (req, res) => {
   let { relatedTreatmentSelection, relatedAppointment, procedureMedicine, procedureAccessory, machine } = req.body;
-  let { relatedBranch } = req.body;
   let machineError = []
   let procedureItemsError = []
   let accessoryItemsError = []
@@ -194,7 +193,6 @@ exports.createUsage = async (req, res) => {
   let accessoryItemsFinished = []
   let createdBy = req.credentials.id
   try {
-    if (relatedBranch === undefined) return res.status(404).send({ error: true, message: 'Branch ID is required' })
     const appResult = await Appointment.find({ _id: req.body.relatedAppointment })
     let status;
     if (appResult[0].relatedUsage === undefined) {
@@ -204,13 +202,13 @@ exports.createUsage = async (req, res) => {
             procedureItemsError.push(e);
           } else if (e.stock > e.actual) {
             let totalUnit = e.stock - e.actual;
-            const result = await Stock.find({ relatedProcedureItems: e.item_id, relatedBranch: relatedBranch });
+            const result = await Stock.find({ relatedProcedureItems: e.item_id });
             const from = result[0].fromUnit;
             const to = result[0].toUnit;
             const currentQty = (from * totalUnit) / to;
             try {
               const result = await Stock.findOneAndUpdate(
-                { relatedProcedureItems: e.item_id, relatedBranch: relatedBranch },
+                { relatedProcedureItems: e.item_id,  },
                 { totalUnit: totalUnit, currentQty: currentQty },
                 { new: true }
               );
@@ -225,7 +223,6 @@ exports.createUsage = async (req, res) => {
               "currentQty": e.stock,
               "actualQty": e.actual,
               "finalQty": totalUnit,
-              "relatedBranch": relatedBranch,
               "type": "Usage",
               "createdBy": createdBy
             });
@@ -239,14 +236,14 @@ exports.createUsage = async (req, res) => {
             accessoryItemsError.push(e)
           } else if (e.stock > e.actual) {
             let totalUnit = e.stock - e.actual
-            const result = await Stock.find({ relatedAccessoryItems: e.item_id, relatedBranch: relatedBranch })
+            const result = await Stock.find({ relatedAccessoryItems: e.item_id })
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
             try {
               accessoryItemsFinished.push(e)
               const result = await Stock.findOneAndUpdate(
-                { relatedAccessoryItems: e.item_id, relatedBranch: relatedBranch },
+                { relatedAccessoryItems: e.item_id },
                 { totalUnit: totalUnit, currentQty: currentQty },
                 { new: true },
               )
@@ -262,7 +259,6 @@ exports.createUsage = async (req, res) => {
               "actualQty": e.actual,
               "finalQty": totalUnit,
               "type": "Usage",
-              "relatedBranch": relatedBranch,
               "createdBy": createdBy
             })
           }
@@ -274,7 +270,7 @@ exports.createUsage = async (req, res) => {
           if (e.stock < e.actual) {
             machineError.push(e)
           } else if (e.stock > e.actual) {
-            const result = await Stock.find({ relatedMachine: e.item_id, relatedBranch: relatedBranch })
+            const result = await Stock.find({ relatedMachine: e.item_id })
             let totalUnit = e.stock - e.actual
             const from = result[0].fromUnit
             const to = result[0].toUnit
@@ -282,7 +278,7 @@ exports.createUsage = async (req, res) => {
             try {
               machineFinished.push(e)
               const result = await Stock.findOneAndUpdate(
-                { relatedMachine: e.item_id, relatedBranch: relatedBranch },
+                { relatedMachine: e.item_id },
                 { totalUnit: totalUnit, currentQty: currentQty },
                 { new: true },
               )
@@ -298,7 +294,6 @@ exports.createUsage = async (req, res) => {
               "actualQty": e.actual,
               "finalQty": totalUnit,
               "type": "Usage",
-              "relatedBranch": relatedBranch,
               "createdBy": createdBy
             })
           }
@@ -320,7 +315,6 @@ exports.createUsage = async (req, res) => {
         procedureMedicine: procedureItemsFinished,
         procedureAccessory: accessoryItemsFinished,
         machine: machineFinished,
-        relatedBranch: req.mongoQuery.relatedBranch,
         machineError: machineError,
         procedureItemsError: procedureItemsError,
         accessoryItemsError: accessoryItemsError
@@ -359,7 +353,7 @@ exports.createUsage = async (req, res) => {
             try {
               procedureItemsFinished.push(e)
               const result = await Stock.findOneAndUpdate(
-                { relatedProcedureItems: e.item_id, relatedBranch: relatedBranch },
+                { relatedProcedureItems: e.item_id },
                 { totalUnit: totalUnit, currentQty: currentQty },
                 { new: true },
               )
@@ -375,7 +369,6 @@ exports.createUsage = async (req, res) => {
               "actualQty": e.actual,
               "finalQty": totalUnit,
               "type": "Usage",
-              "relatedBranch": relatedBranch,
               "createdBy": createdBy
             })
           }
@@ -390,14 +383,14 @@ exports.createUsage = async (req, res) => {
             accessoryItemsError.push(e)
           } else if (e.stock > e.actual) {
             let totalUnit = e.stock - e.actual
-            const result = await Stock.find({ relatedAccessoryItems: e.item_id, relatedBranch: relatedBranch })
+            const result = await Stock.find({ relatedAccessoryItems: e.item_id })
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
             try {
               accessoryItemsFinished.push(e)
               const result = await Stock.findOneAndUpdate(
-                { relatedAccessoryItems: e.item_id, relatedBranch: relatedBranch },
+                { relatedAccessoryItems: e.item_id},
                 { totalUnit: totalUnit, currentQty: currentQty },
                 { new: true },
               )
@@ -413,7 +406,6 @@ exports.createUsage = async (req, res) => {
               "actualQty": e.actual,
               "finalQty": totalUnit,
               "type": "Usage",
-              "relatedBranch": relatedBranch,
               "createdBy": createdBy
             })
           }
@@ -428,14 +420,14 @@ exports.createUsage = async (req, res) => {
             machineError.push(e)
           } else if (e.stock > e.actual) {
             let totalUnit = e.stock - e.actual
-            const result = await Stock.find({ relatedMachine: e.item_id, relatedBranch: relatedBranch })
+            const result = await Stock.find({ relatedMachine: e.item_id})
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
             try {
               machineFinished.push(e)
               const result = await Stock.findOneAndUpdate(
-                { relatedMachine: e.item_id, relatedBranch: relatedBranch },
+                { relatedMachine: e.item_id },
                 { totalUnit: totalUnit, currentQty: currentQty },
                 { new: true },
               )
@@ -472,7 +464,6 @@ exports.createUsage = async (req, res) => {
           accessoryItemsError: accessoryItemsError,
           machineError: machineError,
           usageStatus: status,
-          relatedBranch: req.mongoQuery.relatedBranch
         },
         { new: true }
       );
@@ -482,7 +473,6 @@ exports.createUsage = async (req, res) => {
         procedureMedicine: procedureItemsFinished,
         procedureAccessory: accessoryItemsFinished,
         machine: machineFinished,
-        relatedBranch: req.mongoQuery.relatedBranch,
         machineError: machineError,
         procedureItemsError: procedureItemsError,
         accessoryItemsError: accessoryItemsError
