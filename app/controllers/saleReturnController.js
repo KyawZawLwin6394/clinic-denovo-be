@@ -72,7 +72,6 @@ exports.createSaleReturn = async (req, res, next) => {
                 const TransactionResult = await Transaction.create({
                     "amount": cashBack,
                     "date": Date.now(),
-                    "remark": data.remark,
                     "type": "Credit",
                     "relatedTransaction": null,
                     "relatedAccounting": accID, //Sales Comission
@@ -138,7 +137,6 @@ exports.createSaleReturn = async (req, res, next) => {
                 const TransactionResult = await Transaction.create({
                     "amount": cashBack,
                     "date": Date.now(),
-                    "remark": data.remark,
                     "type": "Credit",
                     "relatedTransaction": null,
                     "relatedAccounting": accID, //Sales Comission
