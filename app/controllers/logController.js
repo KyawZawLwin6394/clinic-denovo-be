@@ -10,7 +10,7 @@ const Appointment = require('../models/appointment')
 
 exports.listAllLog = async (req, res) => {
   try {
-    let result = await Log.find({ isDeleted: false }).populate('createdBy relatedTreatmentSelection relatedAppointment relatedProcedureItems relatedBranch relatedAccessoryItems relatedMachine').populate({
+    let result = await Log.find({ isDeleted: false }).populate('createdBy relatedTreatmentSelection relatedAppointment relatedProcedureItems relatedAccessoryItems relatedMachine').populate({
       path: 'relatedTreatmentSelection',
       populate: [{
         path: 'relatedTreatment',
@@ -153,10 +153,10 @@ exports.getStockTotalUnit = async (req, res) => {
   try {
     let accessoryResults = [];
     let data = req.body;
-    if (data.procedureItems) var procedureItems = await Stock.find({ relatedProcedureItems: { $in: data.procedureItems }, relatedBranch: data.relatedBranch }).populate('relatedProcedureItems');
-    if (data.medicineItems) var medicineItems = await Stock.find({ relatedMedicineItems: { $in: data.medicineItems }, relatedBranch: data.relatedBranch }).populate('relatedMedicineItems');
-    if (data.accessoryItems) accessoryResults = await Stock.find({ relatedAccessoryItems: { $in: data.accessoryItems }, relatedBranch: data.relatedBranch }).populate('relatedAccessoryItems');
-    if (data.machine) var machine = await Stock.find({ relatedMachine: { $in: data.machine }, relatedBranch: data.relatedBranch }).populate('relatedMachine');
+    if (data.procedureItems) var procedureItems = await Stock.find({ relatedProcedureItems: { $in: data.procedureItems }}).populate('relatedProcedureItems');
+    if (data.medicineItems) var medicineItems = await Stock.find({ relatedMedicineItems: { $in: data.medicineItems }}).populate('relatedMedicineItems');
+    if (data.accessoryItems) accessoryResults = await Stock.find({ relatedAccessoryItems: { $in: data.accessoryItems } }).populate('relatedAccessoryItems');
+    if (data.machine) var machine = await Stock.find({ relatedMachine: { $in: data.machine } }).populate('relatedMachine');
     return res.status(200).send({
       success: true,
       procedureItems: procedureItems,
@@ -346,7 +346,7 @@ exports.createUsage = async (req, res) => {
             procedureItemsError.push(e)
           } else if (e.stock > e.actual) {
             let totalUnit = e.stock - e.actual
-            const result = await Stock.find({ relatedProcedureItems: e.item_id, relatedBranch: relatedBranch })
+            const result = await Stock.find({ relatedProcedureItems: e.item_id })
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
@@ -443,7 +443,6 @@ exports.createUsage = async (req, res) => {
               "actualQty": e.actual,
               "finalQty": totalUnit,
               "type": "Usage",
-              "relatedBranch": relatedBranch,
               "createdBy": createdBy
             })
           }
