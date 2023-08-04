@@ -387,7 +387,7 @@ exports.createUsage = async (req, res) => {
 
 exports.getUsageRecordsByUsageID = async (req, res) => {
   try {
-    let query = req.mongoQuery;
+    let query = { isDeleted: false };
     if (req.params.id) query.relatedUsage = req.params.id
     const result = await UsageRecords.find(query).populate('relatedUsage procedureMedicine.item_id procedureAccessory.item_id machine.item_id machineError.item_id procedureItemsError.item_id accessoryItemsError.item_id')
     return res.status(200).send({ success: true, data: result })
