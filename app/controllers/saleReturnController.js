@@ -128,6 +128,7 @@ exports.createSaleReturn = async (req, res, next) => {
             }
         }
         else if (returnType === 'SubTreatment' && relatedSubTreatment) {
+            console.log('here')
             var selecUpdate = await TreatmentSelection.findOneAndUpdate(
                 { _id: relatedTreatmentSelection },
                 { saleReturnFlag: true },
@@ -139,11 +140,11 @@ exports.createSaleReturn = async (req, res, next) => {
                     "date": Date.now(),
                     "type": "Credit",
                     "relatedTransaction": null,
-                    "relatedAccounting": accID, //Sales Comission
+                    "relatedAccounting": "64ae1d0012b3d31436d48027", //Sales Comission
                 })
                 const transactionAmtUpdate = await Accounting.findOneAndUpdate(
-                    { _id: accID },
-                    { $inc: { amount: comission } }
+                    { _id: "64ae1d0012b3d31436d48027" },
+                    { $inc: { amount: cashBack } }
                 )
                 var fTransResult = await Transaction.create({
                     "amount": cashBack,
@@ -215,7 +216,7 @@ exports.createSaleReturn = async (req, res, next) => {
             selecUpdate: selecUpdate
         });
     } catch (error) {
-        // console.log(error )
+        console.log(error)
         return res.status(500).send({ "error": true, message: error.message })
     }
 };
