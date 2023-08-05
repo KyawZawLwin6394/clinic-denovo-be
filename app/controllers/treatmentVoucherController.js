@@ -60,13 +60,14 @@ exports.getTreatmentVoucher = async (req, res) => {
 
 exports.getRelatedTreatmentVoucher = async (req, res) => {
     try {
-        let { relatedPatient, startDate, endDate, createdBy, bankType, tsType, relatedDoctor } = req.query
+        let { relatedPatient, startDate, endDate, createdBy, bankType, tsType, relatedDoctor, relatedTreatmentSelection } = req.query
         let query = { isDeleted: false };
         if (startDate && endDate) query.createdAt = { $gte: startDate, $lte: endDate }
         if (relatedPatient) query.relatedPatient = relatedPatient
         if (bankType) query.bankType = bankType
         if (createdBy) query.createdBy = createdBy
         if (tsType) query.tsType = tsType
+        if (relatedTreatmentSelection) query.relatedTreatmentSelection = relatedTreatmentSelection
         console.log(query, relatedDoctor)
         let result = await TreatmentVoucher.find(query).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
             path: 'relatedTreatmentSelection',
@@ -303,8 +304,8 @@ exports.TreatmentVoucherFilter = async (req, res) => {
             result[name] = (result[name] || 0) + paidAmount + msTotalAmount + totalPaidAmount;
             return result;
         }, {});
-        const BankTotal = bankResult.reduce((total, sale) => total +  sale.paidAmount + sale.msTotalAmount + sale.totalPaidAmount , 0);
-        const CashTotal = cashResult.reduce((total, sale) => total +  sale.paidAmount + sale.msTotalAmount + sale.totalPaidAmount, 0);
+        const BankTotal = bankResult.reduce((total, sale) => total + sale.paidAmount + sale.msTotalAmount + sale.totalPaidAmount, 0);
+        const CashTotal = cashResult.reduce((total, sale) => total + sale.paidAmount + sale.msTotalAmount + sale.totalPaidAmount, 0);
 
         return res.status(200).send({
             success: true,
