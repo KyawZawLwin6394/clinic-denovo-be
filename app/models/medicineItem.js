@@ -55,8 +55,12 @@ let MedicineItemSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Branches'
   },
-  unit:{
-    type:String
+  unit: {
+    type: String
+  },
+  itemType: {
+    type: String,
+    enum: ['Oral', 'Topical', 'Cosmetic', 'Consignment']
   }
 });
 
