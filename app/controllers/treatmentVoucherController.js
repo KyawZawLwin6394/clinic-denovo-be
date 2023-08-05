@@ -60,7 +60,7 @@ exports.getTreatmentVoucher = async (req, res) => {
 
 exports.getRelatedTreatmentVoucher = async (req, res) => {
     try {
-        let { relatedPatient, startDate, endDate, createdBy, bankType, tsType, relatedDoctor, relatedTreatmentSelection } = req.query
+        let { relatedPatient, startDate, endDate, createdBy, bankType, tsType, relatedDoctor, relatedTreatmentSelection } = req.body
         let query = { isDeleted: false };
         if (startDate && endDate) query.createdAt = { $gte: startDate, $lte: endDate }
         if (relatedPatient) query.relatedPatient = relatedPatient

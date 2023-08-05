@@ -20,7 +20,7 @@ module.exports = (app) => {
     app.route('/api/treatment-vouchers/search')
         .post(verifyToken, catchError(treatmentVoucher.searchTreatmentVoucher))
     app.route('/api/treatment-vouchers/filter')
-        .get(verifyToken, catchError(treatmentVoucher.getRelatedTreatmentVoucher))
+        .post(verifyToken, catchError(treatmentVoucher.getRelatedTreatmentVoucher))
     app.route('/api/treatment-vouchers/code').get(verifyToken, catchError(treatmentVoucher.getCode))
     app.route('/api/treatment-vouchers/today').get(verifyToken, catchError(treatmentVoucher.getTodaysTreatmentVoucher))
     app.route('/api/treatment-vouchers/get-date').get(verifyToken, catchError(treatmentVoucher.getwithExactDate))
