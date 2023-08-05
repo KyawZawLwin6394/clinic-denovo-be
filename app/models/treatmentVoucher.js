@@ -79,14 +79,19 @@ let TreatmentVoucherSchema = new Schema({
     remark: {
         type: String
     },
-    totalDiscount:{
-        type:Number
+    totalDiscount: {
+        type: Number
     },
-    totalAmount:{
-        type:Number
+    totalAmount: {
+        type: Number
     },
-    totalPaidAmount:{
-        type:Number
+    paidAmount: {
+        type: Number,
+        default: 0
+    },
+    totalPaidAmount: {
+        type: Number,
+        default: 0
     },
     payment: {
         type: mongoose.Schema.Types.ObjectId,
@@ -107,7 +112,8 @@ let TreatmentVoucherSchema = new Schema({
         enum: ['TS', 'TSMulti', 'MS', 'Combined']
     },
     msTotalAmount: {
-        type: Number
+        type: Number,
+        default: 0
     },
     msTotalDiscountAmount: {
         type: Number

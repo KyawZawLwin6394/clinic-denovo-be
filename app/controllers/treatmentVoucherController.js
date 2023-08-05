@@ -293,18 +293,18 @@ exports.TreatmentVoucherFilter = async (req, res) => {
 
         console.log(bankResult, cashResult)
         //filter solid beauty
-        const BankNames = bankResult.reduce((result, { relatedBank, amount }) => {
+        const BankNames = bankResult.reduce((result, { relatedBank, paidAmount, msTotalAmount, totalPaidAmount }) => {
             const { name } = relatedBank;
-            result[name] = (result[name] || 0) + amount;
+            result[name] = (result[name] || 0) + paidAmount + msTotalAmount + totalPaidAmount;
             return result;
         }, {});
-        const CashNames = cashResult.reduce((result, { relatedCash, amount }) => {
+        const CashNames = cashResult.reduce((result, { relatedCash, amount, msTotalAmount, totalPaidAmount }) => {
             const { name } = relatedCash;
-            result[name] = (result[name] || 0) + amount;
+            result[name] = (result[name] || 0) + paidAmount + msTotalAmount + totalPaidAmount;
             return result;
         }, {});
-        const BankTotal = bankResult.reduce((total, sale) => total + sale.amount, 0);
-        const CashTotal = cashResult.reduce((total, sale) => total + sale.amount, 0);
+        const BankTotal = bankResult.reduce((total, sale) => total +  sale.paidAmount + sale.msTotalAmount + sale.totalPaidAmount , 0);
+        const CashTotal = cashResult.reduce((total, sale) => total +  sale.paidAmount + sale.msTotalAmount + sale.totalPaidAmount, 0);
 
         return res.status(200).send({
             success: true,
