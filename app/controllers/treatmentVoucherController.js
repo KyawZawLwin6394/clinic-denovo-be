@@ -237,13 +237,19 @@ exports.getwithExactDate = async (req, res) => {
 
 exports.TreatmentVoucherFilter = async (req, res) => {
     let query = { relatedBank: { $exists: true }, isDeleted: false }
+    let response = {
+        success: true,
+        data: {}
+    }
+
     try {
-        const { startDate, endDate, createdBy, purchaseType, relatedDoctor, bankType, tsType, relatedPatient } = req.query
+        const { startDate, endDate, createdBy, purchaseType, relatedDoctor, bankType, tsType, relatedPatient, bankID } = req.query
         if (startDate && endDate) query.createdAt = { $gte: startDate, $lte: endDate }
         if (relatedPatient) query.relatedPatient = relatedPatient
         if (bankType) query.bankType = bankType
         if (createdBy) query.createdBy = createdBy
         if (tsType) query.tsType = tsType
+        if (bankID) query.relatedBank = bankID
         let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
             path: 'relatedTreatmentSelection',
             model: 'TreatmentSelections',
@@ -256,33 +262,10 @@ exports.TreatmentVoucherFilter = async (req, res) => {
                 }
             }
         })
-        const { relatedBank, ...query2 } = query;
-        query2.relatedCash = { $exists: true };
-        let cashResult = await TreatmentVoucher.find(query2).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
-            path: 'relatedTreatmentSelection',
-            model: 'TreatmentSelections',
-            populate: {
-                path: 'relatedAppointments',
-                model: 'Appointments',
-                populate: {
-                    path: 'relatedDoctor',
-                    model: 'Doctors'
-                }
-            }
-        })
         if (purchaseType) {
-            cashResult = cashResult.filter(item => item.relatedTreatmentSelection.purchaseType === purchaseType)
             bankResult = bankResult.filter(item => item.relatedTreatmentSelection.purchaseType === purchaseType)
         }
         if (relatedDoctor) {
-            cashResult = cashResult.filter(item => {
-                const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
-                    i => i.relatedDoctor._id.toString() === relatedDoctor
-                );
-                console.log(hasMatchingAppointment);
-                return hasMatchingAppointment
-            });
-
             bankResult = bankResult.filter(item => {
                 const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
                     i => i.relatedDoctor._id.toString() === relatedDoctor
@@ -291,33 +274,59 @@ exports.TreatmentVoucherFilter = async (req, res) => {
                 return hasMatchingAppointment
             });
         }
-
-        console.log(bankResult, cashResult)
+        if (!bankID) {
+            const { relatedBank, ...query2 } = query;
+            query2.relatedCash = { $exists: true };
+            let cashResult = await TreatmentVoucher.find(query2).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
+                path: 'relatedTreatmentSelection',
+                model: 'TreatmentSelections',
+                populate: {
+                    path: 'relatedAppointments',
+                    model: 'Appointments',
+                    populate: {
+                        path: 'relatedDoctor',
+                        model: 'Doctors'
+                    }
+                }
+            })
+            if (purchaseType) {
+                cashResult = cashResult.filter(item => item.relatedTreatmentSelection.purchaseType === purchaseType)
+            }
+            if (relatedDoctor) {
+                cashResult = cashResult.filter(item => {
+                    const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
+                        i => i.relatedDoctor._id.toString() === relatedDoctor
+                    );
+                    console.log(hasMatchingAppointment);
+                    return hasMatchingAppointment
+                });
+            }
+            const CashNames = cashResult.reduce((result, { relatedCash, paidAmount, msTotalAmount, totalPaidAmount }) => {
+                const { name } = relatedCash;
+                result[name] = (result[name] || 0) + paidAmount + msTotalAmount + totalPaidAmount;
+                return result;
+            }, {});
+            const CashTotal = cashResult.reduce((total, sale) => total + sale.paidAmount + sale.msTotalAmount + sale.totalPaidAmount, 0);
+            response.data = { ...response.data, CashList: cashResult, CashNames: CashNames, CashTotal: CashTotal }
+        }
         //filter solid beauty
         const BankNames = bankResult.reduce((result, { relatedBank, paidAmount, msTotalAmount, totalPaidAmount }) => {
             const { name } = relatedBank;
             result[name] = (result[name] || 0) + paidAmount + msTotalAmount + totalPaidAmount;
             return result;
         }, {});
-        const CashNames = cashResult.reduce((result, { relatedCash, paidAmount, msTotalAmount, totalPaidAmount }) => {
-            const { name } = relatedCash;
-            result[name] = (result[name] || 0) + paidAmount + msTotalAmount + totalPaidAmount;
-            return result;
-        }, {});
         const BankTotal = bankResult.reduce((total, sale) => total + sale.paidAmount + sale.msTotalAmount + sale.totalPaidAmount, 0);
-        const CashTotal = cashResult.reduce((total, sale) => total + sale.paidAmount + sale.msTotalAmount + sale.totalPaidAmount, 0);
+        response.data = { ...response.data, BankList: bankResult, BankNames: BankNames, BankTotal: BankTotal }
+        // {
+        //     BankList: bankResult,
+        //     CashList: cashResult,
+        //     BankNames: BankNames,
+        //     CashNames: CashNames,
+        //     BankTotal: BankTotal,
+        //     CashTotal: CashTotal
+        // }
 
-        return res.status(200).send({
-            success: true,
-            data: {
-                BankList: bankResult,
-                CashList: cashResult,
-                BankNames: BankNames,
-                CashNames: CashNames,
-                BankTotal: BankTotal,
-                CashTotal: CashTotal
-            }
-        });
+        return res.status(200).send(response);
     } catch (error) {
         return res.status(500).send({ error: true, message: error.message })
     }
