@@ -239,7 +239,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
                 "relatedAppointment": relatedAppointment,
                 "relatedPatient": relatedPatient,
                 "paymentMethod": "Advanced", //enum: ['by Appointment','Lapsum','Total','Advanced']
-                "amount": paidAmount,
+                "totalPaidAmount": paidAmount,
                 "relatedBank": relatedBank,
                 "bankType": bankType,//must be bank acc from accounting accs
                 "paymentType": paymentType, //enum: ['Bank','Cash']
