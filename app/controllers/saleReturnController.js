@@ -69,6 +69,7 @@ exports.createSaleReturn = async (req, res, next) => {
                 { new: true }
             )
             if (cashBack > 0) {
+                console.log('here1')
                 const TransactionResult = await Transaction.create({
                     "amount": cashBack,
                     "date": Date.now(),
@@ -78,8 +79,9 @@ exports.createSaleReturn = async (req, res, next) => {
                 })
                 const transactionAmtUpdate = await Accounting.findOneAndUpdate(
                     { _id: accID },
-                    { $inc: { amount: comission } }
+                    { $inc: { amount: cashBack } }
                 )
+                console.log('here2')
                 //649a4fbd23608d77fb20afb6
                 var fTransResult = await Transaction.create({
                     "amount": cashBack,
@@ -135,6 +137,7 @@ exports.createSaleReturn = async (req, res, next) => {
                 { new: true }
             );
             if (cashBack > 0) {
+                console.log('here3')
                 const TransactionResult = await Transaction.create({
                     "amount": cashBack,
                     "date": Date.now(),
@@ -146,6 +149,7 @@ exports.createSaleReturn = async (req, res, next) => {
                     { _id: "64ae1d0012b3d31436d48027" },
                     { $inc: { amount: cashBack } }
                 )
+                console.log('here4')
                 var fTransResult = await Transaction.create({
                     "amount": cashBack,
                     "date": Date.now(),
@@ -194,6 +198,7 @@ exports.createSaleReturn = async (req, res, next) => {
             }
 
         }
+        console.log('here5')
         var thirdTransResult = await Transaction.create({
             "amount": totalAmount,
             "date": Date.now(),
