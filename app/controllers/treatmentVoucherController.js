@@ -299,7 +299,7 @@ exports.TreatmentVoucherFilter = async (req, res) => {
             result[name] = (result[name] || 0) + paidAmount + msTotalAmount + totalPaidAmount;
             return result;
         }, {});
-        const CashNames = cashResult.reduce((result, { relatedCash, amount, msTotalAmount, totalPaidAmount }) => {
+        const CashNames = cashResult.reduce((result, { relatedCash, paidAmount, msTotalAmount, totalPaidAmount }) => {
             const { name } = relatedCash;
             result[name] = (result[name] || 0) + paidAmount + msTotalAmount + totalPaidAmount;
             return result;
