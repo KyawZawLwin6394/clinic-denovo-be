@@ -241,7 +241,6 @@ exports.TreatmentVoucherFilter = async (req, res) => {
         success: true,
         data: {}
     }
-
     try {
         const { startDate, endDate, createdBy, purchaseType, relatedDoctor, bankType, tsType, relatedPatient, bankID } = req.query
         if (startDate && endDate) query.createdAt = { $gte: startDate, $lte: endDate }

@@ -157,9 +157,11 @@ exports.getTotalWithDateFilter = async (req, res) => {
         if (createdBy) {
             filterQuery2.createdBy = createdBy
             filterQuery.createdBy = createdBy
-        }   
+        }
 
-        const msFilterBankResult = await MedicineSale.find(filterQuery2).populate('relatedPatient relatedAppointment medicineItems.item_id relatedTreatment relatedBank relatedCash').populate({
+        filterQuery2.tsType = 'MS'
+
+        const msFilterBankResult = await TreatmentVoucher.find(filterQuery2).populate('relatedPatient relatedAppointment medicineItems.item_id relatedTreatment relatedBank relatedCash').populate({
             path: 'relatedTransaction',
             populate: [{
                 path: 'relatedAccounting',
@@ -172,6 +174,7 @@ exports.getTotalWithDateFilter = async (req, res) => {
                 model: 'AccountingLists'
             }]
         });
+        filterQuery2.tsType = { $in: ["TS", "TSMulti"] }
         const tvFilterBankResult = await TreatmentVoucher.find(filterQuery2).populate('relatedTreatment relatedAppointment relatedPatient relatedBank relatedCash')
         const incomeFilterBankResult = await Income.find(filterQuery).populate('relatedAccounting relatedBankAccount relatedCashAccount')
         const expenseFilterBankResult = await Expense.find(filterQuery).populate('relatedAccounting relatedBankAccount relatedCashAccount')
