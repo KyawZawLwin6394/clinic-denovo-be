@@ -235,10 +235,10 @@ exports.searchPatients = async (req, res, next) => {
 exports.topTenPatients = async (req, res) => {
   try {
     let query = { isDeleted: false };
-    let { start, end } = req.query;
-    if (start, end) query.createdAt = { $gte: start, $lte: end };
 
     const patientResult = await Patient.find(query)
+      .sort({ conditionAmount: -1 })
+      .limit(10)
       .populate('img').populate({
         path: 'relatedMember',
         model: 'Members',
@@ -276,26 +276,7 @@ exports.topTenPatients = async (req, res) => {
           }
         }
       });
-
-    const PatientNameMap = patientResult.reduce((result, { conditionAmount, name }) => {
-      // const { name, treatmentName } = relatedTreatment;
-      // const treatmentUnit = name;
-      // const treatment = treatmentName.name;
-
-      // if (result.hasOwnProperty(treatmentUnit)) {
-      //   result[treatmentUnit].qty++;
-      // } else {
-      //   result[treatmentUnit] = { treatmentUnit, treatment, qty: 1 };
-      // }
-
-      // return result;
-    }, {});
-
-    const reducedTreatmentNames = Object.values(treatmentNameMap);
-
-    const sortedTreatmentNames = reducedTreatmentNames.sort((a, b) => b.qty - a.qty); // Descending
-
-    return res.status(200).send({ success: true, data: sortedTreatmentNames, list: TreatmentResult });
+    return res.status(200).send({ success: true, data: patientResult });
   } catch (error) {
     return res.status(500).send({ error: true, message: error.message });
   }
