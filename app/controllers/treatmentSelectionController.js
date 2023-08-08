@@ -1187,4 +1187,72 @@ exports.sendEmail = async (req, res) => {
     } catch (error) {
         return res.status(500).send({ error: true, message: error.message })
     }
-}   
+}
+
+exports.TopTenFilter = async (req, res) => {
+    try {
+        let query = { isDeleted: false };
+        let { start, end, tsType } = req.query;
+        if (start, end) query.createdAt = { $gte: start, $lte: end };
+        if (tsType) query.tsType = tsType
+        const TreatmentResult = await TreatmentSelection.find(query)
+            .populate('relatedTreatment multiTreatment.item_id')
+            .populate({
+                path: 'relatedTreatment',
+                populate: {
+                    path: 'treatmentName',
+                    model: 'TreatmentLists',
+                }
+            });
+        if (tsType === 'TS') {
+            const treatmentNameMap = TreatmentResult.reduce((result, { relatedTreatment }) => {
+                if (!relatedTreatment) {
+                    // Handle the case where relatedTreatment is undefined
+                    return result; // Skip this iteration
+                }
+                const { name, treatmentName } = relatedTreatment;
+                const treatmentUnit = name;
+                const treatment = treatmentName.name;
+                console.log(treatmentUnit)
+                if (result.hasOwnProperty(treatmentUnit)) {
+                    result[treatmentUnit].qty++;
+                } else {
+                    result[treatmentUnit] = { treatmentUnit, treatment, qty: 1 };
+                }
+                return result;
+            }, {});
+
+            const reducedTreatmentNames = Object.values(treatmentNameMap);
+
+            const sortedTreatmentNames = reducedTreatmentNames.sort((a, b) => b.qty - a.qty); // Descending
+            return res.status(200).send({ success: true, data: sortedTreatmentNames, list: TreatmentResult });
+        } else if (tsType === 'TSMulti') {
+            const treatmentNameMap = TreatmentResult.reduce((result, { multiTreatment }) => {
+                if (multiTreatment.length === 0) {
+                    return result; // Skip this iteration
+                }
+                console.log(multiTreatment)
+                multiTreatment.forEach(item => {
+                    const { name, treatmentName } = item.item_id;
+                    const treatmentUnit = name || 'Undefined'; // Use 'Undefined' if name is falsy
+                    const treatment = treatmentName ? treatmentName.name : 'Undefined';
+
+                    if (result.hasOwnProperty(treatmentUnit)) {
+                        result[treatmentUnit].qty++;
+                    } else {
+                        result[treatmentUnit] = { treatmentUnit, treatment, qty: 1 };
+                    }
+                });
+                return result; // Return the updated result object for the current iteration
+            }, {});
+
+            const reducedTreatmentNames = Object.values(treatmentNameMap);
+
+            const sortedTreatmentNames = reducedTreatmentNames.sort((a, b) => b.qty - a.qty); // Descending
+            return res.status(200).send({ success: true, data: sortedTreatmentNames, list: TreatmentResult });
+        }
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send({ error: true, message: error.message });
+    }
+};

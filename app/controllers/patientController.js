@@ -231,3 +231,72 @@ exports.searchPatients = async (req, res, next) => {
     return res.status(500).send({ error: true, message: err.message })
   }
 }
+
+exports.topTenPatients = async (req, res) => {
+  try {
+    let query = { isDeleted: false };
+    let { start, end } = req.query;
+    if (start, end) query.createdAt = { $gte: start, $lte: end };
+
+    const patientResult = await Patient.find(query)
+      .populate('img').populate({
+        path: 'relatedMember',
+        model: 'Members',
+        populate: {
+          path: 'relatedDiscount',
+          model: 'Discounts'
+        }
+      }).populate({
+        path: 'relatedTreatmentSelection',
+        model: 'TreatmentSelections',
+        populate: {
+          path: 'relatedAppointments',
+          model: 'Appointments',
+          populate: {
+            path: 'relatedDoctor',
+            model: 'Doctors'
+          }
+        }
+      }).populate({
+        path: 'relatedTreatmentSelection',
+        model: 'TreatmentSelections',
+        populate: {
+          path: 'relatedTreatment',
+          model: 'Treatments'
+        }
+      }).populate({
+        path: 'relatedPackageSelection',
+        model: 'PackageSelections',
+        populate: {
+          path: 'relatedPackage',
+          model: 'Packages',
+          populate: {
+            path: 'relatedTreatments',
+            model: 'Treatments'
+          }
+        }
+      });
+
+    const PatientNameMap = patientResult.reduce((result, { conditionAmount, name }) => {
+      // const { name, treatmentName } = relatedTreatment;
+      // const treatmentUnit = name;
+      // const treatment = treatmentName.name;
+
+      // if (result.hasOwnProperty(treatmentUnit)) {
+      //   result[treatmentUnit].qty++;
+      // } else {
+      //   result[treatmentUnit] = { treatmentUnit, treatment, qty: 1 };
+      // }
+
+      // return result;
+    }, {});
+
+    const reducedTreatmentNames = Object.values(treatmentNameMap);
+
+    const sortedTreatmentNames = reducedTreatmentNames.sort((a, b) => b.qty - a.qty); // Descending
+
+    return res.status(200).send({ success: true, data: sortedTreatmentNames, list: TreatmentResult });
+  } catch (error) {
+    return res.status(500).send({ error: true, message: error.message });
+  }
+};
