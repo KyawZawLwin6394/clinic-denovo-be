@@ -280,15 +280,15 @@ exports.TreatmentVoucherFilter = async (req, res) => {
         if (purchaseType) {
             bankResult = bankResult.filter(item => item.relatedTreatmentSelection.purchaseType === purchaseType)
         }
-        if (relatedDoctor) {
-            bankResult = bankResult.filter(item => {
-                const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
-                    i => i.relatedDoctor._id.toString() === relatedDoctor
-                );
-                console.log(hasMatchingAppointment);
-                return hasMatchingAppointment
-            });
-        }
+        // if (relatedDoctor) {
+        //     bankResult = bankResult.filter(item => {
+        //         const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
+        //             i => i.relatedDoctor._id.toString() === relatedDoctor
+        //         );
+        //         console.log(hasMatchingAppointment);
+        //         return hasMatchingAppointment
+        //     });
+        // }
         if (!bankID) {
             const { relatedBank, ...query2 } = query;
             query2.relatedCash = { $exists: true };
