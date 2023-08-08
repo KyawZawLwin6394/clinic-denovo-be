@@ -154,6 +154,10 @@ let TreatmentVoucherSchema = new Schema({
     relatedTransaction: {
         type: [mongoose.Schema.Types.ObjectId],
         ref: 'Transactions'
+    },
+    relatedDoctor:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Doctors'
     }
 });
 

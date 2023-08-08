@@ -265,7 +265,7 @@ exports.TreatmentVoucherFilter = async (req, res) => {
         if (createdBy) query.createdBy = createdBy
         if (tsType) query.tsType = tsType
         if (bankID) query.relatedBank = bankID
-        let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
+        let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedDoctor relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
             path: 'relatedTreatmentSelection',
             model: 'TreatmentSelections',
             populate: {
@@ -292,7 +292,7 @@ exports.TreatmentVoucherFilter = async (req, res) => {
         if (!bankID) {
             const { relatedBank, ...query2 } = query;
             query2.relatedCash = { $exists: true };
-            let cashResult = await TreatmentVoucher.find(query2).populate('relatedTreatment relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
+            let cashResult = await TreatmentVoucher.find(query2).populate('relatedTreatment relatedDoctor relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
                 path: 'relatedTreatmentSelection',
                 model: 'TreatmentSelections',
                 populate: {
@@ -307,15 +307,15 @@ exports.TreatmentVoucherFilter = async (req, res) => {
             if (purchaseType) {
                 cashResult = cashResult.filter(item => item.relatedTreatmentSelection.purchaseType === purchaseType)
             }
-            if (relatedDoctor) {
-                cashResult = cashResult.filter(item => {
-                    const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
-                        i => i.relatedDoctor._id.toString() === relatedDoctor
-                    );
-                    console.log(hasMatchingAppointment);
-                    return hasMatchingAppointment
-                });
-            }
+            // if (relatedDoctor) {
+            //     cashResult = cashResult.filter(item => {
+            //         const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
+            //             i => i.relatedDoctor._id.toString() === relatedDoctor
+            //         );
+            //         console.log(hasMatchingAppointment);
+            //         return hasMatchingAppointment
+            //     });
+            // }
             const CashNames = cashResult.reduce((result, { relatedCash, paidAmount, msTotalAmount, totalPaidAmount }) => {
                 const { name } = relatedCash;
                 result[name] = (result[name] || 0) + paidAmount + msTotalAmount + totalPaidAmount;
