@@ -205,13 +205,11 @@ exports.getTotalWithDateFilter = async (req, res) => {
         //      Medicine Sale
         const msBankNames = msFilterBankResult.reduce((result, { relatedBank, msPaidAmount }) => {
             const { name } = relatedBank;
-            console.log(name)
             result[name] = (result[name] || 0) + msPaidAmount;
             return result;
         }, {});
         const msCashNames = msFilterCashResult.reduce((result, { relatedCash, msPaidAmount }) => {
             const { name } = relatedCash;
-            console.log(name)
             result[name] = (result[name] || 0) + msPaidAmount;
             return result;
         }, {});

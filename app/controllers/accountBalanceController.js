@@ -1,5 +1,8 @@
 'use strict';
 const AccountBalance = require('../models/accountBalance');
+const TreatmentVoucher = require('../models/treatmentVoucher');
+const Expense = require('../models/expense');
+const Income = require('../models/income');
 
 exports.listAllAccountBalances = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -130,8 +133,8 @@ exports.getOpeningAndClosingWithExactDate = async (req, res) => {
 
         let openingTotal = latestDocument.length > 0 ? latestDocument[0].amount : 0
 
-        const medicineTotal = await MedicineSale.find({ createdAt: { $gte: startDate, $lt: endDate }, relatedBranch: relatedBranch, relatedCash: relatedCash, relatedBank: relatedBank }).then(msResult => {
-            const msTotal = msResult.reduce((accumulator, currentValue) => { return accumulator + currentValue.totalAmount }, 0)
+        const medicineTotal = await TreatmentVoucher.find({ tsType: 'MS', createdAt: { $gte: startDate, $lt: endDate }, relatedBranch: relatedBranch, relatedCash: relatedCash, relatedBank: relatedBank }).then(msResult => {
+            const msTotal = msResult.reduce((accumulator, currentValue) => { return accumulator + currentValue.msPaidAmount }, 0)
             return msTotal
         }
         )
@@ -140,8 +143,8 @@ exports.getOpeningAndClosingWithExactDate = async (req, res) => {
             return total
         }
         )
-        const TVTotal = await TreatmentVoucher.find({ createdAt: { $gte: startDate, $lt: endDate }, relatedBranch: relatedBranch, relatedCash: relatedCash, relatedBank: relatedBank }).then(result => {
-            const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.amount }, 0)
+        const TVTotal = await TreatmentVoucher.find({ tsType: { $in: ["TS", "TSMulti"] }, createdAt: { $gte: startDate, $lt: endDate }, relatedBranch: relatedBranch, relatedCash: relatedCash, relatedBank: relatedBank }).then(result => {
+            const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.paidAmount + currentValue.totalPaidAmount }, 0)
             return total
         }
         )
