@@ -129,15 +129,15 @@ exports.getOpeningAndClosingWithExactDate = async (req, res) => {
 
         const latestDocument = await AccountBalance.findOne(query, null, { sort });
         if (latestDocument === null) return res.status(404).send({ error: true, message: 'Not Found!' })
-
-        let openingTotal = latestDocument.length > 0 ? latestDocument[0].amount : 0
+        console.log(latestDocument)
+        let openingTotal = latestDocument ? latestDocument.amount : 0
         console.log(startDate, endDate)
         let data = { tsType: 'MS', createdAt: { $gte: startDate, $lt: endDate } }
         if (relatedBranch) data.relatedBranch = relatedBranch
         if (relatedCash) data.relatedCash = relatedCash
         if (relatedBank) data.relatedBank = relatedBank
 
-        let exandin = { date: { $gte: startDate, $lt: endDate }}
+        let exandin = { date: { $gte: startDate, $lt: endDate } }
         if (relatedBranch) data.relatedBranch = relatedBranch
         if (relatedCash) data.relatedCashAccount = relatedCash
         if (relatedBank) data.relatedBankAccount = relatedCash
