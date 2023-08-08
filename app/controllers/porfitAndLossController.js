@@ -89,8 +89,8 @@ exports.getTotal = async (req, res) => {
 exports.getTotalWithDateFilter = async (req, res) => {
     try {
         let { start, end, weekName, monthName, createdBy } = req.query
-        let query = { ...req.mongoQuery }
-        let exquery = { ...req.mongoQuery }
+        let query = { ...{ isDeleted: false } }
+        let exquery = { ...{ isDeleted: false } }
         let filterQuery = { relatedBankAccount: { $exists: true } }
         let filterQuery2 = { relatedBank: { $exists: true } }
         let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -185,7 +185,7 @@ exports.getTotalWithDateFilter = async (req, res) => {
         const { relatedBank, ...filterQuery3 } = filterQuery2;
         filterQuery3.relatedCash = { $exists: true };
 
-        const msFilterCashResult = await MedicineSale.find(filterQuery3).populate('relatedPatient relatedAppointment medicineItems.item_id relatedTreatment relatedBank relatedCash').populate({
+        const msFilterCashResult = await TreatmentVoucher.find(filterQuery3).populate('relatedPatient relatedAppointment medicineItems.item_id relatedTreatment relatedBank relatedCash').populate({
             path: 'relatedTransaction',
             populate: [{
                 path: 'relatedAccounting',
@@ -203,32 +203,34 @@ exports.getTotalWithDateFilter = async (req, res) => {
         const expenseFilterCashResult = await Expense.find(filterQuerys).populate('relatedAccounting relatedBankAccount relatedCashAccount')
 
         //      Medicine Sale
-        const msBankNames = msFilterBankResult.reduce((result, { relatedBank, totalAmount }) => {
+        const msBankNames = msFilterBankResult.reduce((result, { relatedBank, msPaidAmount }) => {
             const { name } = relatedBank;
-            result[name] = (result[name] || 0) + totalAmount;
+            console.log(name)
+            result[name] = (result[name] || 0) + msPaidAmount;
             return result;
         }, {});
-        const msCashNames = msFilterCashResult.reduce((result, { relatedCash, totalAmount }) => {
+        const msCashNames = msFilterCashResult.reduce((result, { relatedCash, msPaidAmount }) => {
             const { name } = relatedCash;
-            result[name] = (result[name] || 0) + totalAmount;
+            console.log(name)
+            result[name] = (result[name] || 0) + msPaidAmount;
             return result;
         }, {});
-        const msBankTotal = msFilterBankResult.reduce((total, sale) => total + sale.totalAmount, 0);
-        const msCashTotal = msFilterCashResult.reduce((total, sale) => total + sale.totalAmount, 0);
+        const msBankTotal = msFilterBankResult.reduce((total, sale) => total + sale.msPaidAmount, 0);
+        const msCashTotal = msFilterCashResult.reduce((total, sale) => total + sale.msPaidAmount, 0);
 
         //TreatmentVoucher
-        const tvBankNames = tvFilterBankResult.reduce((result, { relatedBank, amount }) => {
+        const tvBankNames = tvFilterBankResult.reduce((result, { relatedBank, paidAmount, totalPaidAmount }) => {
             const { name } = relatedBank;
-            result[name] = (result[name] || 0) + amount;
+            result[name] = (result[name] || 0) + paidAmount + totalPaidAmount;
             return result;
         }, {});
-        const tvCashNames = tvFilterCashResult.reduce((result, { relatedCash, amount }) => {
+        const tvCashNames = tvFilterCashResult.reduce((result, { relatedCash, paidAmount, totalPaidAmount }) => {
             const { name } = relatedCash;
-            result[name] = (result[name] || 0) + amount;
+            result[name] = (result[name] || 0) + paidAmount + totalPaidAmount;
             return result;
         }, {});
-        const tvBankTotal = tvFilterBankResult.reduce((total, sale) => total + sale.amount, 0);
-        const tvCashTotal = tvFilterCashResult.reduce((total, sale) => total + sale.amount, 0);
+        const tvBankTotal = tvFilterBankResult.reduce((total, sale) => total + sale.paidAmount + sale.totalPaidAmount, 0);
+        const tvCashTotal = tvFilterCashResult.reduce((total, sale) => total + sale.paidAmount + sale.totalPaidAmount, 0);
 
         //Income
         const incomeBankNames = incomeFilterBankResult.reduce((result, { relatedBankAccount, finalAmount }) => {
@@ -258,7 +260,7 @@ exports.getTotalWithDateFilter = async (req, res) => {
         const expenseBankTotal = expenseFilterBankResult.reduce((total, sale) => total + sale.finalAmount, 0);
         const expenseCashTotal = expenseFilterCashResult.reduce((total, sale) => total + sale.finalAmount, 0);
 
-        const MedicineSaleResult = await MedicineSale.find(query).populate('relatedPatient relatedAppointment medicineItems.item_id relatedTreatment').populate({
+        const MedicineSaleResult = await TreatmentVoucher.find({ isDeleted: false, tsType: 'MS' }).populate('relatedPatient relatedAppointment medicineItems.item_id relatedTreatment').populate({
             path: 'relatedTransaction',
             populate: [{
                 path: 'relatedAccounting',
@@ -271,12 +273,12 @@ exports.getTotalWithDateFilter = async (req, res) => {
                 model: 'AccountingLists'
             }]
         });
-        const TreatmentVoucherResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedAppointment relatedPatient')
+        const TreatmentVoucherResult = await TreatmentVoucher.find({ isDeleted: false, tsType: { $in: ["TS", "TSMulti"] } }).populate('relatedTreatment relatedAppointment relatedPatient')
         const ExpenseResult = await Expense.find(exquery).populate('relatedAccounting relatedBankAccount relatedCashAccount')
         const IncomeResult = await Income.find(exquery).populate('relatedAccounting relatedBankAccount relatedCashAccount')
 
-        const msTotalAmount = MedicineSaleResult.reduce((total, sale) => total + sale.grandTotal, 0);
-        const tvTotalAmount = TreatmentVoucherResult.reduce((total, sale) => total + sale.amount, 0);
+        const msTotalAmount = MedicineSaleResult.reduce((total, sale) => total + sale.msPaidAmount, 0);
+        const tvTotalAmount = TreatmentVoucherResult.reduce((total, sale) => total + sale.paidAmount + sale.totalPaidAmount, 0);
         const exTotalAmount = ExpenseResult.reduce((total, sale) => {
             let current = currencyList.filter(currency => currency.code === sale.finalCurrency)[0].exchangeRate
             let ans = current * sale.finalAmount
@@ -288,13 +290,13 @@ exports.getTotalWithDateFilter = async (req, res) => {
             return total + ans
         }, 0);
 
-        const tvPaymentMethod = TreatmentVoucherResult.reduce((result, { paymentMethod, amount }) => {
-            result[paymentMethod] = (result[paymentMethod] || 0) + amount;
+        const tvPaymentMethod = TreatmentVoucherResult.reduce((result, { paymentMethod, paidAmount, totalPaidAmount }) => {
+            result[paymentMethod] = (result[paymentMethod] || 0) + paidAmount + totalPaidAmount;
             return result;
         }, {});
 
-        const msPaymentMethod = MedicineSaleResult.reduce((result, { paymentMethod, totalAmount }) => {
-            result[paymentMethod] = (result[paymentMethod] || 0) + totalAmount;
+        const msPaymentMethod = MedicineSaleResult.reduce((result, { paymentMethod, msPaidAmount }) => {
+            result[paymentMethod] = (result[paymentMethod] || 0) + msPaidAmount;
             return result;
         }, {});
 
@@ -352,7 +354,7 @@ exports.getTotalWithDateFilter = async (req, res) => {
 
 exports.getTotalwithBranch = async (req, res) => {
     try {
-        const relatedBranchId = req.mongoQuery.relatedBranch; // Assuming you're passing the relatedBranch ID as a query parameter
+        const relatedBranchId = { isDeleted: false }.relatedBranch; // Assuming you're passing the relatedBranch ID as a query parameter
 
         const MSTotal = await MedicineSale.aggregate([
             {
@@ -475,7 +477,7 @@ exports.getTotalwithBranch = async (req, res) => {
 
 exports.listAllLog = async (req, res) => {
     try {
-        let query = req.mongoQuery
+        let query = { isDeleted: false }
         let result = await Log.find(query).populate('relatedTreatmentSelection relatedAppointment relatedProcedureItems relatedAccessoryItems relatedMachine').populate({
             path: 'relatedTreatmentSelection',
             populate: [{
@@ -498,7 +500,7 @@ exports.listAllLog = async (req, res) => {
 exports.getDay = async (req, res) => {
     let { startDate, endDate } = req.body
     try {
-        let query = req.mongoQuery
+        let query = { isDeleted: false }
         if (startDate && endDate) query.createdAt = { $gte: startDate, $lte: endDate }
         const meidicineSaleWeek = await MedicineSale.find(query).populate('relatedPatient relatedAppointment medicineItems.item_id relatedTreatment').populate({
             path: 'relatedTransaction',
@@ -515,7 +517,7 @@ exports.getDay = async (req, res) => {
         });
         const treatmentVoucherWeek = await TreatmentVoucher.find(query).populate('relatedTreatment relatedAppointment relatedPatient')
         let query2 = { date: { $gte: startDate, $lte: endDate }, isDeleted: false }
-        if (req.mongoQuery.relatedBranch) query.relatedBranch = req.mongoQuery.relatedBranch
+        if ({ isDeleted: false }.relatedBranch) query.relatedBranch = { isDeleted: false }.relatedBranch
         const expenseWeek = await Expense.find(query2).populate('relatedAccounting relatedBankAccount relatedCashAccount')
         res.status(200).send({
             succes: true,
@@ -545,7 +547,7 @@ exports.getMonth = async (req, res) => {
         const startDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(month), 1));
         const endDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(month) + 1, 1));
 
-        let query = req.mongoQuery
+        let query = { isDeleted: false }
         if (month) query.createdAt = { $gte: startDate, $lte: endDate }
 
         const meidicineSaleWeek = await MedicineSale.find(query).populate('relatedPatient relatedAppointment medicineItems.item_id relatedTreatment').populate({
@@ -563,7 +565,7 @@ exports.getMonth = async (req, res) => {
         });
         const treatmentVoucherWeek = await TreatmentVoucher.find(query).populate('relatedTreatment relatedAppointment relatedPatient')
         let query2 = { date: { $gte: startDate, $lte: endDate }, isDeleted: false }
-        if (req.mongoQuery.relatedBranch) query.relatedBranch = req.mongoQuery.relatedBranch
+        if ({ isDeleted: false }.relatedBranch) query.relatedBranch = { isDeleted: false }.relatedBranch
         const expenseWeek = await Expense.find(query2).populate('relatedAccounting relatedBankAccount relatedCashAccount')
         res.status(200).send({
             succes: true,
@@ -611,7 +613,7 @@ exports.getWeek = async (req, res) => {
 
     try {
         //preparing query
-        let query = req.mongoQuery
+        let query = { isDeleted: false }
         if (weekName) query.createdAt = { $gte: startDate, $lte: endDate }
 
         const meidicineSaleWeek = await MedicineSale.find(query).populate('relatedPatient relatedAppointment medicineItems.item_id relatedTreatment').populate({
@@ -629,7 +631,7 @@ exports.getWeek = async (req, res) => {
         });
         const treatmentVoucherWeek = await TreatmentVoucher.find(query).populate('relatedTreatment relatedAppointment relatedPatient')
         let query2 = { date: { $gte: startDate, $lte: endDate }, isDeleted: false }
-        if (req.mongoQuery.relatedBranch) query2.relatedBranch = req.mongoQuery.relatedBranch
+        if ({ isDeleted: false }.relatedBranch) query2.relatedBranch = { isDeleted: false }.relatedBranch
         const expenseWeek = await Expense.find(query2).populate('relatedAccounting relatedBankAccount relatedCashAccount')
 
         res.status(200).send({
