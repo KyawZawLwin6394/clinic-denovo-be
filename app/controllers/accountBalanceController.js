@@ -128,28 +128,38 @@ exports.getOpeningAndClosingWithExactDate = async (req, res) => {
         const endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1); // Set end date to the beginning of the next day
 
         const latestDocument = await AccountBalance.findOne(query, null, { sort });
-        console.log(latestDocument)
         if (latestDocument === null) return res.status(404).send({ error: true, message: 'Not Found!' })
 
         let openingTotal = latestDocument.length > 0 ? latestDocument[0].amount : 0
+        console.log(startDate, endDate)
+        let data = { tsType: 'MS', createdAt: { $gte: startDate, $lt: endDate } }
+        if (relatedBranch) data.relatedBranch = relatedBranch
+        if (relatedCash) data.relatedCash = relatedCash
+        if (relatedBank) data.relatedBank = relatedBank
 
-        const medicineTotal = await TreatmentVoucher.find({ tsType: 'MS', createdAt: { $gte: startDate, $lt: endDate }, relatedBranch: relatedBranch, relatedCash: relatedCash, relatedBank: relatedBank }).then(msResult => {
+        let exandin = { date: { $gte: startDate, $lt: endDate }}
+        if (relatedBranch) data.relatedBranch = relatedBranch
+        if (relatedCash) data.relatedCashAccount = relatedCash
+        if (relatedBank) data.relatedBankAccount = relatedCash
+        const medicineTotal = await TreatmentVoucher.find(data).then(msResult => {
             const msTotal = msResult.reduce((accumulator, currentValue) => { return accumulator + currentValue.msPaidAmount }, 0)
             return msTotal
         }
         )
-        const expenseTotal = await Expense.find({ date: { $gte: startDate, $lt: endDate }, relatedBranch: relatedBranch, relatedCashAccount: relatedCash, relatedBankAccount: relatedBank }).then(result => {
+        const expenseTotal = await Expense.find(exandin).then(result => {
             const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.finalAmount }, 0)
             return total
         }
         )
-        const TVTotal = await TreatmentVoucher.find({ tsType: { $in: ["TS", "TSMulti"] }, createdAt: { $gte: startDate, $lt: endDate }, relatedBranch: relatedBranch, relatedCash: relatedCash, relatedBank: relatedBank }).then(result => {
+        data.tsType = { $in: ["TS", "TSMulti"] }
+        const TVTotal = await TreatmentVoucher.find(data).then(result => {
+            console.log(data, result)
             const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.paidAmount + currentValue.totalPaidAmount }, 0)
             return total
         }
         )
 
-        const incomeTotal = await Income.find({ date: { $gte: startDate, $lt: endDate }, relatedBranch: relatedBranch, relatedCashAccount: relatedCash, relatedBankAccount: relatedBank }).then(result => {
+        const incomeTotal = await Income.find(exandin).then(result => {
             const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.finalAmount }, 0)
             return total
         }
