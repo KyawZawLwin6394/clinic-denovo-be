@@ -465,7 +465,7 @@ exports.createPackageSelection = async (req, res, next) => {
                 "relatedBranch": req.body.relatedBranch,
                 "remark": req.body.remark,
                 "payment": attachID,
-                "relatedDiscount": req.body.relatedDiscount,
+                "discountAmount": req.body.discountAmount,
                 "relatedDoctor": req.body.relatedDoctor,
                 "tsType": 'PS'
             }
@@ -495,7 +495,7 @@ exports.createPackageSelection = async (req, res, next) => {
                 "relatedBranch": req.body.relatedBranch,
                 "remark": req.body.remark,
                 "payment": attachID,
-                "relatedDiscount": req.body.discountAmount,
+                "discountAmount": req.body.discountAmount,
                 "relatedDoctor": req.body.relatedDoctor,
                 "tsType": 'PS'
             }
