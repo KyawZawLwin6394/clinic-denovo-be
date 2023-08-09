@@ -495,7 +495,7 @@ exports.createPackageSelection = async (req, res, next) => {
                 "relatedBranch": req.body.relatedBranch,
                 "remark": req.body.remark,
                 "payment": attachID,
-                "relatedDiscount": req.body.relatedDiscount,
+                "relatedDiscount": req.body.discountAmount,
                 "relatedDoctor": req.body.relatedDoctor,
                 "tsType": 'PS'
             }
