@@ -3,6 +3,8 @@ const AccountBalance = require('../models/accountBalance');
 const TreatmentVoucher = require('../models/treatmentVoucher');
 const Expense = require('../models/expense');
 const Income = require('../models/income');
+const UserUtil = require('../lib/userUtil');
+const Accounting = require('../models/accountingList');
 
 exports.listAllAccountBalances = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -49,7 +51,38 @@ exports.getAccountBalance = async (req, res) => {
 };
 
 exports.balanceSheetEntry = async (req, res, next) => {
-    
+    try {
+        const accountingResult = await Accounting.find({})
+        for (const item of accountingResult) {
+            //get closing account
+            const query = { relatedAccounting: item._id, type: 'Closing' };
+            const sort = { _id: -1 }; // Sort by descending _id to get the latest document
+            const latestClosingDocument = await AccountBalance.findOne(query, null, { sort });
+            if (latestClosingDocument) {
+                var result = await AccountBalance.create({
+                    relatedAccounting: item._id,
+                    amount: latestClosingDocument.amount,
+                    type: 'Opening',
+                    date: Date.now(),
+                    remark: null,
+                    relatedBranch: null
+                })
+            } else {
+                var result = await AccountBalance.create({
+                    relatedAccounting: item._id,
+                    amount: 0,
+                    type: 'Opening',
+                    date: Date.now(),
+                    remark: null,
+                    relatedBranch: null
+                })
+            }
+            console.log('Successful', item.name)
+        }
+        return res.status(200).send({ success: true })
+    } catch (error) {
+        return res.status(500).send({ error: true, message: error.message })
+    }
 }
 
 exports.createAccountBalance = async (req, res, next) => {

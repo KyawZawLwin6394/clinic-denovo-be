@@ -11,9 +11,10 @@ const config = require('../../config/db');
 const getClosingLastDay = async (id, start, end) => {
   const abResult = await AccountBalance.find({
     relatedAccounting: id,
-    type: 'Closing',  
+    type: 'Closing',
     date: { $gte: start, $lte: end }
   })
+
   const total = abResult.reduce(
     (acc, curr) => acc + Number.parseInt(curr.amount),
     0
@@ -168,12 +169,12 @@ async function getTotal(table) {
   const total = table.reduce((accumulator, element) => {
     if (element.operator === 'Plus') {
       accumulator = accumulator + element.amount
-    } else if (element.operator === 'Minus') (
+    } else if (element.operator === 'Minus') {
       accumulator = accumulator - element.amount
-    )
-    return accumulator
-  }, 0)
-  return total
+    }
+  return accumulator
+}, 0)
+return total
 }
 
 module.exports = { bcryptHash, bcryptCompare, filterRequestAndResponse, getClosingLastDay, mergeAndSum, getLatestDay, createAccountBalance, fixedAssetTransaction, getNetAmount, getTotal, sendEmail };
