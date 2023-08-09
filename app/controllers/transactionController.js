@@ -183,21 +183,15 @@ exports.getRelatedTransactionIncome = async (req, res) => {
 
 exports.getRelatedTransaction = async (req, res) => {
   console.log(req.params.id)
-  const result = await Transaction.find({ relatedAccounting: req.params.id, isDeleted: false }).populate({
-    path: 'relatedAccounting',
-    model: 'AccountingLists',
-    populate: {
-      path: 'relatedHeader',
-      model: 'AccountHeaders'
-    }
-  }).populate('relatedTreatment').populate({
-    path: 'relatedTransaction',
-    model: 'Transactions',
-    populate: {
-      path: 'relatedAccounting',
-      model: 'AccountingLists'
-    }
-  }).populate('relatedBank').populate('relatedCash');
+  const result = await Transaction.find({ relatedAccounting: req.params.id, isDeleted: false }).populate('relatedAccounting relatedTreatment relatedBank relatedCash relatedMedicineSale relatedBranch')
+    .populate('createdBy', 'givenName')
+    .populate({
+      path: 'relatedTransaction',
+      model: 'Transactions',
+      populate: {
+        path: 'relatedAccounting relatedTreatment relatedBank relatedCash relatedMedicineSale relatedBranch'
+      }
+    });
   if (!result)
     return res.status(500).json({ error: true, message: 'No Record Found' });
   return res.status(200).send({ success: true, data: result });
