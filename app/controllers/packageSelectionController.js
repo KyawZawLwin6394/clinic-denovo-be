@@ -466,7 +466,8 @@ exports.createPackageSelection = async (req, res, next) => {
                 "remark": req.body.remark,
                 "payment": attachID,
                 "relatedDiscount": req.body.relatedDiscount,
-                "relatedDoctor": req.body.relatedDoctor
+                "relatedDoctor": req.body.relatedDoctor,
+                "tsType": 'PS'
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -495,7 +496,8 @@ exports.createPackageSelection = async (req, res, next) => {
                 "remark": req.body.remark,
                 "payment": attachID,
                 "relatedDiscount": req.body.relatedDiscount,
-                "relatedDoctor": req.body.relatedDoctor
+                "relatedDoctor": req.body.relatedDoctor,
+                "tsType": 'PS'
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();

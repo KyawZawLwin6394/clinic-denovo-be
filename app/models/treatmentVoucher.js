@@ -109,7 +109,7 @@ let TreatmentVoucherSchema = new Schema({
     },
     tsType: {
         type: String,
-        enum: ['TS', 'TSMulti', 'MS', 'Combined']
+        enum: ['TS', 'TSMulti', 'MS', 'Combined', 'PS']
     },
     msTotalAmount: {
         type: Number,
@@ -155,9 +155,16 @@ let TreatmentVoucherSchema = new Schema({
         type: [mongoose.Schema.Types.ObjectId],
         ref: 'Transactions'
     },
-    relatedDoctor:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Doctors'
+    relatedDoctor: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Doctors'
+    },
+    purchaseType: {
+        type: String,
+        enum: ['Clinic', 'Surgery']
+    },
+    deposit: {
+        type: Number
     }
 });
 

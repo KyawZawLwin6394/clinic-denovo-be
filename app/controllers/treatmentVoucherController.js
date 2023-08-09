@@ -265,6 +265,8 @@ exports.TreatmentVoucherFilter = async (req, res) => {
         if (createdBy) query.createdBy = createdBy
         if (tsType) query.tsType = tsType
         if (bankID) query.relatedBank = bankID
+        if (purchaseType) query.purchaseType = purchaseType
+        if (relatedDoctor) query.relatedDoctor = relatedDoctor
         let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedDoctor relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedAccounting payment createdBy').populate({
             path: 'relatedTreatmentSelection',
             model: 'TreatmentSelections',
@@ -277,18 +279,6 @@ exports.TreatmentVoucherFilter = async (req, res) => {
                 }
             }
         })
-        if (purchaseType) {
-            bankResult = bankResult.filter(item => item.relatedTreatmentSelection.purchaseType === purchaseType)
-        }
-        // if (relatedDoctor) {
-        //     bankResult = bankResult.filter(item => {
-        //         const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
-        //             i => i.relatedDoctor._id.toString() === relatedDoctor
-        //         );
-        //         console.log(hasMatchingAppointment);
-        //         return hasMatchingAppointment
-        //     });
-        // }
         if (!bankID) {
             const { relatedBank, ...query2 } = query;
             query2.relatedCash = { $exists: true };
@@ -304,18 +294,6 @@ exports.TreatmentVoucherFilter = async (req, res) => {
                     }
                 }
             })
-            if (purchaseType) {
-                cashResult = cashResult.filter(item => item.relatedTreatmentSelection.purchaseType === purchaseType)
-            }
-            // if (relatedDoctor) {
-            //     cashResult = cashResult.filter(item => {
-            //         const hasMatchingAppointment = item.relatedTreatmentSelection.relatedAppointments.some(
-            //             i => i.relatedDoctor._id.toString() === relatedDoctor
-            //         );
-            //         console.log(hasMatchingAppointment);
-            //         return hasMatchingAppointment
-            //     });
-            // }
             const CashNames = cashResult.reduce((result, { relatedCash, paidAmount, msTotalAmount, totalPaidAmount }) => {
                 const { name } = relatedCash;
                 result[name] = (result[name] || 0) + paidAmount + msTotalAmount + totalPaidAmount;
@@ -332,14 +310,6 @@ exports.TreatmentVoucherFilter = async (req, res) => {
         }, {});
         const BankTotal = bankResult.reduce((total, sale) => total + sale.paidAmount + sale.msTotalAmount + sale.totalPaidAmount, 0);
         response.data = { ...response.data, BankList: bankResult, BankNames: BankNames, BankTotal: BankTotal }
-        // {
-        //     BankList: bankResult,
-        //     CashList: cashResult,
-        //     BankNames: BankNames,
-        //     CashNames: CashNames,
-        //     BankTotal: BankTotal,
-        //     CashTotal: CashTotal
-        // }
 
         return res.status(200).send(response);
     } catch (error) {
