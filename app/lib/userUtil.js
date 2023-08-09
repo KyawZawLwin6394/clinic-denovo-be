@@ -14,7 +14,8 @@ const getClosingLastDay = async (id, start, end) => {
     type: 'Closing',
     date: { $gte: start, $lte: end }
   })
-
+  console.log(id, start, end)
+  console.log(abResult, 'here')
   const total = abResult.reduce(
     (acc, curr) => acc + Number.parseInt(curr.amount),
     0
@@ -172,9 +173,9 @@ async function getTotal(table) {
     } else if (element.operator === 'Minus') {
       accumulator = accumulator - element.amount
     }
-  return accumulator
-}, 0)
-return total
+    return accumulator
+  }, 0)
+  return total
 }
 
 module.exports = { bcryptHash, bcryptCompare, filterRequestAndResponse, getClosingLastDay, mergeAndSum, getLatestDay, createAccountBalance, fixedAssetTransaction, getNetAmount, getTotal, sendEmail };

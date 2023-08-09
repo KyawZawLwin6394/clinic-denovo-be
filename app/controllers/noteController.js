@@ -108,10 +108,13 @@ exports.getNotesByAccounts = async (req, res) => {
     const yearToQuery = new Date().getFullYear()
     const monthIndex = months.indexOf(monthName)
     const lastDayOfMonth = getLastDayOfMonth(yearToQuery, monthIndex)
-
+    console.log(start, end)
     // Add 1 day to lastDayOfMonth to include documents created on that day
     const nextDay = new Date(lastDayOfMonth)
     nextDay.setDate(nextDay.getDate() + 1)
+
+    const startDate = new Date(yearToQuery, monthIndex, 1);
+    const endDate = new Date(yearToQuery, monthIndex, new Date(yearToQuery, monthIndex + 1, 0).getDate());
     try {
         const result = await Note.find({ _id: notesID }).populate('item.relatedAccount secondaryItem.relatedAccount')
         // console.log(result[0].item)
@@ -127,11 +130,11 @@ exports.getNotesByAccounts = async (req, res) => {
         } else if (result[0].type === 'balance') {
             console.log('here')
             for (const item of result[0].item) {
-                const res = await getClosingLastDay(item.relatedAccount._id, lastDayOfMonth, nextDay)
+                const res = await getClosingLastDay(item.relatedAccount._id, startDate, endDate)
                 clinicTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
             }
             for (const item of result[0].secondaryItem) {
-                const res = await getClosingLastDay(item.relatedAccount._id, lastDayOfMonth, nextDay)
+                const res = await getClosingLastDay(item.relatedAccount._id, startDate, endDate)
                 surgeryTable.push({ amount: Math.abs(res), operator: item.operator, name: item.relatedAccount.name })
             }
         }
