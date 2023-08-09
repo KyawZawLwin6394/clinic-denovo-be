@@ -43,7 +43,7 @@ exports.getBalanceSheet = async (req, res) => {
 
       // Add 1 day to lastDayOfMonth to include documents created on that day
       const nextDay = new Date(lastDayOfMonth)
-      nextDay.setDate(nextDay.getDate() + 1)  
+      nextDay.setDate(nextDay.getDate() + 1)
 
       const result = await Note.find({
         _id: element._id
@@ -414,11 +414,17 @@ exports.bankCashTransactionReport = async (req, res) => {
     if (type === 'Bank') query.relatedBank = account
     if (type === 'Cash') query.relatedCash = account
 
-    const transactionResult = await Transaction.find(query).populate('relatedAccounting relatedTreatment relatedBank relatedCash relatedMedicineSale relatedBranch').populate('createdBy', 'givenName').populate({
-      path: 'relatedTransaction',
-      model: 'Transactions',
-      populate: ('relatedAccounting relatedTreatment relatedBank relatedCash relatedMedicineSale relatedBranch')
-    })
+    const transactionResult = await Transaction.find(query)
+      .populate('relatedAccounting relatedTreatment relatedBank relatedCash relatedMedicineSale relatedBranch')
+      .populate('createdBy', 'givenName')
+      .populate({
+        path: 'relatedTransaction',
+        model: 'Transactions',
+        populate: {
+          path: 'relatedAccounting relatedTreatment relatedBank relatedCash relatedMedicineSale relatedBranch'
+        }
+      });
+
     if (type === 'Bank') {
       name = transactionResult.reduce((result, { relatedBank, amount }) => {
         const { name } = relatedBank;

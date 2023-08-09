@@ -48,6 +48,10 @@ exports.getAccountBalance = async (req, res) => {
     return res.status(200).send({ success: true, data: result });
 };
 
+exports.balanceSheetEntry = async (req, res, next) => {
+    
+}
+
 exports.createAccountBalance = async (req, res, next) => {
     let newBody = req.body;
     try {
