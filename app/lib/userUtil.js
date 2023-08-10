@@ -14,8 +14,6 @@ const getClosingLastDay = async (id, start, end) => {
     type: 'Closing',
     date: { $gte: start, $lte: end }
   })
-  console.log(id, start, end)
-  console.log(abResult, 'here')
   const total = abResult.reduce(
     (acc, curr) => acc + Number.parseInt(curr.amount),
     0
@@ -104,25 +102,46 @@ async function createAccountBalance() {
     const query = { relatedAccounting: item._id, type: 'Closing' };
     const sort = { _id: -1 }; // Sort by descending _id to get the latest document
     const latestClosingDocument = await AccountBalance.findOne(query, null, { sort });
+    let today = Date.now();
+    let tomorrow = Date.now()
+    tomorrow.setDate(today.getDate() + 1);
     if (latestClosingDocument) {
-      var result = await AccountBalance.create({
+      var closingResult = await AccountBalance.create({
         relatedAccounting: item._id,
         amount: latestClosingDocument.amount,
-        type: 'Opening',
+        type: 'Closing',
         date: Date.now(),
         remark: null,
         relatedBranch: null
       })
+      var openingResult = await AccountBalance.create({
+        relatedAccounting: item._id,
+        amount: latestClosingDocument.amount,
+        type: 'Opening',
+        date: tomorrow,
+        remark: null,
+        relatedBranch: null
+      })
+
     } else {
+      var closingRes = await AccountBalance.create({
+        relatedAccounting: item._id,
+        amount: 0,
+        type: 'Closing',
+        date: Date.now(),
+        remark: null,
+        relatedBranch: null
+      })
       var result = await AccountBalance.create({
         relatedAccounting: item._id,
         amount: 0,
         type: 'Opening',
-        date: Date.now(),
+        date: tomorrow,
         remark: null,
         relatedBranch: null
       })
     }
+
     console.log('Successful', item.name)
   }
 }

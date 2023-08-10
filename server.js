@@ -148,15 +148,16 @@ server.listen(port, () => {
 });
 
 cronitor.wraps(cron);
-cronitor.schedule('AccountBalanceClosingAndOpening', '55 23 * * *', async function() {
+cronitor.schedule('AccountBalanceClosingAndOpening', '55 23 * * *', async function () {
   console.log('Managing AccountBalance for every Accounting Accs!');
   const isLastDay = await userUtil.getLatestDay();
-    if (isLastDay === true) {
-      await userUtil.createAccountBalance();
-      await userUtil.fixedAssetTransaction();
-    } else {
-      console.log('Today is not the right day for the scheduled task!');
-    }
+  if (isLastDay === true) {
+    await userUtil.fixedAssetTransaction();
+    await userUtil.createAccountBalance();
+
+  } else {
+    console.log('Today is not the right day for the scheduled task!');
+  }
 });
 
 // cron.schedule('55 23 * * *', () => {

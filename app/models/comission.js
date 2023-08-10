@@ -39,6 +39,17 @@ let ComissionSchema = new Schema({
         type: String,
         enum: ['Claimed', 'Unclaimed'],
         default: 'Unclaimed'
+    },
+    relatedVoucher:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'TreatmentVouchers'
+    },
+    relatedNurse:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Nurses'
+    },
+    voucherAmount:{
+        type:Number
     }
 });
 

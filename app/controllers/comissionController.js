@@ -69,8 +69,12 @@ exports.createComission = async (req, res, next) => {
         const result = await Comission.create({
             relatedAppointment: req.body.appointmentID,
             appointmentAmount: req.body.totalAmount / req.body.treatmentTimes,
+            relatedTherapist: req.body.therapistID,
+            relatedVoucher: req.body.relatedVoucher,
+            voucherAmount: req.body.voucherAmount,
             commissionAmount: comission,
             relatedDoctor: req.body.doctorID,
+            relatedNurse: req.body.relatedNurse,
             percent: percent
         }).then(async (response) => {
             const TransactionResult = await Transaction.create({
@@ -155,12 +159,12 @@ exports.searchCommission = async (req, res) => {
             var startDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(month), 1));
             var endDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(month) + 1, 1));
         } else {
-            var {startDate, endDate} = req.query;
+            var { startDate, endDate } = req.query;
         }
         let query = { status: 'Unclaimed' }
         if (month) query.date = { $gte: startDate, $lte: endDate }
         if (doctor) query.relatedDoctor = doctor
-        const result = await Comission.find(query).populate('relatedDoctor relatedAppointment')
+        const result = await Comission.find(query).populate('relatedDoctor relatedAppointment relatedTherapist relatedPatient relatedTreatment relatedNurse')
         for (let i = 0; i < result.length; i++) {
             total = result[i].commissionAmount + total
         }
@@ -173,7 +177,7 @@ exports.searchCommission = async (req, res) => {
 
 exports.collectComission = async (req, res) => {
     try {
-        let { update, startDate, endDate, collectAmount, remark, relatedDoctor } = req.body
+        let { update, startDate, endDate, relatedNurse, collectAmount, remark, relatedDoctor, relatedTherapist } = req.body
         // Convert string IDs to MongoDB ObjectIds
         const objectIds = update.map((id) => ObjectId(id));
 
@@ -183,14 +187,17 @@ exports.collectComission = async (req, res) => {
             { status: 'Claimed' },
             { new: true }
         );
-        const cPayResult = await ComissionPay.create({
+        let comissionPaidData = {
             startDate: startDate,
             endDate: endDate,
             collectAmount: collectAmount,
             remark: remark,
-            relatedDoctor: relatedDoctor,
             relatedCommissions: objectIds
-        })
+        }
+        if (relatedDoctor) comissionPaidData.relatedDoctor = relatedDoctor
+        if (relatedNurse) comissionPaidData.relatedNurse = relatedNurse
+        if (relatedTherapist) comissionPaidData.relatedTherapist = relatedTherapist
+        const cPayResult = await ComissionPay.create(comissionPaidData)
         return res.status(200).send({ success: true, updateResult: updateResult, comissionPayResult: cPayResult })
     } catch (e) {
         return res.status(500).send({ error: true, message: e.message });
