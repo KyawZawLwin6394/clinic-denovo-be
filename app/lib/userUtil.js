@@ -72,7 +72,7 @@ async function fixedAssetTransaction() {
   try {
     const assetResult = await FixedAsset.find({}).populate('fixedAssetAcc depriciationAcc')
     for (const element of assetResult) {
-      let { yearDepriciation, fixedAssetAcc, usedYear } = element
+      let { yearDepriciation, fixedAssetAcc, usedYear, depriciationAcc } = element
       if (yearDepriciation && fixedAssetAcc && usedYear) {
         const amount = yearDepriciation / 12
         var transResult = await Transaction.create({
@@ -83,9 +83,26 @@ async function fixedAssetTransaction() {
           "relatedTransaction": null,
           "relatedAccounting": fixedAssetAcc,
         })
+        var secTransResult = await Transaction.create({
+          "amount": amount,
+          "date": Date.now(),
+          "remark": data.remark,
+          "type": "Debit",
+          "relatedTransaction": transResult._id,
+          "relatedAccounting": depriciationAcc,
+        })
+        var transUpdate = await Transaction.findOneAndUpdate({
+          _id: transResult._id
+        }, { relatedTransaction: secTransResult._id }, { new: true })
+
         const transResultAmtUpdate = await Accounting.findOneAndUpdate(
           { _id: fixedAssetAcc },
           { $inc: { amount: -amount } }
+        )
+
+        const secTransResultAmtUpdate = await Accounting.findOneAndUpdate(
+          { _id: depriciationAcc },
+          { $inc: { amount: amount } }
         )
       }
     }
