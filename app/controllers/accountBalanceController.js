@@ -58,8 +58,11 @@ exports.balanceSheetEntry = async (req, res, next) => {
             const query = { relatedAccounting: item._id, type: 'Closing' };
             const sort = { _id: -1 }; // Sort by descending _id to get the latest document
             const latestClosingDocument = await AccountBalance.findOne(query, null, { sort });
-            let today = Date.now();
-            let tomorrow = Date.now()
+            var todayTimestamp = Date.now();
+            // Create a new Date object for today using the timestamp
+            var today = new Date(todayTimestamp);
+            // Create a new Date object for tomorrow by adding one day's worth of milliseconds
+            var tomorrow = new Date(todayTimestamp);
             tomorrow.setDate(today.getDate() + 1);
             if (latestClosingDocument) {
                 var closingResult = await AccountBalance.create({
