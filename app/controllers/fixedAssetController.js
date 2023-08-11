@@ -39,6 +39,50 @@ exports.listAllFixedAssets = async (req, res) => {
   }
 };
 
+exports.fixedAssetForcedEntry = async (req, res) => {
+  try {
+    const assetResult = await FixedAsset.find({}).populate('fixedAssetAcc depriciationAcc')
+    for (const element of assetResult) {
+      let { yearDepriciation, fixedAssetAcc, usedYear, depriciationAcc } = element
+      if (yearDepriciation && fixedAssetAcc && usedYear) {
+        const amount = yearDepriciation / 12
+        var transResult = await Transaction.create({
+          "amount": amount,
+          "date": Date.now(),
+          "remark": data.remark,
+          "type": "Credit",
+          "relatedTransaction": null,
+          "relatedAccounting": fixedAssetAcc,
+        })
+        var secTransResult = await Transaction.create({
+          "amount": amount,
+          "date": Date.now(),
+          "remark": data.remark,
+          "type": "Debit",
+          "relatedTransaction": transResult._id,
+          "relatedAccounting": depriciationAcc,
+        })
+        var transUpdate = await Transaction.findOneAndUpdate({
+          _id: transResult._id
+        }, { relatedTransaction: secTransResult._id }, { new: true })
+
+        const transResultAmtUpdate = await Accounting.findOneAndUpdate(
+          { _id: fixedAssetAcc },
+          { $inc: { amount: -amount } }
+        )
+
+        const secTransResultAmtUpdate = await Accounting.findOneAndUpdate(
+          { _id: depriciationAcc },
+          { $inc: { amount: amount } }
+        )
+      }
+    }
+    return res.status(200).send({ success: true, message: 'Task is complete!' })
+  } catch (error) {
+    return res.status(500).send({ error: true, message: error.message })
+  }
+}
+
 exports.getFixedAsset = async (req, res) => {
   const result = await FixedAsset.find({ _id: req.params.id, isDeleted: false }).populate('relatedAccount')
   if (!result)
