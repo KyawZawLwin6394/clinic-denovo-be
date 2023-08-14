@@ -115,8 +115,8 @@ let TreatmentSelectionSchema = new Schema({
     type: String,
     enum: ['TS', 'TSMulti']
   },
-  discount:{
-    type:Number
+  discount: {
+    type: Number
   },
   multiTreatment: [{
     item_id: {
