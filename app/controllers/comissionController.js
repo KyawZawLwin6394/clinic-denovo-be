@@ -165,7 +165,7 @@ exports.searchCommission = async (req, res) => {
         if (month) query.date = { $gte: startDate, $lte: endDate }
         if (doctor) query.relatedDoctor = doctor
         const result = await Comission.find(query)
-            .populate('relatedDoctor relatedTherapist relatedTreatment relatedNurse')
+            .populate('relatedDoctor relatedTherapist relatedNurse')
             .populate({
                 path: 'relatedAppointment',
                 model: 'Appointments',
@@ -189,6 +189,7 @@ exports.searchCommission = async (req, res) => {
 
         return res.status(200).send({ success: true, data: result, collectAmount: total, startDate: startDate, endDate: endDate })
     } catch (e) {
+        console.log(e)
         return res.status(500).send({ error: true, message: e.message });
     }
 };
