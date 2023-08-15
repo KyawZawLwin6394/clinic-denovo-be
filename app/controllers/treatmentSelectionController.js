@@ -196,6 +196,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
     let createdBy = req.credentials.id
     let { relatedPatient, totalAmount, totalDiscount, totalPaidAmount, multiTreatment, paidAmount, relatedBank, relatedCash, relatedAppointment, bankType, paymentType, remark, relatedDiscount, relatedDoctor } = req.body
     let tvcCreate = false;
+    let attachmentID;
     let TSArray = []
     let response = {
         message: 'Treatment Selection create success',
@@ -236,7 +237,9 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
             //--> treatment voucher create
             let dataTVC = {
                 "relatedTreatmentSelection": TSArray,
+                "payment": attachID,
                 "deposit": req.body.deposit,
+                "remark": req.body.remark,
                 "purchaseType": req.body.purchaseType,
                 "relatedDoctor": req.body.relatedDoctor,
                 "relatedAppointment": relatedAppointment,
@@ -614,6 +617,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
             let dataTVC = {
                 "relatedTreatmentSelection": result._id,
                 "deposit": req.body.deposit,
+                "payment": attachID,
                 "purchaseType": req.body.purchaseType,
                 "relatedDoctor": req.body.relatedDoctor,
                 "relatedTreatment": req.body.relatedTreatment,
@@ -646,6 +650,8 @@ exports.createTreatmentSelection = async (req, res, next) => {
         if (req.body.paymentMethod === 'FOC') {
             let dataTVC = {
                 "relatedTreatmentSelection": result._id,
+                "remark": req.body.remark,
+                "payment": attachID,
                 "deposit": req.body.deposit,
                 "purchaseType": req.body.purchaseType,
                 "relatedDoctor": req.body.relatedDoctor,
@@ -678,6 +684,8 @@ exports.createTreatmentSelection = async (req, res, next) => {
             //--> treatment voucher create
             let dataTVC = {
                 "relatedTreatmentSelection": result._id,
+                "payment": attachID,
+                "remark": req.body.remark,
                 "deposit": req.body.deposit,
                 "purchaseType": req.body.purchaseType,
                 "relatedDoctor": req.body.relatedDoctor,
@@ -863,6 +871,8 @@ exports.treatmentPayment = async (req, res, next) => {
         }
         if (result.paymentMethod === 'Credit') { //
             let dataTVC = {
+                "remark": req.body.remark,
+                "payment": attachID,
                 "relatedTreatmentSelection": result._id,
                 "deposit": req.body.deposit,
                 "purchaseType": req.body.purchaseType,

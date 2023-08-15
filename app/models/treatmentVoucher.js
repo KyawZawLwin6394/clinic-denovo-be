@@ -165,6 +165,10 @@ let TreatmentVoucherSchema = new Schema({
     },
     deposit: {
         type: Number
+    },
+    payment:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Attachments'
     }
 });
 
