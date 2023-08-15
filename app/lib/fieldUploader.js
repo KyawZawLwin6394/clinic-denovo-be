@@ -30,6 +30,8 @@ var storage = multer.diskStorage({
             cb(null, './uploads/cherry-k/payment');
         } else if (file.fieldname === "email") {
             cb(null, './uploads/cherry-k/email');
+        } else if (file.fieldname === "excel") {
+            cb(null, './uploads/cherry-k/excel');
         }
 
     },
@@ -51,6 +53,8 @@ var storage = multer.diskStorage({
             cb(null, "PY-" + name + randomText + Date.now() + "." + ext)
         } else if (file.fieldname === "email") {
             cb(null, "EM-" + name + randomText + Date.now() + "." + ext)
+        } else if (file.fieldname === "excel") {
+            cb(null, "XLS-" + name + randomText + Date.now() + "." + ext)
         }
 
 
@@ -64,7 +68,8 @@ exports.upload = multer({
                 fs.mkdirSync(uri[i], { recursive: true });
             }
         }
-        let filetypes = /jpeg|jpg|png|pdf/;
+
+        let filetypes = /jpeg|jpg|png|xls|xlsx|pdf/;
         let mimetype = filetypes.test(file.mimetype);
         const randomText = getRandomText();
         let extname = filetypes.test(
@@ -72,7 +77,7 @@ exports.upload = multer({
                 .extname(file.originalname + randomText + Date.now())
                 .toLowerCase()
         );
-        if (mimetype && extname) {
+        if (mimetype || extname) {
             return cb(null, true);
         }
         cb(
@@ -110,6 +115,10 @@ exports.upload = multer({
         {
             name: 'email',
             maxCount: 4
+        },
+        {
+            name: 'excel',
+            maxCount: 1
         }
     ]
 );

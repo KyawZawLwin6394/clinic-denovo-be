@@ -3,6 +3,8 @@ const TreatmentVoucher = require('../models/treatmentVoucher');
 const MedicineItems = require('../models/medicineItem');
 const Transaction = require('../models/transaction');
 const Accounting = require('../models/accountingList');
+const path = require('path');
+const UserUtil = require('../lib/userUtil')
 
 exports.listAllTreatmentVouchers = async (req, res) => {
     let { keyword, role, limit, skip, tsType } = req.query;
@@ -57,6 +59,32 @@ exports.getTreatmentVoucher = async (req, res) => {
         return res.status(500).json({ error: true, message: 'No Record Found' });
     return res.status(200).send({ success: true, data: result });
 };
+
+
+exports.excelImportTreatmentVouchers = async (req, res) => {
+    try {
+        let files = req.files
+        if (files.excel) {
+            for (const i of files.excel) {
+                const subpath = path.join('app', 'controllers');  // Construct the subpath using the platform's path separator
+                const newPath = __dirname.replace(subpath, '');
+                const dest = path.join(newPath, i.path)
+                const data = await UserUtil.readExcelDataForTreatmentVoucher(dest)
+                await TreatmentVoucher.insertMany(data).then((response) => {
+                    return res.status(200).send({
+                        success: true, data: response
+                    })
+                })
+                    .catch(error => {
+                        return res.status(500).send({ error: true, message: error })
+                    })
+            }
+        }
+    } catch (error) {
+        return res.status(500).send({ error: true, message: error.message })
+    }
+
+}
 
 exports.getRelatedTreatmentVoucher = async (req, res) => {
     try {

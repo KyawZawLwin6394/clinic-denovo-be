@@ -21,6 +21,7 @@
     "cronitor": "^2.3.3",
     "crypto": "^1.0.1",
     "diff": "^5.0.0",
+    "exceljs": "^4.3.0",
     "express": "^4.16.2",
     "express-json-error-handler": "^5.0.4",
     "generate-password": "^1.7.0",

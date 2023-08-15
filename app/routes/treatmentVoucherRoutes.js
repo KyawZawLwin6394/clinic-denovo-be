@@ -4,6 +4,7 @@ const { verify } = require("crypto");
 const treatmentVoucher = require("../controllers/treatmentVoucherController");
 const { catchError } = require("../lib/errorHandler");
 const verifyToken = require('../lib/verifyToken');
+const upload = require('../lib/fieldUploader').upload;
 
 module.exports = (app) => {
 
@@ -15,7 +16,7 @@ module.exports = (app) => {
         .get(verifyToken, catchError(treatmentVoucher.getTreatmentVoucher))
         .delete(verifyToken, catchError(treatmentVoucher.deleteTreatmentVoucher))
         .post(verifyToken, catchError(treatmentVoucher.activateTreatmentVoucher))
-
+    app.route('/api/treatment-vouchers/excel').post(upload, verifyToken, catchError(treatmentVoucher.excelImportTreatmentVouchers))
     app.route('/api/treatment-vouchers')
         .get(verifyToken, catchError(treatmentVoucher.listAllTreatmentVouchers))
     app.route('/api/treatment-vouchers/search')

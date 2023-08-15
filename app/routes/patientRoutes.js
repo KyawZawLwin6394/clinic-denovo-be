@@ -25,6 +25,7 @@ module.exports = (app) => {
         .post(verifyToken, catchError(patient.searchPatients))
 
     app.route('/api/patients/top-ten').get(verifyToken, catchError(patient.topTenPatients))
+    app.route('/api/patients/excel').post(upload, verifyToken, catchError(patient.excelImportPatient))
 
     app.route('/api/patients/history-and-patient/:id').get(verifyToken, catchError(patient.getHistoryAndPhysicalExamination))
 };

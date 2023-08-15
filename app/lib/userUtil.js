@@ -5,6 +5,47 @@ const FixedAsset = require('../models/fixedAsset');
 const Transaction = require('../models/transaction');
 const nodemailer = require('nodemailer');
 const config = require('../../config/db');
+const Excel = require('exceljs');
+const workbook = new Excel.Workbook();
+
+
+
+async function readExcelDataForPatient(filePath) {
+  await workbook.xlsx.readFile(filePath);
+  const worksheet = workbook.getWorksheet(1);
+  const data = [];
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber !== 1) {  // Skip the header row
+      data.push({
+        name: row.getCell(3).value,
+        phone: row.getCell(4).value,
+        email: row.getCell(5).value
+        // ... map other fields accordingly
+      });
+    }
+  });
+
+  return data;
+}
+
+async function readExcelDataForTreatmentVoucher(filePath) {
+  await workbook.xlsx.readFile(filePath);
+  const worksheet = workbook.getWorksheet(1);
+  const data = [];
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber !== 1) {  // Skip the header row
+      data.push({
+        name: row.getCell(3).value,
+        phone: row.getCell(4).value,
+        email: row.getCell(5).value
+        // ... map other fields accordingly
+      });
+    }
+  });
+
+  return data;
+}
+
 
 
 //https://myaccount.google.com/apppasswords
@@ -219,4 +260,4 @@ async function getTotal(table) {
   return total
 }
 
-module.exports = { bcryptHash, bcryptCompare, filterRequestAndResponse, getClosingLastDay, mergeAndSum, getLatestDay, createAccountBalance, fixedAssetTransaction, getNetAmount, getTotal, sendEmail };
+module.exports = { readExcelDataForTreatmentVoucher, readExcelDataForPatient, bcryptHash, bcryptCompare, filterRequestAndResponse, getClosingLastDay, mergeAndSum, getLatestDay, createAccountBalance, fixedAssetTransaction, getNetAmount, getTotal, sendEmail };
