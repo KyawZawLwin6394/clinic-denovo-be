@@ -203,7 +203,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
         success: true
     }
     try {
-        if (files.length > 0) {
+        if (files.payment) {
             for (const element of files.payment) {
                 let imgPath = element.path.split('cherry-k')[1];
                 const attachData = {
@@ -212,7 +212,8 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
                     image: imgPath.split('\\')[2]
                 };
                 const attachResult = await Attachment.create(attachData);
-                attachID = attachResult._id.toString()
+                console.log(attachResult, 'result')
+                attachID = attachResult._id
             }
         }
         const patientUpdate = await Patient.findOneAndUpdate(
@@ -260,7 +261,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
                 "totalPaidAmount": totalPaidAmount,
                 "tsType": "TSMulti"
             }
-            console.log(parsedMulti)
+            console.log(dataTVC)
             dataTVC.multiTreatment = parsedMulti
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -272,7 +273,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
             var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
         }
         if (treatmentVoucherResult) {
-            var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount multiTreatment.item_id')
+            var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount multiTreatment.item_id payment')
         }
         var updatePatient = await Patient.findOneAndUpdate({ _id: relatedPatient }, { $addToSet: { relatedTreatmentSelection: TSArray } })
 
