@@ -196,7 +196,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
     let createdBy = req.credentials.id
     let { relatedPatient, totalAmount, totalDiscount, totalPaidAmount, multiTreatment, paidAmount, relatedBank, relatedCash, relatedAppointment, bankType, paymentType, remark, relatedDiscount, relatedDoctor } = req.body
     let tvcCreate = false;
-    let attachmentID;
+    let attachID;
     let TSArray = []
     let response = {
         message: 'Treatment Selection create success',
@@ -212,7 +212,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
                     image: imgPath.split('\\')[2]
                 };
                 const attachResult = await Attachment.create(attachData);
-                var attachID = attachResult._id.toString()
+                attachID = attachResult._id.toString()
             }
         }
         const patientUpdate = await Patient.findOneAndUpdate(
