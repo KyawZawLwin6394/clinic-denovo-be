@@ -4,7 +4,9 @@ const MedicineItems = require('../models/medicineItem');
 const Transaction = require('../models/transaction');
 const Accounting = require('../models/accountingList');
 const path = require('path');
-const UserUtil = require('../lib/userUtil')
+const UserUtil = require('../lib/userUtil');
+const TreatmentSelection = require('../models/treatmentSelection');
+const Attachment = require('../models/attachment');
 
 exports.listAllTreatmentVouchers = async (req, res) => {
     let { keyword, role, limit, skip, tsType } = req.query;
@@ -196,9 +198,44 @@ exports.createTreatmentVoucher = async (req, res, next) => {
 
 exports.updateTreatmentVoucher = async (req, res, next) => {
     try {
+        let data = req.body
+        let parsedMulti = JSON.parse(multiTreatment)
+        let TSArray = []
+        const { msType, multiTreatment, relatedTreatmentSelection, id } = req.body;
+        let files = req.files
+        if (files.payment) {
+            for (const element of files.payment) {
+                let imgPath = element.path.split('cherry-k')[1];
+                const attachData = {
+                    fileName: element.originalname,
+                    imgUrl: imgPath,
+                    image: 'payment'
+                };
+                const attachResult = await Attachment.create(attachData);
+                console.log(attachResult, 'result')
+                attachID = attachResult._id
+            }
+        }
+        if (msType === 'TSMulti') {
+            for (const item of relatedTreatmentSelection) {
+                await TreatmentSelection.findOneAndDelete({ _id: item }).then(res => {
+                    console.log(item + ' is Deleted')
+                })
+            }
+            for (const i of parsedMulti) {
+                data.multiTreatment = parsedMulti
+                data.relatedTreatment = i.item_id
+                data.totalAmount = i.price
+                data.discount = i.discountAmount
+                let result = await TreatmentSelection.create(data)
+                TSArray.push(result._id)
+            }
+            data = { ...data, relatedTreatmentSelection: TSArray }
+            data.multiTreatment = parsedMulti
+        }
         const result = await TreatmentVoucher.findOneAndUpdate(
-            { _id: req.body.id },
-            req.body,
+            { _id: id },
+            data,
             { new: true },
         ).populate('createdBy relatedTreatment relatedAppointment relatedPatient');
         return res.status(200).send({ success: true, data: result });

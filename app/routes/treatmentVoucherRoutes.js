@@ -16,6 +16,7 @@ module.exports = (app) => {
         .get(verifyToken, catchError(treatmentVoucher.getTreatmentVoucher))
         .delete(verifyToken, catchError(treatmentVoucher.deleteTreatmentVoucher))
         .post(verifyToken, catchError(treatmentVoucher.activateTreatmentVoucher))
+        
     app.route('/api/treatment-vouchers/excel').post(upload, verifyToken, catchError(treatmentVoucher.excelImportTreatmentVouchers))
     app.route('/api/treatment-vouchers')
         .get(verifyToken, catchError(treatmentVoucher.listAllTreatmentVouchers))
