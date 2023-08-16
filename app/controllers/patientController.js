@@ -71,7 +71,7 @@ exports.listAllPatients = async (req, res) => {
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
     console.log(limit)
-    let result = await Patient.find(query).skip(skip).populate('img');
+    let result = await Patient.find(query).skip(skip * limit).limit(limit).populate('img');
     count = await Patient.find(query).count();
     const division = count / limit;
     page = Math.ceil(division);
@@ -80,7 +80,7 @@ exports.listAllPatients = async (req, res) => {
       success: true,
       count: count,
       _metadata: {
-        current_page: skip / limit + 1,
+        current_page: skip + 1,
         per_page: limit,
         page_count: page,
         total_count: count,
@@ -159,7 +159,7 @@ exports.createPatient = async (req, res, next) => {
     console.log(data)
     if (latestDocument.length) {
       const increment = latestDocument[0].seq + 1
-      data = { ...data, patientID: "CUS-" + initials +"-" + increment, seq: increment }
+      data = { ...data, patientID: "CUS-" + initials + "-" + increment, seq: increment }
     }
     console.log(files.img, 'files.img')
     if (files.img) {
