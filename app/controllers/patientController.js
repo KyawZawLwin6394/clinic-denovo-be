@@ -138,6 +138,12 @@ exports.getPatient = async (req, res) => {
   return res.status(200).send({ success: true, data: result[0] });
 };
 
+function getInitialsInUpperCase(inputString) {
+  const words = inputString.split(' ');
+  const initials = words.map(word => word.charAt(0).toUpperCase());
+  return initials.join('');
+}
+
 exports.createPatient = async (req, res, next) => {
   let data = req.body;
   let files = req.files;
@@ -145,11 +151,15 @@ exports.createPatient = async (req, res, next) => {
     //prepare CUS-ID
     const latestDocument = await Patient.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
     console.log(latestDocument)
-    if (latestDocument.length === 0) data = { ...data, seq: '1', patientID: "CUS-1" } // if seq is undefined set initial patientID and seq
+    const initials = getInitialsInUpperCase(data.name)
+    if (latestDocument.length === 0) {
+
+      data = { ...data, seq: '1', patientID: "CUS-" + initials + "-1" }
+    } // if seq is undefined set initial patientID and seq
     console.log(data)
     if (latestDocument.length) {
       const increment = latestDocument[0].seq + 1
-      data = { ...data, patientID: "CUS-" + increment, seq: increment }
+      data = { ...data, patientID: "CUS-" + initials +"-" + increment, seq: increment }
     }
     console.log(files.img, 'files.img')
     if (files.img) {
