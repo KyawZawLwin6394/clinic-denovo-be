@@ -201,7 +201,6 @@ exports.updateTreatmentVoucher = async (req, res, next) => {
         let data = req.body
         const { msType, multiTreatment, relatedTreatmentSelection, id } = req.body;
         let parsedMulti = JSON.parse(multiTreatment)
-        let parsedTS = JSON.parse(relatedTreatmentSelection)
         let TSArray = []
         let files = req.files
         if (files.payment) {
@@ -218,7 +217,7 @@ exports.updateTreatmentVoucher = async (req, res, next) => {
             }
         }
         if (msType === 'TSMulti') {
-            for (const item of parsedTS) {
+            for (const item of relatedTreatmentSelection) {
                 await TreatmentSelection.findOneAndDelete({ _id: item }).then(res => {
                     console.log(item + ' is Deleted')
                 })
@@ -231,7 +230,7 @@ exports.updateTreatmentVoucher = async (req, res, next) => {
                 let result = await TreatmentSelection.create(data)
                 TSArray.push(result._id)
             }
-            data.relatedTreatmentSelection = TSArray
+            data = { ...data, relatedTreatmentSelection: TSArray }
             data.multiTreatment = parsedMulti
         }
         const result = await TreatmentVoucher.findOneAndUpdate(
