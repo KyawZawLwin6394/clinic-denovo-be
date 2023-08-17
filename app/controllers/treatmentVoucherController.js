@@ -199,9 +199,9 @@ exports.createTreatmentVoucher = async (req, res, next) => {
 exports.updateTreatmentVoucher = async (req, res, next) => {
     try {
         let data = req.body
+        const { msType, multiTreatment, relatedTreatmentSelection, id } = req.body;
         let parsedMulti = JSON.parse(multiTreatment)
         let TSArray = []
-        const { msType, multiTreatment, relatedTreatmentSelection, id } = req.body;
         let files = req.files
         if (files.payment) {
             for (const element of files.payment) {
