@@ -10,7 +10,7 @@ module.exports = (app) => {
 
     app.route('/api/treatment-voucher')
         .post(verifyToken, catchError(treatmentVoucher.createTreatmentVoucher))
-        .put(verifyToken, catchError(treatmentVoucher.updateTreatmentVoucher))
+        .put(verifyToken, upload, catchError(treatmentVoucher.updateTreatmentVoucher))
 
     app.route('/api/treatment-voucher/:id')
         .get(verifyToken, catchError(treatmentVoucher.getTreatmentVoucher))
