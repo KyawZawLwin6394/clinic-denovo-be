@@ -63,6 +63,15 @@ exports.getTreatmentVoucher = async (req, res) => {
 };
 
 
+exports.updateMedicineSale = async (req, res) => {
+    let { id, add, remove, } = req.body;
+    for (const item of add) {
+
+    }
+    const updateMedicineSale = await TreatmentVoucher.findOneAndUpdate({ _id: id }, req.body, { new: true });
+
+}
+
 exports.excelImportTreatmentVouchers = async (req, res) => {
     try {
         let files = req.files
@@ -248,7 +257,7 @@ exports.deleteTreatmentVoucher = async (req, res, next) => {
     try {
         const { relatedTreatmentSelection } = req.query;
         for (const id of JSON.parse(relatedTreatmentSelection)) {
-            const result = await TreatmentSelection.findOneAndDelete({ _id: id }).then(()=>console.log('Deleted'))
+            const result = await TreatmentSelection.findOneAndDelete({ _id: id }).then(() => console.log('Deleted'))
         }
         const result = await TreatmentVoucher.findOneAndUpdate(
             { _id: req.params.id },

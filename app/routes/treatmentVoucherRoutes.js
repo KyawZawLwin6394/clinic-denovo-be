@@ -16,7 +16,7 @@ module.exports = (app) => {
         .get(verifyToken, catchError(treatmentVoucher.getTreatmentVoucher))
         .delete(verifyToken, catchError(treatmentVoucher.deleteTreatmentVoucher))
         .post(verifyToken, catchError(treatmentVoucher.activateTreatmentVoucher))
-        
+
     app.route('/api/treatment-vouchers/excel').post(upload, verifyToken, catchError(treatmentVoucher.excelImportTreatmentVouchers))
     app.route('/api/treatment-vouchers')
         .get(verifyToken, catchError(treatmentVoucher.listAllTreatmentVouchers))
@@ -33,4 +33,5 @@ module.exports = (app) => {
     app.route('/api/treatment-vouchers/treatment-selection/:id').get(verifyToken, catchError(treatmentVoucher.getTreatmentVoucherWithTreatmentID))
     app.route('/api/treatment-vouchers/ms/single').post(verifyToken, catchError(treatmentVoucher.createSingleMedicineSale))
     app.route('/api/treatment-vouchers/ms/combine').put(verifyToken, catchError(treatmentVoucher.combineMedicineSale))
+    app.route('/api/treatment-vouchers/ms').put(verifyToken, catchError(treatmentVoucher.updateMedicineSale));
 };
