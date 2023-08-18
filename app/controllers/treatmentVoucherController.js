@@ -56,7 +56,7 @@ exports.getTreatmentVoucherWithTreatmentID = async (req, res) => {
 exports.getTreatmentVoucher = async (req, res) => {
     let query = { isDeleted: false }
     if (req.params.id) query._id = req.params.id
-    const result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient relatedTreatmentSelection multiTreatment.item_id relatedCash relatedBank relatedDoctor')
+    const result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient relatedTreatmentSelection multiTreatment.item_id relatedCash relatedBank relatedDoctor medicineItems.item_id')
     if (!result)
         return res.status(500).json({ error: true, message: 'No Record Found' });
     return res.status(200).send({ success: true, data: result });
@@ -509,7 +509,7 @@ exports.createSingleMedicineSale = async (req, res) => {
     data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy, purchaseTotal: purchaseTotal }
     if (purchaseTotal) data.purchaseTotal = purchaseTotal
     //..........END OF TRANSACTION.....................
-
+    console.log(data)
     const newMedicineSale = new TreatmentVoucher(data)
     const medicineSaleResult = await newMedicineSale.save()
     res.status(200).send({
