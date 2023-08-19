@@ -7,7 +7,7 @@ const nodemailer = require('nodemailer');
 const config = require('../../config/db');
 const Excel = require('exceljs');
 const workbook = new Excel.Workbook();
-
+const Doctor = require('../models/doctor');
 
 
 async function readExcelDataForPatient(filePath) {
@@ -32,8 +32,10 @@ async function readExcelDataForTreatmentVoucher(filePath) {
   await workbook.xlsx.readFile(filePath);
   const worksheet = workbook.getWorksheet(1);
   const data = [];
-  worksheet.eachRow((row, rowNumber) => {
+  console.log(worksheet)
+  worksheet.eachRow(async (row, rowNumber) => {
     if (rowNumber !== 1) {  // Skip the header row
+      const relatedDoctor = await Doctor.find({ name: row.getCell(4).value })
       data.push({
         name: row.getCell(3).value,
         phone: row.getCell(4).value,

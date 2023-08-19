@@ -7,6 +7,7 @@ const path = require('path');
 const UserUtil = require('../lib/userUtil');
 const TreatmentSelection = require('../models/treatmentSelection');
 const Attachment = require('../models/attachment');
+const Log = require('../models/log');
 
 exports.listAllTreatmentVouchers = async (req, res) => {
     let { keyword, role, limit, skip, tsType } = req.query;
@@ -81,14 +82,15 @@ exports.excelImportTreatmentVouchers = async (req, res) => {
                 const newPath = __dirname.replace(subpath, '');
                 const dest = path.join(newPath, i.path)
                 const data = await UserUtil.readExcelDataForTreatmentVoucher(dest)
-                await TreatmentVoucher.insertMany(data).then((response) => {
-                    return res.status(200).send({
-                        success: true, data: response
-                    })
-                })
-                    .catch(error => {
-                        return res.status(500).send({ error: true, message: error })
-                    })
+                console.log(data)
+                // await TreatmentVoucher.insertMany(data).then((response) => {
+                //     return res.status(200).send({
+                //         success: true, data: response
+                //     })
+                // })
+                //     .catch(error => {
+                //         return res.status(500).send({ error: true, message: error })
+                //     })
             }
         }
     } catch (error) {
@@ -417,7 +419,35 @@ exports.createSingleMedicineSale = async (req, res) => {
     let data = req.body;
     let { remark, relatedBank, relatedCash, msPaidAmount, medicineItems } = req.body;
     let createdBy = req.credentials.id;
+    if (medicineItems !== undefined) {
+        for (const e of medicineItems) {
 
+            let totalUnit = e.stock - e.quantity
+            const result = await MedicineItems.find({ _id: e.item_id })
+            const from = result[0].fromUnit
+            const to = result[0].toUnit
+            const currentQty = (from * totalUnit) / to
+            try {
+                const result = await MedicineItems.findOneAndUpdate(
+                    { _id: e.item_id },
+                    { totalUnit: totalUnit, currentQty: currentQty },
+                    { new: true },
+                )
+            } catch (error) {
+                return res.status(500).send({ error: true, message: error.message })
+            }
+            const logResult = await Log.create({
+                "relatedTreatmentSelection": null,
+                "relatedAppointment": null,
+                "relatedMedicineItems": e.item_id,
+                "currentQty": e.stock,
+                "actualQty": e.actual,
+                "finalQty": totalUnit,
+                "type": "Medicine Sale",
+                "createdBy": createdBy
+            })
+        }
+    }
     //_________COGS___________
     const medicineResult = await MedicineItems.find({ _id: { $in: medicineItems.map(item => item.item_id) } })
     const purchaseTotal = medicineResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
@@ -533,7 +563,35 @@ exports.combineMedicineSale = async (req, res) => {
     let data = req.body;
     let { remark, relatedBank, relatedCash, msPaidAmount, medicineItems, id } = req.body;
     let createdBy = req.credentials.id;
+    if (medicineItems !== undefined) {
+        for (const e of medicineItems) {
 
+            let totalUnit = e.stock - e.quantity
+            const result = await MedicineItems.find({ _id: e.item_id })
+            const from = result[0].fromUnit
+            const to = result[0].toUnit
+            const currentQty = (from * totalUnit) / to
+            try {
+                const result = await MedicineItems.findOneAndUpdate(
+                    { _id: e.item_id },
+                    { totalUnit: totalUnit, currentQty: currentQty },
+                    { new: true },
+                )
+            } catch (error) {
+                return res.status(500).send({ error: true, message: error.message })
+            }
+            const logResult = await Log.create({
+                "relatedTreatmentSelection": null,
+                "relatedAppointment": null,
+                "relatedMedicineItems": e.item_id,
+                "currentQty": e.stock,
+                "actualQty": e.actual,
+                "finalQty": totalUnit,
+                "type": "Medicine Sale",
+                "createdBy": createdBy
+            })
+        }
+    }
     //_________COGS___________
     const medicineResult = await MedicineItems.find({ _id: { $in: medicineItems.map(item => item.item_id) } })
     const purchaseTotal = medicineResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
