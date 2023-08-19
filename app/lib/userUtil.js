@@ -8,6 +8,8 @@ const config = require('../../config/db');
 const Excel = require('exceljs');
 const workbook = new Excel.Workbook();
 const Doctor = require('../models/doctor');
+const Patient = require('../models/patient')
+const Treatment = require('../models/treatment');
 
 
 async function readExcelDataForPatient(filePath) {
@@ -32,21 +34,42 @@ async function readExcelDataForTreatmentVoucher(filePath) {
   await workbook.xlsx.readFile(filePath);
   const worksheet = workbook.getWorksheet(1);
   const data = [];
-  console.log(worksheet)
-  worksheet.eachRow(async (row, rowNumber) => {
+  const promises = [];
+
+  worksheet.eachRow((row, rowNumber) => {
     if (rowNumber !== 1) {  // Skip the header row
-      const relatedDoctor = await Doctor.find({ name: row.getCell(4).value })
-      data.push({
-        name: row.getCell(3).value,
-        phone: row.getCell(4).value,
-        email: row.getCell(5).value
-        // ... map other fields accordingly
-      });
+      let treatmentName = row.getCell(7).value
+      console.log(treatmentName)
+      const doctorPromise = Doctor.findOne({ name: row.getCell(3).value });
+      const patientPromise = Patient.findOne({ name: row.getCell(6).value });
+      const treatmentPromise = Treatment.findOne({ name: treatmentName ? treatmentName.split('__')[0] : row.getCell(7).value });
+
+      promises.push(
+        Promise.all([doctorPromise, patientPromise, treatmentPromise]).then(
+          ([relatedDoctor, relatedPatient, relatedTreatment]) => {
+            if (relatedTreatment) {
+              data.push({
+                relatedPatient: relatedPatient ? relatedPatient._id : undefined,
+                relatedDoctor: relatedDoctor ? relatedDoctor._id : undefined,
+                relatedTreatment: relatedTreatment ? relatedTreatment._id : undefined,
+                paidAmount: row.getCell(14).value.result,
+                totalDiscount: row.getCell(11).value,
+                remark: row.getCell(15).value
+                // ... map other fields accordingly
+              });
+            }
+          }
+        )
+      );
     }
   });
 
+  // Wait for all promises to be resolved before returning the data
+  await Promise.all(promises);
+
   return data;
 }
+
 
 
 
