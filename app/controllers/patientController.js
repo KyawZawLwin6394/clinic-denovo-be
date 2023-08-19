@@ -57,7 +57,7 @@ exports.getHistoryAndPhysicalExamination = async (req, res) => {
 }
 
 exports.listAllPatients = async (req, res) => {
-  let { keyword, role, limit, skip } = req.query;
+  let { keyword, role, limit, skip, member } = req.query;
   let count = 0;
   let page = 0;
   try {
@@ -70,7 +70,7 @@ exports.listAllPatients = async (req, res) => {
       ? (regexKeyword = new RegExp(keyword, 'i'))
       : '';
     regexKeyword ? (query['name'] = regexKeyword) : '';
-    console.log(limit)
+    if (member) query.relatedMember = member
     let result = await Patient.find(query).skip(skip * limit).limit(limit).populate('img');
     count = await Patient.find(query).count();
     const division = count / limit;
