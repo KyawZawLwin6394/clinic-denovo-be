@@ -65,11 +65,74 @@ exports.getTreatmentVoucher = async (req, res) => {
 
 
 exports.updateMedicineSale = async (req, res) => {
-    let { id, add, remove, } = req.body;
-    for (const item of add) {
+    try {
+        let { id, addItems, removeItems } = req.body;
+        if (addItems !== undefined) {
+            for (const e of addItems) {
+                const result = await MedicineItems.find({ _id: e.item_id })
+                let totalUnit = result[0].totalUnit - e.qty
 
+                const from = result[0].fromUnit
+                const to = result[0].toUnit
+                const currentQty = (from * totalUnit) / to
+                try {
+                    const result = await MedicineItems.findOneAndUpdate(
+                        { _id: e.item_id },
+                        { totalUnit: -totalUnit, currentQty: -currentQty },
+                        { new: true },
+                    )
+                } catch (error) {
+                    return res.status(500).send({ error: true, message: error.message })
+                }
+                const logResult = await Log.create({
+                    "relatedTreatmentSelection": null,
+                    "relatedAppointment": null,
+                    "relatedMedicineItems": e.item_id,
+                    "currentQty": e.stock,
+                    "actualQty": e.actual,
+                    "finalQty": totalUnit,
+                    "type": "Medicine Sale",
+                    "createdBy": createdBy
+                })
+            }
+        }
+
+        if (removeItems !== undefined) {
+            for (const e of removeItems) {
+                const result = await MedicineItems.find({ _id: e.item_id })
+                let totalUnit = result[0].totalUnit - e.qty
+
+                const from = result[0].fromUnit
+                const to = result[0].toUnit
+                const currentQty = (from * totalUnit) / to
+                try {
+                    const result = await MedicineItems.findOneAndUpdate(
+                        { _id: e.item_id },
+                        { totalUnit: totalUnit, currentQty: currentQty },
+                        { new: true },
+                    )
+                } catch (error) {
+                    return res.status(500).send({ error: true, message: error.message })
+                }
+                const logResult = await Log.create({
+                    "relatedTreatmentSelection": null,
+                    "relatedAppointment": null,
+                    "relatedMedicineItems": e.item_id,
+                    "currentQty": e.stock,
+                    "actualQty": e.actual,
+                    "finalQty": totalUnit,
+                    "type": "Medicine Sale",
+                    "createdBy": createdBy
+                })
+            }
+        }
+
+        const updateMedicineSale = await TreatmentVoucher.findOneAndUpdate({ _id: id }, req.body, { new: true });
+        return res.status(200).send({ success: true, data: updateMedicineSale })
+    } catch (error) {
+        console.log(error)
+        return res.status(200).send({ error: true, message: error.message })
     }
-    const updateMedicineSale = await TreatmentVoucher.findOneAndUpdate({ _id: id }, req.body, { new: true });
 
 }
 
@@ -421,9 +484,8 @@ exports.createSingleMedicineSale = async (req, res) => {
     let createdBy = req.credentials.id;
     if (medicineItems !== undefined) {
         for (const e of medicineItems) {
-
-            let totalUnit = e.stock - e.quantity
             const result = await MedicineItems.find({ _id: e.item_id })
+            let totalUnit = result[0].totalUnit - e.qty
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
@@ -565,9 +627,8 @@ exports.combineMedicineSale = async (req, res) => {
     let createdBy = req.credentials.id;
     if (medicineItems !== undefined) {
         for (const e of medicineItems) {
-
-            let totalUnit = e.stock - e.quantity
             const result = await MedicineItems.find({ _id: e.item_id })
+            let totalUnit = result[0].totalUnit - e.qty
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
