@@ -78,11 +78,18 @@ exports.updateMedicineSale = async (req, res) => {
                 const to = result[0].toUnit
                 const currentQty = (from * totalUnit) / to
                 try {
-                    const result = await MedicineItems.findOneAndUpdate(
-                        { _id: e.item_id },
-                        { totalUnit: -totalUnit, currentQty: -currentQty },
-                        { new: true },
-                    )
+                    if (totalUnit > 0) {
+                        const result = await MedicineItems.findOneAndUpdate(
+                            { _id: e.item_id },
+                            { $inc: { totalUnit: -totalUnit, currentQty: -currentQty } },
+                            { new: true }
+                        );
+                        // Handle the result as needed
+                    } else {
+                        res.status(500).send({ message: "Cannot decrement totalUnit when it's already 0.", error: true });
+                        // Handle this situation according to your business logic
+                    }
+
                 } catch (error) {
                     return res.status(500).send({ error: true, message: error.message })
                 }
@@ -109,11 +116,15 @@ exports.updateMedicineSale = async (req, res) => {
                 const to = result[0].toUnit
                 const currentQty = (from * totalUnit) / to
                 try {
-                    const result = await MedicineItems.findOneAndUpdate(
-                        { _id: e.item_id },
-                        { totalUnit: totalUnit, currentQty: currentQty },
-                        { new: true },
-                    )
+                    if (totalUnit > 0) {
+                        const result = await MedicineItems.findOneAndUpdate(
+                            { _id: e.item_id },
+                            { totalUnit: totalUnit, currentQty: currentQty },
+                            { new: true },
+                        )
+                    } else {
+                        res.status(500).send({ message: "Cannot decrement totalUnit when it's already 0.", error: true });
+                    }
                 } catch (error) {
                     return res.status(500).send({ error: true, message: error.message })
                 }
