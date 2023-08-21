@@ -70,6 +70,7 @@ exports.updateMedicineSale = async (req, res) => {
         if (addItems !== undefined) {
             for (const e of addItems) {
                 const result = await MedicineItems.find({ _id: e.item_id })
+                if (result[0].totalUnit) return res.status(200).send({ error: true, message: 'TotalUnit is undefined!' })
                 let totalUnit = result[0].totalUnit - e.qty
 
                 const from = result[0].fromUnit
@@ -100,6 +101,7 @@ exports.updateMedicineSale = async (req, res) => {
         if (removeItems !== undefined) {
             for (const e of removeItems) {
                 const result = await MedicineItems.find({ _id: e.item_id })
+                if (result[0].totalUnit) return res.status(200).send({ error: true, message: 'TotalUnit is undefined!' })
                 let totalUnit = result[0].totalUnit - e.qty
 
                 const from = result[0].fromUnit
