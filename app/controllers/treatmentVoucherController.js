@@ -67,6 +67,7 @@ exports.getTreatmentVoucher = async (req, res) => {
 exports.updateMedicineSale = async (req, res) => {
     try {
         let { id, addItems, removeItems } = req.body;
+        const createdBy = req.credentials.id;
         if (addItems !== undefined) {
             for (const e of addItems) {
                 const result = await MedicineItems.find({ _id: e.item_id })
