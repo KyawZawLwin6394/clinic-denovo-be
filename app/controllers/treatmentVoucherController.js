@@ -141,6 +141,12 @@ exports.updateMedicineSale = async (req, res) => {
             }
         }
         const updateMedicineSale = await TreatmentVoucher.findOneAndUpdate({ _id: id }, req.body, { new: true });
+        if (!req.body.relatedCash) {
+            const msUpdate = await TreatmentVoucher.findOneAndUpdate({ _id: id }, { $unset: { relatedCash: '' } }, { new: true })
+        }
+        if (!req.body.relatedBank) {
+            const msUpdate = await TreatmentVoucher.findOneAndUpdate({ _id: id }, { $unset: { relatedBank: '' } }, { new: true })
+        }
         return res.status(200).send({ success: true, data: updateMedicineSale })
     } catch (error) {
         console.log(error)
