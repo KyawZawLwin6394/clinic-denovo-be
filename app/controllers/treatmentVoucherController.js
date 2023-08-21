@@ -81,7 +81,7 @@ exports.updateMedicineSale = async (req, res) => {
                     if (totalUnit > 0) {
                         const result = await MedicineItems.findOneAndUpdate(
                             { _id: e.item_id },
-                            { $inc: { totalUnit: -totalUnit, currentQty: -currentQty } },
+                            { totalUnit: totalUnit, currentQty: currentQty },
                             { new: true }
                         );
                         // Handle the result as needed
@@ -110,7 +110,7 @@ exports.updateMedicineSale = async (req, res) => {
             for (const e of removeItems) {
                 const result = await MedicineItems.find({ _id: e.item_id })
                 if (!result[0].totalUnit) return res.status(200).send({ error: true, message: 'TotalUnit is undefined!' })
-                let totalUnit = result[0].totalUnit - e.qty
+                let totalUnit = result[0].totalUnit + e.qty
 
                 const from = result[0].fromUnit
                 const to = result[0].toUnit
