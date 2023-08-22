@@ -34,41 +34,40 @@ async function readExcelDataForTreatmentVoucher(filePath) {
   await workbook.xlsx.readFile(filePath);
   const worksheet = workbook.getWorksheet(1);
   const data = [];
-  const promises = [];
 
-  worksheet.eachRow((row, rowNumber) => {
-    if (rowNumber !== 1) {  // Skip the header row
-      let treatmentName = row.getCell(7).value
-      console.log(treatmentName)
-      const doctorPromise = Doctor.findOne({ name: row.getCell(3).value });
-      const patientPromise = Patient.findOne({ name: row.getCell(6).value });
-      const treatmentPromise = Treatment.findOne({ name: treatmentName ? treatmentName.split('__')[0] : row.getCell(7).value });
+  const rows = worksheet.getRows(2, worksheet.actualRowCount);
+  //console.log(rows)
+  for (const row of rows) {
+    if (row.getCell(2).value) {
+      let treatmentName = row.getCell(7).value;
+      try {
+        const relatedDoctor = await Doctor.findOne({ name: row.getCell(3).value, isDeleted: false });
+        const relatedPatient = await Patient.findOne({ name: row.getCell(6).value, isDeleted: false });
+        const relatedTreatment = await Treatment.findOne({ name: treatmentName ? treatmentName.split('__')[0] : row.getCell(7).value, isDeleted: false });
 
-      promises.push(
-        Promise.all([doctorPromise, patientPromise, treatmentPromise]).then(
-          ([relatedDoctor, relatedPatient, relatedTreatment]) => {
-            if (relatedTreatment) {
-              data.push({
-                relatedPatient: relatedPatient ? relatedPatient._id : undefined,
-                relatedDoctor: relatedDoctor ? relatedDoctor._id : undefined,
-                relatedTreatment: relatedTreatment ? relatedTreatment._id : undefined,
-                paidAmount: row.getCell(14).value.result,
-                totalDiscount: row.getCell(11).value,
-                remark: row.getCell(15).value
-                // ... map other fields accordingly
-              });
-            }
-          }
-        )
-      );
+        console.log(relatedDoctor, relatedPatient, relatedTreatment, 'hereeee');
+
+        if (relatedDoctor || relatedPatient || relatedTreatment) {
+          const rowData = {
+            relatedPatient: relatedPatient?._id,
+            relatedDoctor: relatedDoctor?._id,
+            relatedTreatment: relatedTreatment?._id,
+            paidAmount: row.getCell(14).value?.result,
+            totalDiscount: row.getCell(11).value,
+            remark: row.getCell(15).value
+            // ... map other fields accordingly
+          };
+          data.push(rowData);
+        }
+      } catch (error) {
+        console.error("Error processing row:", error);
+      }
     }
-  });
-
-  // Wait for all promises to be resolved before returning the data
-  await Promise.all(promises);
+  }
 
   return data;
 }
+
 
 
 
