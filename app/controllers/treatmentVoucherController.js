@@ -9,6 +9,15 @@ const TreatmentSelection = require('../models/treatmentSelection');
 const Attachment = require('../models/attachment');
 const Log = require('../models/log');
 
+exports.deleteMS = async (req, res) => {
+    try {
+        const result = await TreatmentVoucher.findOneAndUpdate({ _id: req.params.id }, { isDeleted: true }, { new: true })
+        return res.status(200).send({ success: true, data: result })
+    } catch (error) {
+        return res.status(500).send({ error: true, message: error.message })
+    }
+}
+
 exports.listAllTreatmentVouchers = async (req, res) => {
     let { keyword, role, limit, skip, tsType } = req.query;
     let count = 0;

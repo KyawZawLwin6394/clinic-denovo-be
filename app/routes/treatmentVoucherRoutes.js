@@ -33,5 +33,10 @@ module.exports = (app) => {
     app.route('/api/treatment-vouchers/treatment-selection/:id').get(verifyToken, catchError(treatmentVoucher.getTreatmentVoucherWithTreatmentID))
     app.route('/api/treatment-vouchers/ms/single').post(verifyToken, catchError(treatmentVoucher.createSingleMedicineSale))
     app.route('/api/treatment-vouchers/ms/combine').put(verifyToken, catchError(treatmentVoucher.combineMedicineSale))
-    app.route('/api/treatment-vouchers/ms').put(verifyToken, catchError(treatmentVoucher.updateMedicineSale));
+
+    app.route('/api/treatment-vouchers/ms')
+        .put(verifyToken, catchError(treatmentVoucher.updateMedicineSale));
+
+    app.route('/api/treatment-vouchers/ms/:id')
+        .delete(verifyToken, catchError(treatmentVoucher.deleteMS));
 };
