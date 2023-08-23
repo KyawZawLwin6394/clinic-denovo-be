@@ -54,7 +54,8 @@ async function readExcelDataForTreatmentVoucher(filePath) {
             relatedTreatment: relatedTreatment?._id,
             paidAmount: row.getCell(14).value?.result,
             totalDiscount: row.getCell(11).value,
-            remark: row.getCell(15).value
+            remark: row.getCell(15).value,
+            relatedCash: '64ae121d12b3d31436d47e52'
             // ... map other fields accordingly
           };
           data.push(rowData);
