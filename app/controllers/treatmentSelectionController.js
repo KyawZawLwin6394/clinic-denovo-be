@@ -264,12 +264,14 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
             console.log(dataTVC)
             dataTVC.multiTreatment = parsedMulti
             let today = new Date().toISOString()
-            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ seq: -1 }).limit(1).exec();
-            if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
-            if (latestDocument.length > 0) {
+            const latestDocument = await TreatmentVoucher.find({}).sort({ seq: -1 }).limit(1).exec();
+            if (latestDocument.length === 0 && latestDocument[0].seq === undefined) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
+            if (latestDocument.length > 0 && latestDocument[0].seq) {
+                console.log(latestDocument, 'latestDocument')
                 const increment = latestDocument[0].seq + 1
                 dataTVC = { ...dataTVC, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-" + increment, seq: increment }
             }
+            console.log(dataTVC, 'DataTVC')
             var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
         }
         if (treatmentVoucherResult) {
