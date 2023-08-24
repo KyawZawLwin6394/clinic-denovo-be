@@ -175,7 +175,7 @@ exports.createTreatmentSelectionCode = async (req, res) => {
     let data = req.body;
     try {
         //prepare TS-ID
-        const latestDocument = await TreatmentSelection.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
+        const latestDocument = await TreatmentSelection.find({}, { seq: 1 }).sort({ seq: -1 }).limit(1).exec();
         if (latestDocument[0].seq === undefined) data = { ...data, seq: 1, code: "TS-1" } // if seq is undefined set initial patientID and seq
         if (latestDocument[0].seq) {
             const increment = latestDocument[0].seq + 1
@@ -264,7 +264,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
             console.log(dataTVC)
             dataTVC.multiTreatment = parsedMulti
             let today = new Date().toISOString()
-            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
+            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ seq: -1 }).limit(1).exec();
             if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
             if (latestDocument.length > 0) {
                 const increment = latestDocument[0].seq + 1
@@ -639,7 +639,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "tsType": 'TS'
             }
             let today = new Date().toISOString()
-            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
+            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ seq: -1 }).limit(1).exec();
             if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
             if (latestDocument.length > 0) {
                 const increment = latestDocument[0].seq + 1
@@ -673,7 +673,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "tsType": 'TS'
             }
             let today = new Date().toISOString()
-            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
+            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ seq: -1 }).limit(1).exec();
             if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
             if (latestDocument.length > 0) {
                 const increment = latestDocument[0].seq + 1
@@ -707,7 +707,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "tsType": 'TS'
             }
             let today = new Date().toISOString()
-            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
+            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ seq: -1 }).limit(1).exec();
             if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
             if (latestDocument.length > 0) {
                 const increment = latestDocument[0].seq + 1
@@ -896,7 +896,7 @@ exports.treatmentPayment = async (req, res, next) => {
 
             }
             let today = new Date().toISOString()
-            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
+            const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ seq: -1 }).limit(1).exec();
             if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
             if (latestDocument.length > 0) {
                 const increment = latestDocument[0].seq + 1
