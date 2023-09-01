@@ -11,19 +11,29 @@ const Doctor = require('../models/doctor');
 const Patient = require('../models/patient')
 const Treatment = require('../models/treatment');
 
+function getInitialsInUpperCase(inputString) {
+  const words = inputString.split(' ');
+  const initials = words.map(word => word.charAt(0).toUpperCase());
+  return initials.join('');
+}
 
-async function readExcelDataForPatient(filePath) {
+async function readExcelDataForPatient(filePath, seq) {
   await workbook.xlsx.readFile(filePath);
   const worksheet = workbook.getWorksheet(1);
   const data = [];
+  let seqNo = seq
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber !== 1) {  // Skip the header row
+      const name = getInitialsInUpperCase(row.getCell(3).value)
       data.push({
+        patientID: 'CUS-' + name + '-' + (seqNo + 1),
         name: row.getCell(3).value,
         phone: row.getCell(4).value,
-        email: row.getCell(5).value
+        email: row.getCell(5).value,
+        seq: seqNo + 1
         // ... map other fields accordingly
       });
+      seqNo++
     }
   });
 

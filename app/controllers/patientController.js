@@ -22,37 +22,41 @@ function formatDateAndTime(dateString) { // format mongodb ISO 8601 date format 
 
 exports.excelImportTreatmentVouchers = async (req, res) => {
   try {
-      let files = req.files
-      if (files.excel) {
-          for (const i of files.excel) {
-              const subpath = path.join('app', 'controllers');  // Construct the subpath using the platform's path separator
-              const newPath = __dirname.replace(subpath, '');
-              const dest = path.join(newPath, i.path)
-              const data = await UserUtil.readExcelDataForTreatmentVoucher(dest)
-              await TreatmentVoucher.insertMany(data).then((response) => {
-                  return res.status(200).send({
-                      success: true, data: response
-                  })
-              })
-                  .catch(error => {
-                      return res.status(500).send({ error: true, message: error })
-                  })
-          }
-      }
-  } catch (error) {
-      return res.status(500).send({ error: true, message: error.message })
-  }
-}
-
-exports.excelImportPatient = async (req, res) => {
-  try {
     let files = req.files
     if (files.excel) {
       for (const i of files.excel) {
         const subpath = path.join('app', 'controllers');  // Construct the subpath using the platform's path separator
         const newPath = __dirname.replace(subpath, '');
         const dest = path.join(newPath, i.path)
-        const data = await UserUtil.readExcelDataForPatient(dest)
+        const data = await UserUtil.readExcelDataForTreatmentVoucher(dest)
+        await TreatmentVoucher.insertMany(data).then((response) => {
+          return res.status(200).send({
+            success: true, data: response
+          })
+        })
+          .catch(error => {
+            return res.status(500).send({ error: true, message: error })
+          })
+      }
+    }
+  } catch (error) {
+    return res.status(500).send({ error: true, message: error.message })
+  }
+}
+
+exports.excelImportPatient = async (req, res) => {
+  try {
+    console.log('here')
+    let files = req.files
+    if (files.excel) {
+      const latestDocument = await Patient.find({}, { seq: 1 }).sort({ seq: -1 }).limit(1).exec();
+      console.log(latestDocument)
+      for (const i of files.excel) {
+        const subpath = path.join('app', 'controllers');  // Construct the subpath using the platform's path separator
+        const newPath = __dirname.replace(subpath, '');
+        const dest = path.join(newPath, i.path)
+        const data = await UserUtil.readExcelDataForPatient(dest, latestDocument[0].seq)
+        console.log(data)
         await Patient.insertMany(data).then((response) => {
           return res.status(200).send({
             success: true, data: response
@@ -64,6 +68,7 @@ exports.excelImportPatient = async (req, res) => {
       }
     }
   } catch (error) {
+    console.log(error)
     return res.status(500).send({ error: true, message: error.message })
   }
 
