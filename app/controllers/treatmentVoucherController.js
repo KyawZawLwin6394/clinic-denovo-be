@@ -427,8 +427,9 @@ exports.TreatmentVoucherFilter = async (req, res) => {
         data: {}
     }
     try {
-        const { startDate, endDate, createdBy, purchaseType, relatedDoctor, bankType, tsType, relatedPatient, bankID } = req.query
+        const { startDate, endDate, createdBy, purchaseType, relatedDoctor, bankType, tsType, relatedPatient, bankID, paymentMethod } = req.query
         if (startDate && endDate) query.createdAt = { $gte: startDate, $lte: endDate }
+        if (paymentMethod) query.paymentMethod = paymentMethod
         if (relatedPatient) query.relatedPatient = relatedPatient
         if (bankType) query.bankType = bankType
         if (createdBy) query.createdBy = createdBy
