@@ -1215,6 +1215,7 @@ exports.sendEmail = async (req, res) => {
             return res.status(200).send({ success: true, result: emailResult })
         })
     } catch (error) {
+        console.log(error)
         return res.status(500).send({ error: true, message: error.message })
     }
 }
