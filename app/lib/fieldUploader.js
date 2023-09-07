@@ -29,7 +29,7 @@ var storage = multer.diskStorage({
         } else if (file.fieldname === "payment") {
             cb(null, './uploads/cherry-k/payment');
         } else if (file.fieldname === "email") {
-            cb(null, './uploads/cherry-k/email');
+            cb(null, './uploads/cherry-k/sendEmail');
         } else if (file.fieldname === "excel") {
             cb(null, './uploads/cherry-k/excel');
         }
