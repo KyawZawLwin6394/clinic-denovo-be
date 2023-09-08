@@ -60,7 +60,7 @@ let MedicineItemSchema = new Schema({
   },
   itemType: {
     type: String,
-    enum: ['Oral', 'Topical', 'Cosmetic', 'Consignment']
+    enum: ['Oral', 'Topical', 'Cosmetic', 'Consignment','Accessories']
   }
 });
 
