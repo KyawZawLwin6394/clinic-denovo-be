@@ -52,8 +52,8 @@ async function readExcelDataForTreatmentVoucher(filePath) {
       let treatmentName = row.getCell(7).value;
       try {
         const relatedDoctor = await Doctor.findOne({ name: row.getCell(3).value, isDeleted: false });
-        const relatedPatient = await Patient.findOne({ name: row.getCell(6).value, isDeleted: false });
-        const relatedTreatment = await Treatment.findOne({ name: treatmentName ? treatmentName.split('__')[0] : row.getCell(7).value, isDeleted: false });
+        const relatedPatient = await Patient.findOne({ name: row.getCell(5).value, isDeleted: false });
+        const relatedTreatment = await Treatment.findOne({ name: treatmentName ? treatmentName.split('__')[0] : row.getCell(6).value, isDeleted: false });
 
         console.log(relatedDoctor, relatedPatient, relatedTreatment, 'hereeee');
 
@@ -62,9 +62,9 @@ async function readExcelDataForTreatmentVoucher(filePath) {
             relatedPatient: relatedPatient?._id,
             relatedDoctor: relatedDoctor?._id,
             relatedTreatment: relatedTreatment?._id,
-            paidAmount: row.getCell(14).value?.result,
+            paidAmount: row.getCell(13).value?.result,
             totalDiscount: row.getCell(11).value,
-            remark: row.getCell(15).value,
+            remark: row.getCell(14).value,
             relatedCash: '64ae121d12b3d31436d47e52'
             // ... map other fields accordingly
           };
