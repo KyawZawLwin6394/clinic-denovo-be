@@ -174,6 +174,7 @@ exports.excelImportTreatmentVouchers = async (req, res) => {
                 const newPath = __dirname.replace(subpath, '');
                 const dest = path.join(newPath, i.path)
                 const data = await UserUtil.readExcelDataForTreatmentVoucher(dest)
+                console.log(data)
                 await TreatmentVoucher.insertMany(data).then((response) => {
                     return res.status(200).send({
                         success: true, data: response
