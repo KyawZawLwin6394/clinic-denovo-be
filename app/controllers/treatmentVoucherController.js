@@ -8,6 +8,7 @@ const UserUtil = require('../lib/userUtil');
 const TreatmentSelection = require('../models/treatmentSelection');
 const Attachment = require('../models/attachment');
 const Log = require('../models/log');
+const Debt = require('../models/debt');
 
 exports.deleteMS = async (req, res) => {
     try {
@@ -641,6 +642,14 @@ exports.createSingleMedicineSale = async (req, res) => {
 
     data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy, purchaseTotal: purchaseTotal }
     if (purchaseTotal) data.purchaseTotal = purchaseTotal
+
+    if (req.body.balance) {
+        const debtCreate = await Debt.create({
+            "balance": req.body.balance,
+            "relatedPatient": data.relatedPatient,
+            "relatedTreatmentVoucher": treatmentVoucherResult._id
+        })
+    }
     //..........END OF TRANSACTION.....................
     console.log(data)
     const newMedicineSale = new TreatmentVoucher(data)
@@ -783,6 +792,14 @@ exports.combineMedicineSale = async (req, res) => {
     }
     data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy, purchaseTotal: purchaseTotal }
     if (purchaseTotal) data.purchaseTotal = purchaseTotal
+
+    if (req.body.balance) {
+        const debtCreate = await Debt.create({
+            "balance": req.body.balance,
+            "relatedPatient": data.relatedPatient,
+            "relatedTreatmentVoucher": treatmentVoucherResult._id
+        })
+    }
     //..........END OF TRANSACTION.....................
 
     const medicineSaleResult = await TreatmentVoucher.findOneAndUpdate(

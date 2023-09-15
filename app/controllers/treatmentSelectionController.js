@@ -18,6 +18,7 @@ const config = require('../../config/db');
 const { Buffer } = require('buffer');
 const fs = require('fs');
 const path = require('path');
+const Debt = require('../models/debt');
 
 
 
@@ -279,7 +280,13 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
             var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount multiTreatment.item_id payment')
         }
         var updatePatient = await Patient.findOneAndUpdate({ _id: relatedPatient }, { $addToSet: { relatedTreatmentSelection: TSArray }, $inc: { conditionAmount: req.body.totalAmount, conditionPurchaseFreq: 1, conditionPackageQty: 1 } })
-
+        if (req.body.balance) {
+            const debtCreate = await Debt.create({
+                "balance": req.body.balance,
+                "relatedPatient": data.relatedPatient,
+                "relatedTreatmentVoucher": treatmentVoucherResult._id
+            })
+        }
 
         if (populatedTV) response.treatmentVoucherResult = populatedTV
         res.status(200).send(response);
@@ -810,6 +817,13 @@ exports.createTreatmentSelection = async (req, res, next) => {
         }
         if (treatmentVoucherResult) {
             var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount')
+        }
+        if (req.body.balance) {
+            const debtCreate = await Debt.create({
+                "balance": req.body.balance,
+                "relatedPatient": data.relatedPatient,
+                "relatedTreatmentVoucher": treatmentVoucherResult._id
+            })
         }
         let response = {
             message: 'Treatment Selection create success',
