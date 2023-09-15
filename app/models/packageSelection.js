@@ -11,7 +11,7 @@ let PackageSelectionSchema = new Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['Credit', 'Cash Down', 'FOC']
+    enum: ['Partial', 'Paid', 'FOC']
   },
   paidAmount: {
     type: Number,

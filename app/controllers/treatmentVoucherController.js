@@ -644,9 +644,9 @@ exports.createSingleMedicineSale = async (req, res) => {
     data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy, purchaseTotal: purchaseTotal }
     if (purchaseTotal) data.purchaseTotal = purchaseTotal
 
-    if (req.body.balance) {
+    if (req.body.msbalance) {
         const debtCreate = await Debt.create({
-            "balance": req.body.balance,
+            "balance": req.body.msbalance,
             "relatedPatient": data.relatedPatient,
             "relatedTreatmentVoucher": treatmentVoucherResult._id
         })
@@ -794,9 +794,9 @@ exports.combineMedicineSale = async (req, res) => {
     data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy, purchaseTotal: purchaseTotal }
     if (purchaseTotal) data.purchaseTotal = purchaseTotal
 
-    if (req.body.balance) {
+    if (req.body.msbalance) {
         const debtCreate = await Debt.create({
-            "balance": req.body.balance,
+            "balance": req.body.msbalance,
             "relatedPatient": data.relatedPatient,
             "relatedTreatmentVoucher": treatmentVoucherResult._id
         })

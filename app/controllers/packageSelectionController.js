@@ -596,6 +596,13 @@ exports.createPackageSelection = async (req, res, next) => {
         if (treatmentVoucherResult) {
             var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount')
         }
+        if (req.body.psBalance) {
+            const debtCreate = await Debt.create({
+                "balance": req.body.psBalance,
+                "relatedPatient": data.relatedPatient,
+                "relatedTreatmentVoucher": treatmentVoucherResult._id
+            })
+        }
 
         let response = {
             message: 'Treatment Selection create success',
