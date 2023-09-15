@@ -177,7 +177,7 @@ exports.createTreatmentSelectionCode = async (req, res) => {
     try {
         //prepare TS-ID
         const latestDocument = await TreatmentSelection.find({}, { seq: 1 }).sort({ seq: -1 }).limit(1).exec();
-        if (latestDocument.length === 0 && latestDocument[0].seq === undefined) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
+        if (latestDocument.length === 0 && latestDocument[0].seq === undefined) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + "-1" } // if seq is undefined set initial patientID and seq
         if (latestDocument.length > 0 && latestDocument[0].seq) {
             console.log(latestDocument, 'latestDocument')
             const increment = latestDocument[0].seq + 1

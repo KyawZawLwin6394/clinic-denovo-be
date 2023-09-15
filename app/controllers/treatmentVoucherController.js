@@ -271,7 +271,7 @@ exports.getCodeMS = async (req, res) => {
     try {
         let today = new Date().toISOString()
         const latestDocument = await TreatmentVoucher.find({ tsType: 'MS' }, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
-        if (latestDocument.length === 0) data = { ...data, seq: 1, code: "MVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
+        if (latestDocument.length === 0) data = { ...data, seq: 1, code: "MVC-" + "-1" } // if seq is undefined set initial patientID and seq
         if (latestDocument.length > 0) {
             const increment = latestDocument[0].seq + 1
             data = { ...data, code: "MVC-" + today.split('T')[0].replace(/-/g, '') + "-" + increment, seq: increment }
