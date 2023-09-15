@@ -31,6 +31,14 @@ let TreatmentVoucherSchema = new Schema({
         type: String,
         enum: ['by Appointment', 'Lumpsum', 'Total', 'Advanced', 'FOC', 'pAdvance']
     },
+    relatedPackageSelection: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'PackageSelections'
+    },
+    relatedPackage: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Packages'
+    },
     code: {
         type: String
     },

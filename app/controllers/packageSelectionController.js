@@ -458,6 +458,8 @@ exports.createPackageSelection = async (req, res, next) => {
                 "relatedPatient": req.body.relatedPatient,
                 "paymentMethod": "FOC", //enum: ['by Appointment','Lapsum','Total','Advanced']
                 "amount": 0,
+                "relatedPackageSelection": result._id,
+                "relatedPackage": req.body.relatedPackage,
                 "relatedBank": req.body.relatedBank,
                 "bankType": req.body.bankType,//must be bank acc from accounting accs
                 "paymentType": req.body.paymentType, //enum: ['Bank','Cash']
@@ -1013,13 +1015,13 @@ exports.TopTenFilter = async (req, res) => {
 
 
 // const TreatmentNames = TreatmentResult.reduce((result, { relatedTreatment }) => {
-        //     const { name, treatmentName } = relatedTreatment;
-        //     result[name] = (result[name] || 0) + 1; // Increment count by 1
-        //     return result;
-        // }, []);
-        // const sortedTreatmentNames = Object.entries(TreatmentNames)
-        //     .sort((a, b) => b[1] - a[1])
-        //     .reduce((sortedObj, [name, count]) => {
-        //         sortedObj[name] = count;
-        //         return sortedObj;
-        //     }, {}); //Descending
+//     const { name, treatmentName } = relatedTreatment;
+//     result[name] = (result[name] || 0) + 1; // Increment count by 1
+//     return result;
+// }, []);
+// const sortedTreatmentNames = Object.entries(TreatmentNames)
+//     .sort((a, b) => b[1] - a[1])
+//     .reduce((sortedObj, [name, count]) => {
+//         sortedObj[name] = count;
+//         return sortedObj;
+//     }, {}); //Descending
