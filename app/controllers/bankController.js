@@ -48,7 +48,7 @@ exports.createBank = async (req, res, next) => {
   let newBody = req.body;
   try {
     const bankAccJSON = {
-      code:null,
+      code:req.body.coaCode,
       relatedType:req.body.relatedType,
       relatedHeader:req.body.relatedHeader,
       subHeader:req.body.subHeading,
