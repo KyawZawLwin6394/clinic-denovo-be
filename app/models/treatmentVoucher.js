@@ -29,7 +29,7 @@ let TreatmentVoucherSchema = new Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['Paid', 'Parial', 'FOC']
+        enum: ['Paid', 'Partial', 'FOC']
     },
     relatedPackageSelection: {
         type: mongoose.Schema.Types.ObjectId,
