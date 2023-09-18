@@ -29,7 +29,7 @@ let TreatmentVoucherSchema = new Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['by Appointment', 'Lumpsum', 'Total', 'Advanced', 'FOC', 'pAdvance']
+        enum: ['Paid', 'Parial', 'FOC']
     },
     relatedPackageSelection: {
         type: mongoose.Schema.Types.ObjectId,
@@ -174,9 +174,9 @@ let TreatmentVoucherSchema = new Schema({
     deposit: {
         type: Number
     },
-    payment:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Attachments'
+    payment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Attachments'
     }
 });
 
