@@ -34,7 +34,7 @@ exports.listAllTreatmentVouchers = async (req, res) => {
             : '';
         if (tsType) query.tsType = tsType
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient payment relatedTreatmentSelection relatedBranch')
+        let result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient payment relatedTreatmentSelection ')
         count = await TreatmentVoucher.find(query).count();
         const division = count / limit;
         page = Math.ceil(division);
@@ -255,10 +255,10 @@ exports.getCode = async (req, res) => {
     try {
         let today = new Date().toISOString()
         const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
-        if (latestDocument.length === 0) data = { ...data, seq: 1, code: "TVC-"  + "-1" } // if seq is undefined set initial patientID and seq
+        if (latestDocument.length === 0) data = { ...data, seq: 1, code: "TVC-" + "-1" } // if seq is undefined set initial patientID and seq
         if (latestDocument.length > 0) {
             const increment = latestDocument[0].seq + 1
-            data = { ...data, code: "TVC-"  + "-" + increment, seq: increment }
+            data = { ...data, code: "TVC-" + "-" + increment, seq: increment }
         }
         return res.status(200).send({ success: true, data: data })
     } catch (error) {
@@ -274,7 +274,7 @@ exports.getCodeMS = async (req, res) => {
         if (latestDocument.length === 0) data = { ...data, seq: 1, code: "MVC-" + "-1" } // if seq is undefined set initial patientID and seq
         if (latestDocument.length > 0) {
             const increment = latestDocument[0].seq + 1
-            data = { ...data, code: "MVC-"  + "-" + increment, seq: increment }
+            data = { ...data, code: "MVC-" + "-" + increment, seq: increment }
         }
         return res.status(200).send({ success: true, data: data })
     } catch (error) {
@@ -429,9 +429,8 @@ exports.TreatmentVoucherFilter = async (req, res) => {
         data: {}
     }
     try {
-        const { startDate, endDate, createdBy, purchaseType, relatedDoctor, bankType, tsType, relatedPatient, bankID, paymentMethod } = req.query
+        const { startDate, endDate, createdBy, purchaseType, relatedDoctor, bankType, tsType, relatedPatient, bankID } = req.query
         if (startDate && endDate) query.createdAt = { $gte: startDate, $lte: endDate }
-        if (paymentMethod) query.paymentMethod = paymentMethod
         if (relatedPatient) query.relatedPatient = relatedPatient
         if (bankType) query.bankType = bankType
         if (createdBy) query.createdBy = createdBy
@@ -466,30 +465,31 @@ exports.TreatmentVoucherFilter = async (req, res) => {
                     }
                 }
             })
-            const CashNames = cashResult.reduce((result, { relatedCash, paidAmount, msTotalAmount, totalPaidAmount }) => {
+            const CashNames = cashResult.reduce((result, { relatedCash, paidAmount, msPaidAmount, totalPaidAmount, psPaidAmount }) => {
                 if (relatedCash) {
                     const { name } = relatedCash;
-                    result[name] = (result[name] || 0) + paidAmount + msTotalAmount + totalPaidAmount;
+                    result[name] = (result[name] || 0) + (paidAmount || 0 + msPaidAmount || 0 + totalPaidAmount || 0 + psPaidAmount || 0);
                 }
                 return result;
             }, {});
 
-            const CashTotal = cashResult.reduce((total, sale) => total + sale.paidAmount + sale.msTotalAmount + sale.totalPaidAmount, 0);
+            const CashTotal = cashResult.reduce((total, sale) => total + (sale.paidAmount || 0) + (sale.msPaidAmount || 0) + (sale.totalPaidAmount || 0) + (sale.psPaidAmount || 0), 0);
             response.data = { ...response.data, CashList: cashResult, CashNames: CashNames, CashTotal: CashTotal }
         }
         //filter solid beauty
-        const BankNames = bankResult.reduce((result, { relatedBank, paidAmount, msTotalAmount, totalPaidAmount }) => {
+        const BankNames = bankResult.reduce((result, { relatedBank, paidAmount, msPaidAmount, totalPaidAmount, psPaidAmount }) => {
             if (relatedBank) {
                 const { name } = relatedBank;
-                result[name] = (result[name] || 0) + paidAmount + msTotalAmount + totalPaidAmount;
+                result[name] = (result[name] || 0) + (paidAmount || 0 + msPaidAmount || 0 + totalPaidAmount || 0 + psPaidAmount || 0);
             } return result;
 
         }, {});
-        const BankTotal = bankResult.reduce((total, sale) => total + sale.paidAmount + sale.msTotalAmount + sale.totalPaidAmount, 0);
+        const BankTotal = bankResult.reduce((total, sale) => total + (sale.paidAmount || 0) + (sale.msPaidAmount || 0) + (sale.totalPaidAmount || 0) + (sale.psPaidAmount || 0), 0);
         response.data = { ...response.data, BankList: bankResult, BankNames: BankNames, BankTotal: BankTotal }
 
         return res.status(200).send(response);
     } catch (error) {
+        console.log(error)
         return res.status(500).send({ error: true, message: error.message })
     }
 }
@@ -502,7 +502,7 @@ exports.filterTreatmentVoucher = async (req, res, next) => {
         if (relatedDoctor) query.relatedDoctor = relatedDoctor
         if (relatedPatient) query.relatedPatient = relatedPatient
         if (Object.keys(query).length === 0) return res.status(404).send({ error: true, message: 'Please Specify A Query To Use This Function' })
-        const result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient payment relatedTreatmentSelection relatedBranch')
+        const result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient payment relatedTreatmentSelection ')
         if (result.length === 0) return res.status(404).send({ error: true, message: "No Record Found!" })
         res.status(200).send({ success: true, data: result })
     } catch (err) {
