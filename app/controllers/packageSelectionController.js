@@ -169,7 +169,7 @@ exports.createPackageSelection = async (req, res, next) => {
 
 
         //first transaction 
-        if (req.body.paymentMethod === 'Paid') {
+        if (req.body.paymentMethod === 'Partial') {
             var fTransResult = await Transaction.create({
                 "amount": req.body.paidAmount,
                 "date": Date.now(),
