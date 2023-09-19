@@ -442,10 +442,10 @@ exports.createPackageSelection = async (req, res, next) => {
         //     }
         //     let today = new Date().toISOString()
         //     const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
-        //     if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
+        //     if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-"  + "-1" } // if seq is undefined set initial patientID and seq
         //     if (latestDocument.length > 0) {
         //         const increment = latestDocument[0].seq + 1
-        //         dataTVC = { ...dataTVC, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-" + increment, seq: increment }
+        //         dataTVC = { ...dataTVC, code: "TVC-"  + "-" + increment, seq: increment }
         //     }
         //     var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
         // }
@@ -477,7 +477,7 @@ exports.createPackageSelection = async (req, res, next) => {
             if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "PVC-" + "-1" } // if seq is undefined set initial patientID and seq
             if (latestDocument.length > 0) {
                 const increment = latestDocument[0].seq + 1
-                dataTVC = { ...dataTVC, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-" + increment, seq: increment }
+                dataTVC = { ...dataTVC, code: "TVC-" + "-" + increment, seq: increment }
             }
             var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
         }
@@ -504,10 +504,10 @@ exports.createPackageSelection = async (req, res, next) => {
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
-            if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
+            if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + "-1" } // if seq is undefined set initial patientID and seq
             if (latestDocument.length > 0) {
                 const increment = latestDocument[0].seq + 1
-                dataTVC = { ...dataTVC, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-" + increment, seq: increment }
+                dataTVC = { ...dataTVC, code: "TVC-" + "-" + increment, seq: increment }
             }
             var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
         }
@@ -687,10 +687,10 @@ exports.updatePackageSelection = async (req, res, next) => {
 //             }
 //             let today = new Date().toISOString()
 //             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
-//             if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-1" } // if seq is undefined set initial patientID and seq
+//             if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-"  + "-1" } // if seq is undefined set initial patientID and seq
 //             if (latestDocument.length > 0) {
 //                 const increment = latestDocument[0].seq + 1
-//                 dataTVC = { ...dataTVC, code: "TVC-" + today.split('T')[0].replace(/-/g, '') + "-" + increment, seq: increment }
+//                 dataTVC = { ...dataTVC, code: "TVC-"  + "-" + increment, seq: increment }
 //             }
 //             var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
 //             //transaction
