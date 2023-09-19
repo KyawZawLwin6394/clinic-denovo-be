@@ -481,6 +481,7 @@ exports.createPackageSelection = async (req, res, next) => {
             }
             var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
         }
+        tvcCreate = true
         if (tvcCreate === true) {
             //--> treatment voucher create
             let dataTVC = {
