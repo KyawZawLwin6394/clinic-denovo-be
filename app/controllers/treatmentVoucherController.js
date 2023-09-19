@@ -34,7 +34,7 @@ exports.listAllTreatmentVouchers = async (req, res) => {
             : '';
         if (tsType) query.tsType = tsType
         regexKeyword ? (query['name'] = regexKeyword) : '';
-        let result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient payment relatedTreatmentSelection ')
+        let result = await TreatmentVoucher.find(query).populate('createdBy relatedTreatment relatedAppointment relatedPatient payment relatedTreatmentSelection')
         count = await TreatmentVoucher.find(query).count();
         const division = count / limit;
         page = Math.ceil(division);
