@@ -505,7 +505,8 @@ exports.createPackageSelection = async (req, res, next) => {
                 "discountAmount": req.body.discountAmount,
                 "relatedDoctor": req.body.relatedDoctor,
                 "tsType": 'PS',
-                "balance": req.body.balance
+                "balance": req.body.balance,
+                "createdAt": req.body.createdAt
 
             }
             console.log(dataTVC)
