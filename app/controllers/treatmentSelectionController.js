@@ -261,7 +261,8 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
                 "totalDiscount": totalDiscount,
                 "totalAmount": totalAmount,
                 "totalPaidAmount": totalPaidAmount,
-                "tsType": "TSMulti"
+                "tsType": "TSMulti",
+                "balance":req.body.balance
             }
             console.log(dataTVC)
             dataTVC.multiTreatment = parsedMulti
@@ -714,7 +715,8 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "payment": attachID,
                 "discountAmount": req.body.discountAmount,
                 "discountType": req.body.discountType,
-                "tsType": 'TS'
+                "tsType": 'TS',
+                "balance":req.body.balance
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ seq: -1 }).limit(1).exec();
