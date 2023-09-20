@@ -181,7 +181,7 @@ exports.createTreatmentSelectionCode = async (req, res) => {
         if (latestDocument.length > 0 && latestDocument[0].seq) {
             console.log(latestDocument, 'latestDocument')
             const increment = latestDocument[0].seq + 1
-            dataTVC = { ...dataTVC, code: "TVC-"  + "-" + increment, seq: increment }
+            dataTVC = { ...dataTVC, code: "TVC-" + "-" + increment, seq: increment }
         }
         return res.status(200).send({
             success: true,
@@ -262,7 +262,8 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
                 "totalAmount": totalAmount,
                 "totalPaidAmount": totalPaidAmount,
                 "tsType": "TSMulti",
-                "balance":req.body.balance
+                "createdAt": req.body.createdAt,
+                "balance": req.body.balance
             }
             console.log(dataTVC)
             dataTVC.multiTreatment = parsedMulti
@@ -716,14 +717,15 @@ exports.createTreatmentSelection = async (req, res, next) => {
                 "discountAmount": req.body.discountAmount,
                 "discountType": req.body.discountType,
                 "tsType": 'TS',
-                "balance":req.body.balance
+                "balance": req.body.balance,
+                "createdAt": req.body.createdAt
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ seq: -1 }).limit(1).exec();
-            if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-"  + "-1" } // if seq is undefined set initial patientID and seq
+            if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + "-1" } // if seq is undefined set initial patientID and seq
             if (latestDocument.length > 0) {
                 const increment = latestDocument[0].seq + 1
-                dataTVC = { ...dataTVC, code: "TVC-"  + "-" + increment, seq: increment }
+                dataTVC = { ...dataTVC, code: "TVC-" + "-" + increment, seq: increment }
             }
             var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
         }
@@ -916,10 +918,10 @@ exports.treatmentPayment = async (req, res, next) => {
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ seq: -1 }).limit(1).exec();
-            if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-"  + "-1" } // if seq is undefined set initial patientID and seq
+            if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + "-1" } // if seq is undefined set initial patientID and seq
             if (latestDocument.length > 0) {
                 const increment = latestDocument[0].seq + 1
-                dataTVC = { ...dataTVC, code: "TVC-"  + "-" + increment, seq: increment }
+                dataTVC = { ...dataTVC, code: "TVC-" + "-" + increment, seq: increment }
             }
             var treatmentVoucherResult = await TreatmentVoucher.create(dataTVC)
             //transaction
