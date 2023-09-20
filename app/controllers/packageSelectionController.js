@@ -502,7 +502,9 @@ exports.createPackageSelection = async (req, res, next) => {
                 "payment": attachID,
                 "discountAmount": req.body.discountAmount,
                 "relatedDoctor": req.body.relatedDoctor,
-                "tsType": 'PS'
+                "tsType": 'PS',
+                "balance":req.body.balance
+
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
