@@ -644,17 +644,18 @@ exports.createSingleMedicineSale = async (req, res) => {
     data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy, purchaseTotal: purchaseTotal }
     if (purchaseTotal) data.purchaseTotal = purchaseTotal
 
-    if (req.body.msBalance) {
-        const debtCreate = await Debt.create({
-            "balance": req.body.msBalance,
-            "relatedPatient": data.relatedPatient,
-            "relatedTreatmentVoucher": treatmentVoucherResult._id
-        })
-    }
+
     //..........END OF TRANSACTION.....................
     console.log(data)
     const newMedicineSale = new TreatmentVoucher(data)
     const medicineSaleResult = await newMedicineSale.save()
+    if (req.body.msBalance) {
+        const debtCreate = await Debt.create({
+            "balance": req.body.msBalance,
+            "relatedPatient": data.relatedPatient,
+            "relatedTreatmentVoucher": medicineSaleResult._id
+        })
+    }
     res.status(200).send({
         message: 'MedicineSale Transaction success',
         success: true,
@@ -793,14 +794,6 @@ exports.combineMedicineSale = async (req, res) => {
     }
     data = { ...data, relatedTransaction: [fTransResult._id, secTransResult._id], createdBy: createdBy, purchaseTotal: purchaseTotal }
     if (purchaseTotal) data.purchaseTotal = purchaseTotal
-
-    if (req.body.msBalance) {
-        const debtCreate = await Debt.create({
-            "balance": req.body.msBalance,
-            "relatedPatient": data.relatedPatient,
-            "relatedTreatmentVoucher": treatmentVoucherResult._id
-        })
-    }
     //..........END OF TRANSACTION.....................
 
     const medicineSaleResult = await TreatmentVoucher.findOneAndUpdate(
@@ -808,6 +801,13 @@ exports.combineMedicineSale = async (req, res) => {
         data,
         { new: true }
     )
+    if (req.body.msBalance) {
+        const debtCreate = await Debt.create({
+            "balance": req.body.msBalance,
+            "relatedPatient": data.relatedPatient,
+            "relatedTreatmentVoucher": medicineSaleResult._id
+        })
+    }
     res.status(200).send({
         message: 'MedicineSale Combination success',
         success: true,
