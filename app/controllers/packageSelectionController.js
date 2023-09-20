@@ -14,6 +14,7 @@ const Treatment = require('../models/treatment')
 const MedicineItems = require('../models/medicineItem');
 const AccessoryItems = require('../models/accessoryItem');
 const ProcedureItems = require('../models/procedureItem');
+const Debt = require('../models/debt');
 
 exports.listAllPackageSelections = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -471,7 +472,7 @@ exports.createPackageSelection = async (req, res, next) => {
                 "discountAmount": req.body.discountAmount,
                 "relatedDoctor": req.body.relatedDoctor,
                 "tsType": 'PS',
-                "balance":req.body.balance
+                "balance": req.body.balance
             }
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
@@ -503,9 +504,10 @@ exports.createPackageSelection = async (req, res, next) => {
                 "discountAmount": req.body.discountAmount,
                 "relatedDoctor": req.body.relatedDoctor,
                 "tsType": 'PS',
-                "balance":req.body.balance
+                "balance": req.body.balance
 
             }
+            console.log(dataTVC)
             let today = new Date().toISOString()
             const latestDocument = await TreatmentVoucher.find({}, { seq: 1 }).sort({ _id: -1 }).limit(1).exec();
             if (latestDocument.length === 0) dataTVC = { ...dataTVC, seq: 1, code: "TVC-" + "-1" } // if seq is undefined set initial patientID and seq
@@ -600,9 +602,9 @@ exports.createPackageSelection = async (req, res, next) => {
         if (treatmentVoucherResult) {
             var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount')
         }
-        if (req.body.psBalance) {
+        if (req.body.balance) {
             const debtCreate = await Debt.create({
-                "balance": req.body.psBalance,
+                "balance": req.body.balance,
                 "relatedPatient": data.relatedPatient,
                 "relatedTreatmentVoucher": treatmentVoucherResult._id
             })
