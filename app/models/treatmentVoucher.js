@@ -97,6 +97,9 @@ let TreatmentVoucherSchema = new Schema({
         type: Number,
         default: 0
     },
+    balance: {
+        type: Number
+    },
     totalPaidAmount: {
         type: Number,
         default: 0
