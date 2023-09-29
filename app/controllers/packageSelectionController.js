@@ -454,6 +454,9 @@ exports.createPackageSelection = async (req, res, next) => {
         if (req.body.paymentMethod === 'FOC') {
             let dataTVC = {
                 "relatedPackageSelection": result._id,
+                "secondAccount": req.body.secondAccount,
+                "secondAmount": req.body.secondAmount,
+                "isDouble": req.body.isDouble,
                 "relatedPackage": req.body.relatedPackage,
                 "relatedAppointment": req.body.relatedAppointment,
                 "relatedPatient": req.body.relatedPatient,
@@ -489,6 +492,9 @@ exports.createPackageSelection = async (req, res, next) => {
             //--> treatment voucher create
             let dataTVC = {
                 "relatedPackageSelection": result._id,
+                "secondAccount": req.body.secondAccount,
+                "secondAmount": req.body.secondAmount,
+                "isDouble": req.body.isDouble,
                 "relatedPackage": req.body.relatedPackage,
                 "relatedAppointment": req.body.relatedAppointment,
                 "relatedPatient": req.body.relatedPatient,

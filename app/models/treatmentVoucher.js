@@ -11,6 +11,17 @@ let TreatmentVoucherSchema = new Schema({
         required: true,
         default: false
     },
+    secondAccount: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AccountingLists'
+    },
+    secondAmount: {
+        type: Number,
+        default: 0
+    },
+    isDouble: {
+        type: Boolean
+    },
     createdAt: {
         type: Date,
         default: Date.now

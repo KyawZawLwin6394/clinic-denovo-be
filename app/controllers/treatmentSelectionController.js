@@ -240,6 +240,9 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
             //--> treatment voucher create
             let dataTVC = {
                 "relatedTreatmentSelection": TSArray,
+                "secondAccount": req.body.secondAccount,
+                "secondAmount": req.body.secondAmount,
+                "isDouble": req.body.isDouble,
                 "payment": attachID,
                 "deposit": req.body.deposit,
                 "remark": req.body.remark,
@@ -696,6 +699,9 @@ exports.createTreatmentSelection = async (req, res, next) => {
         if (tvcCreate === true) {
             //--> treatment voucher create
             let dataTVC = {
+                "secondAccount": req.body.secondAccount,
+                "secondAmount": req.body.secondAmount,
+                "isDouble": req.body.isDouble,
                 "relatedTreatmentSelection": result._id,
                 "payment": attachID,
                 "remark": req.body.remark,
@@ -895,6 +901,9 @@ exports.treatmentPayment = async (req, res, next) => {
             let dataTVC = {
                 "remark": req.body.remark,
                 "payment": attachID,
+                "secondAccount": req.body.secondAccount,
+                "secondAmount": req.body.secondAmount,
+                "isDouble": req.body.isDouble,
                 "relatedTreatmentSelection": result._id,
                 "deposit": req.body.deposit,
                 "purchaseType": req.body.purchaseType,
