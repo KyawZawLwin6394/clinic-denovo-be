@@ -110,6 +110,10 @@ let PatientSchema = new Schema({
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'PackageSelections'
   },
+  debtBalance: {
+    type: Number,
+    default: 0
+  }
 });
 const patient = mongoose.model('Patients', PatientSchema)
 module.exports = patient;

@@ -616,6 +616,8 @@ exports.createPackageSelection = async (req, res, next) => {
                 "relatedPatient": data.relatedPatient,
                 "relatedTreatmentVoucher": treatmentVoucherResult._id
             })
+            var updateDebt = await Patient.findOneAndUpdate({ _id: relatedPatient }, { $inc: { debtBalance: req.body.balance } })
+
         }
 
         let response = {

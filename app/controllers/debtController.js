@@ -3,7 +3,7 @@ const Debt = require('../models/debt');
 const TreatmentVoucher = require('../models/treatmentVoucher');
 const AccountingList = require('../models/accountingList');
 const Transaction = require('../models/transaction');
-
+const Patient = require('../models/patient');
 exports.listAllDebts = async (req, res) => {
     try {
         const { isPaid } = req.query
@@ -44,7 +44,7 @@ exports.createDebt = async (req, res, next) => {
 
 exports.updateDebt = async (req, res, next) => {
     try {
-        const { relatedTreatmentVoucher, relatedBank, relatedCash, paidAmount, relatedBranch, date, remark } = req.body
+        const { relatedTreatmentVoucher, relatedBank, relatedCash, paidAmount, relatedBranch, date, remark, relatedPatient } = req.body
         if (relatedBank) {
             const transaction = await Transaction.create({
                 "amount": paidAmount,
@@ -68,6 +68,9 @@ exports.updateDebt = async (req, res, next) => {
                 "relatedBranch": relatedBranch
             })
             const update = await AccountingList.findOneAndUpdate({ _id: relatedCash }, { amount: paidAmount }, { new: true })
+        }
+        if (paidAmount && relatedPatient) {
+            const payDebt = await Patient.findOneAndUpdate({ _id: relatedPatient }, { $inc: { debtBalance: paidAmount } })
         }
         const result = await Debt.findOneAndUpdate(
             { _id: req.body.id },
