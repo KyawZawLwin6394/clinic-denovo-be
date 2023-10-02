@@ -548,15 +548,7 @@ exports.createSingleMedicineSale = async (req, res) => {
     const medicineResult = await MedicineItems.find({ _id: { $in: medicineItems.map(item => item.item_id) } })
     const purchaseTotal = medicineResult.reduce((accumulator, currentValue) => accumulator + currentValue.purchasePrice, 0)
 
-    if (req.body.msBalance) {
-        const debtCreate = await Debt.create({
-            "balance": req.body.msBalance,
-            "relatedPatient": data.relatedPatient,
-            "relatedTreatmentVoucher": treatmentVoucherResult._id
-        })
-        var updateDebt = await Patient.findOneAndUpdate({ _id: relatedPatient }, { $inc: { debtBalance: req.body.msBalance } })
 
-    }
 
     const inventoryResult = Transaction.create({
         "amount": purchaseTotal,
