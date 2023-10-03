@@ -1,10 +1,11 @@
 'use strict';
 const AccountBalance = require('../models/accountBalance');
-const TreatmentVoucher = require('../models/treatmentVoucher');
+const MedicineSale = require('../models/medicineSale');
 const Expense = require('../models/expense');
 const Income = require('../models/income');
-const UserUtil = require('../lib/userUtil');
-const Accounting = require('../models/accountingList');
+const TreatmentVoucher = require('../models/treatmentVoucher');
+const AccountingList = require('../models/accountingList');
+const Transfer = require('../models/transfer');
 
 exports.listAllAccountBalances = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -50,67 +51,10 @@ exports.getAccountBalance = async (req, res) => {
     return res.status(200).send({ success: true, data: result });
 };
 
-exports.balanceSheetEntry = async (req, res, next) => {
-    try {
-        const accountingResult = await Accounting.find({})
-        for (const item of accountingResult) {
-            //get closing account
-            const query = { relatedAccounting: item._id, type: 'Closing' };
-            const sort = { _id: -1 }; // Sort by descending _id to get the latest document
-            const latestClosingDocument = await AccountBalance.findOne(query, null, { sort });
-            var todayTimestamp = Date.now();
-            // Create a new Date object for today using the timestamp
-            var today = new Date(todayTimestamp);
-            // Create a new Date object for tomorrow by adding one day's worth of milliseconds
-            var tomorrow = new Date(todayTimestamp);
-            tomorrow.setDate(today.getDate() + 1);
-            if (latestClosingDocument) {
-                var closingResult = await AccountBalance.create({
-                    relatedAccounting: item._id,
-                    amount: latestClosingDocument.amount,
-                    type: 'Closing',
-                    date: Date.now(),
-                    remark: null,
-                    relatedBranch: null
-                })
-                var openingResult = await AccountBalance.create({
-                    relatedAccounting: item._id,
-                    amount: latestClosingDocument.amount,
-                    type: 'Opening',
-                    date: tomorrow,
-                    remark: null,
-                    relatedBranch: null
-                })
-
-            } else {
-                var closingRes = await AccountBalance.create({
-                    relatedAccounting: item._id,
-                    amount: 0,
-                    type: 'Closing',
-                    date: Date.now(),
-                    remark: null,
-                    relatedBranch: null
-                })
-                var result = await AccountBalance.create({
-                    relatedAccounting: item._id,
-                    amount: 0,
-                    type: 'Opening',
-                    date: tomorrow,
-                    remark: null,
-                    relatedBranch: null
-                })
-            }
-            console.log('Successful', item.name)
-        }
-        return res.status(200).send({ success: true })
-    } catch (error) {
-        return res.status(500).send({ error: true, message: error.message })
-    }
-}
-
 exports.createAccountBalance = async (req, res, next) => {
     let newBody = req.body;
     try {
+        const { amount } = req.body;
         const newAccountBalance = new AccountBalance(newBody);
         const result = await newAccountBalance.save();
         res.status(200).send({
@@ -123,6 +67,46 @@ exports.createAccountBalance = async (req, res, next) => {
         return res.status(500).send({ "error": true, message: error.message })
     }
 };
+
+
+exports.accountBalanceTransfer = async (req, res) => {
+    try {
+        const { transferAmount, closingAmount, closingAcc, transferAcc,  remark } = req.body;
+        const transfered = await AccountingList.findOneAndUpdate({ _id: transferAcc }, { $inc: { amount: transferAmount } }, { new: true })
+        const transferList = await Transfer.create({
+            remark: remark,
+            amount: transferAmount,
+            fromAcc: closingAcc,
+            toAcc: transferAcc,
+            date: Date.now()
+        })
+        if (closingAmount) {
+            const closing = await AccountBalance.create({
+                type: 'Closing',
+                amount: closingAmount,
+                remark: remark,
+                relatedAccounting: closingAcc,
+                date: Date.now(),
+                transferAmount: transferAmount
+            })
+            return res.status(200).send({
+                success: true, data: {
+                    transferResult: transfered,
+                    closingResult: closing,
+                    transferList: transferList
+                }
+            })
+        }
+        return res.status(200).send({
+            success: true, data: {
+                transferResult: transfered,
+                transferList: transferList
+            }
+        })
+    } catch (error) {
+        console.log(error)
+    }
+}
 
 exports.updateAccountBalance = async (req, res, next) => {
     try {
@@ -164,62 +148,50 @@ exports.activateAccountBalance = async (req, res, next) => {
     }
 };
 
-exports.getClosing = async (req, res) => {
+exports.getOpeningClosingWithExactDate = async (req, res) => {
     try {
-        const query = { relatedAccounting: req.query.relatedAccounting, type: req.query.type };
-        const sort = { _id: -1 }; // Sort by descending _id to get the latest document
-        const latestDocument = await AccountBalance.findOne(query, null, { sort });
-        console.log(latestDocument)
-        if (latestDocument === null) return res.status(404).send({ error: true, message: 'Not Found!' })
-        const result = await AccountBalance.find({ _id: latestDocument._id }).populate('relatedAccounting')
-        return res.status(200).send({ success: true, data: result });
+        const { type, acc, branch, exact } = req.body;
+        const date = new Date(exact);
+        const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Set start date to the beginning of the day
+        const endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
+        let query = { relatedAccounting: acc, type: type, date: { $gte: startDate, $lte: endDate } }
+        const result = await AccountBalance.find(query).populate('relatedAccounting')
+        return res.status(200).send({ success: true, data: result })
     } catch (error) {
-        return res.status(500).send({ "error": true, "message": error.message })
+        return res.status(500).send({ error: true, message: error.message })
     }
 }
 
 exports.getOpeningAndClosingWithExactDate = async (req, res) => {
-    let { exact, relatedBranch, relatedCash, type, relatedAccounting, relatedBank } = req.query;
-    const query = { relatedAccounting: relatedAccounting, type: type };
-    const sort = { _id: -1 }; // Sort by descending _id to get the latest document
+    let { exact,  type, relatedAccounting } = req.query;
+    
     try {
         const date = new Date(exact);
         const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate()); // Set start date to the beginning of the day
         const endDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1); // Set end date to the beginning of the next day
-
-        const latestDocument = await AccountBalance.findOne(query, null, { sort });
-        if (latestDocument === null) return res.status(404).send({ error: true, message: 'Not Found!' })
+        const query = { relatedAccounting: relatedAccounting, type: type, date: { $gte: startDate, $lte: endDate } };
+        const latestDocument = await AccountBalance.findOne(query);
         console.log(latestDocument)
         let openingTotal = latestDocument ? latestDocument.amount : 0
         console.log(startDate, endDate)
-        let data = { tsType: 'MS', createdAt: { $gte: startDate, $lt: endDate } }
-        if (relatedBranch) data.relatedBranch = relatedBranch
-        if (relatedCash) data.relatedCash = relatedCash
-        if (relatedBank) data.relatedBank = relatedBank
-
-        let exandin = { date: { $gte: startDate, $lt: endDate } }
-        if (relatedBranch) data.relatedBranch = relatedBranch
-        if (relatedCash) data.relatedCashAccount = relatedCash
-        if (relatedBank) data.relatedBankAccount = relatedCash
-        const medicineTotal = await TreatmentVoucher.find(data).then(msResult => {
+        const medicineTotal = await TreatmentVoucher.find({ createdAt: { $gte: startDate, $lt: endDate }, tsType: 'MS'}).then(msResult => {
             const msTotal = msResult.reduce((accumulator, currentValue) => { return accumulator + currentValue.msPaidAmount }, 0)
             return msTotal
         }
         )
-        const expenseTotal = await Expense.find(exandin).then(result => {
+        const expenseTotal = await Expense.find({ date: { $gte: startDate, $lt: endDate }}).then(result => {
             const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.finalAmount }, 0)
             return total
         }
         )
-        data.tsType = { $in: ["TS", "TSMulti"] }
-        const TVTotal = await TreatmentVoucher.find(data).then(result => {
-            console.log(data, result)
-            const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.paidAmount + currentValue.totalPaidAmount }, 0)
+        const TVTotal = await TreatmentVoucher.find({ createdAt: { $gte: startDate, $lt: endDate }, tsType: { $in: ['TS', 'TSMulti'] } }).then(result => {
+            console.log(result)
+            const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.totalPaidAmount }, 0)
             return total
         }
         )
 
-        const incomeTotal = await Income.find(exandin).then(result => {
+        const incomeTotal = await Income.find({ date: { $gte: startDate, $lt: endDate } }).then(result => {
             const total = result.reduce((accumulator, currentValue) => { return accumulator + currentValue.finalAmount }, 0)
             return total
         }
@@ -228,5 +200,20 @@ exports.getOpeningAndClosingWithExactDate = async (req, res) => {
     } catch (error) {
         console.log(error)
         return res.status(500).send({ error: true, message: error.message })
+    }
+}
+
+exports.getClosing = async (req, res) => {
+    try {
+        const query = { relatedAccounting: req.query.relatedAccounting, type: req.query.type };
+        const sort = { _id: -1 }; // Sort by descending _id to get the latest document
+        console.log(query, sort, 'here')
+        const latestDocument = await AccountBalance.findOne(query, null, { sort });
+        console.log(latestDocument)
+        if (latestDocument === null) return res.status(404).send({ error: true, message: 'Not Found!' })
+        const result = await AccountBalance.find({ _id: latestDocument._id }).populate('relatedAccounting')
+        return res.status(200).send({ success: true, data: result });
+    } catch (error) {
+        return res.status(500).send({ "error": true, "message": error.message })
     }
 }
