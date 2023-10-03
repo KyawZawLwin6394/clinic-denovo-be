@@ -285,7 +285,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
             var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount multiTreatment.item_id payment')
         }
         var updatePatient = await Patient.findOneAndUpdate({ _id: relatedPatient }, { $addToSet: { relatedTreatmentSelection: TSArray }, $inc: { conditionAmount: req.body.totalAmount, conditionPurchaseFreq: 1, conditionPackageQty: 1 } })
-        if (req.body.balance) {
+        if (req.body.balance > 0) {
             const debtCreate = await Debt.create({
                 "balance": req.body.balance,
                 "relatedPatient": data.relatedPatient,
@@ -828,7 +828,7 @@ exports.createTreatmentSelection = async (req, res, next) => {
         if (treatmentVoucherResult) {
             var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount')
         }
-        if (req.body.balance) {
+        if (req.body.balance > 0) {
             const debtCreate = await Debt.create({
                 "balance": req.body.balance,
                 "relatedPatient": data.relatedPatient,

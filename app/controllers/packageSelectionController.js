@@ -610,7 +610,7 @@ exports.createPackageSelection = async (req, res, next) => {
         if (treatmentVoucherResult) {
             var populatedTV = await TreatmentVoucher.find({ _id: treatmentVoucherResult._id }).populate('relatedDiscount')
         }
-        if (req.body.balance) {
+        if (req.body.balance > 0) {
             const debtCreate = await Debt.create({
                 "balance": req.body.balance,
                 "relatedPatient": data.relatedPatient,
