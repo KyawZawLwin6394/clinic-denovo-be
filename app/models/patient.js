@@ -94,13 +94,28 @@ let PatientSchema = new Schema({
     type: Number
   },
   totalAppointments: {
-    type: Number
+    type: Number,
+    default: 0
   },
   finishedAppointments: {
-    type: Number
+    type: Number,
+    default: 0
   },
   unfinishedAppointments: {
-    type: Number
+    type: Number,
+    default: 0
+  },
+  totalTS: {
+    type: Number,
+    default: 0
+  },
+  finishedTS: {
+    type: Number,
+    default: 0
+  },
+  unfinishedTS: {
+    type: Number,
+    default: 0
   },
   maritalStatus: {
     type: String,

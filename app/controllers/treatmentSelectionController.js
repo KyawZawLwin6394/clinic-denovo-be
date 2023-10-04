@@ -236,6 +236,7 @@ exports.createMultiTreatmentSelection = async (req, res, next) => {
             let result = await TreatmentSelection.create(data)
             TSArray.push(result._id)
         }
+        const tsupdate = await Patient.findOneAndUpdate({ _id: req.body.relatedPatient }, { $inc: { totalTS: TSArray.length, unfinishedTS: TSArray.length } })
         if (tvcCreate === true) {
             //--> treatment voucher create
             let dataTVC = {
@@ -468,6 +469,8 @@ exports.createTreatmentSelection = async (req, res, next) => {
         console.log(data, 'data2')
 
         const result = await TreatmentSelection.create(data)
+        const tsupdate = await Patient.findOneAndUpdate({ _id: req.body.relatedPatient }, { $inc: { totalTS: 1, unfinishedTS: 1 } })
+
         tvcCreate = true;
         // if (req.body.paymentMethod === 'Advance') {
         //     let transID = ''
