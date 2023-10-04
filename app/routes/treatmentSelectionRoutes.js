@@ -34,4 +34,6 @@ module.exports = (app) => {
     app.route('/api/treatment-selections/profit-and-loss').get(verifyToken, catchError(treatmentSelection.profitAndLossForEveryMonth))
     app.route('/api/treatment-selections/top-ten').get(verifyToken, catchError(treatmentSelection.TopTenFilter))
 
+    app.route('/api/treatment-selections/update-status').post(verifyToken, catchError(treatmentSelection.updateTreatmentSelectionStatus))
+
 };

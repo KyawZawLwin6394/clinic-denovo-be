@@ -118,6 +118,10 @@ let TreatmentSelectionSchema = new Schema({
   discount: {
     type: Number
   },
+  isDone: {
+    type: Boolean,
+    default: false
+  },
   multiTreatment: [{
     item_id: {
       type: mongoose.Schema.Types.ObjectId,
