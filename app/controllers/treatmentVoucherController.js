@@ -438,7 +438,7 @@ exports.TreatmentVoucherFilter = async (req, res) => {
         if (bankID) query.relatedBank = bankID
         if (purchaseType) query.purchaseType = purchaseType
         if (relatedDoctor) query.relatedDoctor = relatedDoctor
-        let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment relatedDoctor relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedPackage relatedPackageSelection relatedAccounting payment createdBy').populate({
+        let bankResult = await TreatmentVoucher.find(query).populate('relatedTreatment secondAccount relatedDoctor relatedBank relatedCash relatedPatient relatedTreatmentSelection relatedPackage relatedPackageSelection relatedAccounting payment createdBy').populate({
             path: 'relatedTreatmentSelection',
             model: 'TreatmentSelections',
             populate: {
