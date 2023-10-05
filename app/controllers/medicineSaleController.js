@@ -205,8 +205,7 @@ exports.createMedicineSale = async (req, res, next) => {
     data = { ...data, createdBy: createdBy }
     if (medicineItems !== undefined) {
       for (const e of medicineItems) {
-
-        let totalUnit = e.stock - e.quantity
+        let totalUnit = e.stock - e.qty
         const result = await MedicineItems.find({ _id: e.item_id, isDeleted: false })
         const from = result[0].fromUnit
         const to = result[0].toUnit
