@@ -866,7 +866,7 @@ exports.updateTreatmentSelectionStatus = async (req, res) => {
         const getTS = await TreatmentSelection.findOne({ _id: relatedTreatmentSelection, isDeleted: false })
         if (getTS.isDone === true) return res.status(500).send({ error: true, message: "It's already Updated!" })
         const updateTs = await TreatmentSelection.findOneAndUpdate({ _id: relatedTreatmentSelection, isDeleted: false }, { isDone: true })
-        const updatePatient = await Patient.findOneAndUpdate({ _id: relatedPatient, isDeleted: false }, { $inc: { totalTS: -1, finishedTS: 1, unfinishedTS: -1 } })
+        const updatePatient = await Patient.findOneAndUpdate({ _id: relatedPatient, isDeleted: false }, { $inc: {  finishedTS: 1, unfinishedTS: -1 } })
         return res.status(200).send({ success: true, message: 'Successfully Updated!' })
     } catch (error) {
         return res.status(500).send({ error: true, message: error.message })
