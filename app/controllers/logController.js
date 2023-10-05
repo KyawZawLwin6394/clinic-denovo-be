@@ -77,7 +77,7 @@ exports.createUsage = async (req, res) => {
     const appResult = await Appointment.find({ _id: req.body.relatedAppointment })
     let status;
     if (appResult[0].relatedUsage === undefined) {
-
+      console.log('here')
       if (procedureMedicine !== undefined) {
         for (const e of procedureMedicine) {
           if (e.stock < e.actual) {
@@ -88,15 +88,13 @@ exports.createUsage = async (req, res) => {
             const from = result[0].fromUnit;
             const to = result[0].toUnit;
             const currentQty = (from * totalUnit) / to;
-            try {
-              const result = await ProcedureItem.findOneAndUpdate(
-                { _id: e.item_id },
-                { totalUnit: totalUnit, currentQty: currentQty },
-                { new: true }
-              );
-            } catch (error) {
-              procedureItemsError.push(e);
-            }
+            console.log(currentQty, result[0].currentQuantity)
+            const resultUpdate = await ProcedureItem.findOneAndUpdate(
+              { _id: e.item_id },
+              { totalUnit: totalUnit, currentQuantity: currentQty },
+              { new: true }
+            );
+            console.log(resultUpdate)
             procedureItemsFinished.push(e);
             const logResult = await Log.create({
               "relatedTreatmentSelection": relatedTreatmentSelection,
@@ -111,9 +109,6 @@ exports.createUsage = async (req, res) => {
           }
         }
       }
-
-
-
       //procedureAccessory
 
       if (procedureAccessory !== undefined) {
@@ -126,17 +121,12 @@ exports.createUsage = async (req, res) => {
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
-            try {
-              accessoryItemsFinished.push(e)
-              const result = await AccessoryItem.findOneAndUpdate(
-                { _id: e.item_id },
-                { totalUnit: totalUnit, currentQty: currentQty },
-                { new: true },
-              )
-
-            } catch (error) {
-              accessoryItemsError.push(e)
-            }
+            accessoryItemsFinished.push(e)
+            const resultJpdate = await AccessoryItem.findOneAndUpdate(
+              { _id: e.item_id },
+              { totalUnit: totalUnit, currentQuantity: currentQty },
+              { new: true },
+            )
             const logResult = await Log.create({
               "relatedTreatmentSelection": relatedTreatmentSelection,
               "relatedAppointment": relatedAppointment,
@@ -164,17 +154,12 @@ exports.createUsage = async (req, res) => {
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
-            try {
-              machineFinished.push(e)
-              const result = await Machine.findOneAndUpdate(
-                { _id: e.item_id },
-                { totalUnit: totalUnit, currentQty: currentQty },
-                { new: true },
-              )
-
-            } catch (error) {
-              machineError.push(e)
-            }
+            machineFinished.push(e)
+            const resultUpdate = await Machine.findOneAndUpdate(
+              { _id: e.item_id },
+              { totalUnit: totalUnit, currentQuantity: currentQty },
+              { new: true },
+            )
             const logResult = await Log.create({
               "relatedTreatmentSelection": relatedTreatmentSelection,
               "relatedAppointment": relatedAppointment,
@@ -229,8 +214,9 @@ exports.createUsage = async (req, res) => {
         const match = URResult[0].procedureItemsError.some(errorItem => errorItem.item_id.toString() === value.item_id);
         return match;
       });
-
+      console.log('here', newPM.length)
       if (newPM.length > 0) {
+
         for (const e of newPM) {
           if (e.stock < e.actual) {
             procedureItemsError.push(e)
@@ -240,17 +226,13 @@ exports.createUsage = async (req, res) => {
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
-            try {
-              procedureItemsFinished.push(e)
-              const result = await ProcedureItem.findOneAndUpdate(
-                { _id: e.item_id },
-                { totalUnit: totalUnit, currentQty: currentQty },
-                { new: true },
-              )
-
-            } catch (error) {
-              procedureItemsError.push(e);
-            }
+            console.log(currentQty, result[0].currentQuantity)
+            procedureItemsFinished.push(e)
+            const resultUpdate = await ProcedureItem.findOneAndUpdate(
+              { _id: e.item_id },
+              { totalUnit: totalUnit, currentQuantity: currentQty },
+              { new: true },
+            )
             const logResult = await Log.create({
               "relatedTreatmentSelection": relatedTreatmentSelection,
               "relatedAppointment": relatedAppointment,
@@ -277,17 +259,12 @@ exports.createUsage = async (req, res) => {
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
-            try {
-              accessoryItemsFinished.push(e)
-              const result = await AccessoryItem.findOneAndUpdate(
-                { _id: e.item_id },
-                { totalUnit: totalUnit, currentQty: currentQty },
-                { new: true },
-              )
-
-            } catch (error) {
-              accessoryItemsError.push(e)
-            }
+            accessoryItemsFinished.push(e)
+            const resultUpdate = await AccessoryItem.findOneAndUpdate(
+              { _id: e.item_id },
+              { totalUnit: totalUnit, currentQuantity: currentQty },
+              { new: true },
+            )
             const logResult = await Log.create({
               "relatedTreatmentSelection": relatedTreatmentSelection,
               "relatedAppointment": relatedAppointment,
@@ -315,17 +292,12 @@ exports.createUsage = async (req, res) => {
             const from = result[0].fromUnit
             const to = result[0].toUnit
             const currentQty = (from * totalUnit) / to
-            try {
-              machineFinished.push(e)
-              const result = await Stock.findOneAndUpdate(
-                { _id: e.item_id },
-                { totalUnit: totalUnit, currentQty: currentQty },
-                { new: true },
-              )
-
-            } catch (error) {
-              machineError.push(e)
-            }
+            machineFinished.push(e)
+            const resultUpdate = await Stock.findOneAndUpdate(
+              { _id: e.item_id },
+              { totalUnit: totalUnit, currentQuantity: currentQty },
+              { new: true },
+            )
             const logResult = await Log.create({
               "relatedTreatmentSelection": relatedTreatmentSelection,
               "relatedAppointment": relatedAppointment,
