@@ -11,7 +11,7 @@ let TreatmentSelectionSchema = new Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['Paid', 'Partial']
+    enum: ['Paid', 'Partial', 'FOC']
   },
   paidAmount: {
     type: Number,
