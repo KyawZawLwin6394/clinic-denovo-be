@@ -4,8 +4,8 @@ const Appointment = require('../models/appointment');
 const Doctor = require('../models/doctor');
 const ComissionPay = require('../models/commissionPay');
 const { ObjectId } = require('mongodb');
-const Transaction = require('../models/transaction');
-const Accounting = require('../models/accountingList')
+const Nurse = require('../models/nurse');
+const Therapist = require('../models/therapist');
 
 exports.listAllComissiones = async (req, res) => {
     let { keyword, role, limit, skip } = req.query;
@@ -49,16 +49,66 @@ exports.getComission = async (req, res) => {
     return res.status(200).send({ success: true, data: result });
 };
 
+exports.getComissionHistory = async (req, res, next) => {
+    try {
+        const { month, doctor, nurse, therapist } = req.query;
+        if (month) {
+            let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+            //Check if the provided month value is valid
+            if (!months.includes(month)) {
+                return res.status(400).json({ error: 'Invalid month' });
+            }
+            // Get the start and end dates for the specified month
+            var startDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(month), 1));
+            var endDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(month) + 1, 1));
+        } else {
+            var { startDate, endDate } = req.query;
+        }
+        console.log(startDate, endDate)
+        const query = { status: 'Claimed' }
+        if (startDate & endDate) query.date = { $gte: startDate, $lte: endDate }
+        if (doctor) query.relatedDoctor = doctor
+        if (nurse) query.relatedNurse = nurse
+        if (therapist) query.relatedTherapist = therapist
+        const history = await Comission.find(query).populate('relatedDoctor relatedTherapist relatedNurse relatedAppointment relatedBranch').populate({
+            path: 'relatedTreatmentSelection',
+            model: 'TreatmentSelections',
+            populate: {
+                path: 'relatedTreatment',
+                model: 'Treatments'
+            }
+        })
+        const previousAmount = history.reduce((accumulator, item) => accumulator + item.commissionAmount, 0)
+        return res.status(200).send({
+            success: true, data: {
+                previousAmount: previousAmount,
+                history: history
+            }
+        })
+    } catch (error) {
+        return res.status(500).send({
+            error: true, message: error.message
+        })
+    }
+}
+
 exports.createComission = async (req, res, next) => {
-    let percent = 0.05
-    let data = req.body
-    let appointmentResult = await Appointment.find({ _id: req.body.appointmentID })
-    //if (appointmentResult[0].isCommissioned === true) return res.status(500).send({ error: true, message: 'Alread Commissioned!' })
+    const { doctorID, appointmentID, nurseID, therapistID } = req.body;
+    let percent = 0.02
+    let appointmentResult = await Appointment.find({ _id: appointmentID })
+    if (appointmentResult[0].isCommissioned === true) return res.status(500).send({ error: true, message: 'Alread Commissioned!' })
     let comission = (req.body.totalAmount / req.body.treatmentTimes) * percent
-    let doctorUpdate = await Doctor.findOneAndUpdate(
-        { _id: req.body.doctorID },
-        { commissionAmount: comission }
-    )
+    if (doctorID) {
+        const doctorUpdate = await Doctor.findOneAndUpdate(
+            { _id: doctorID },
+            { commissionAmount: comission }
+        )
+    } else if (nurseID) {
+        const nurseUpdate = await Nurse.findOneAndUpdate({ _id: nurseID }, { commissionAmount: comission })
+    } else if (therapistID) {
+        const therapistUpdate = await Therapist.findOneAndUpdate({ _id: therapistID }, { commissionAmount: comission })
+    }
+
     let appointmentUpdate = await Appointment.findOneAndUpdate(
         { _id: req.body.appointmentID },
         { isCommissioned: true }
@@ -69,35 +119,21 @@ exports.createComission = async (req, res, next) => {
         const result = await Comission.create({
             relatedAppointment: req.body.appointmentID,
             appointmentAmount: req.body.totalAmount / req.body.treatmentTimes,
-            relatedTherapist: req.body.therapistID,
-            relatedVoucher: req.body.relatedVoucher,
-            voucherAmount: req.body.voucherAmount,
             commissionAmount: comission,
             relatedDoctor: req.body.doctorID,
-            relatedNurse: req.body.relatedNurse,
-            percent: percent
-        }).then(async (response) => {
-            const TransactionResult = await Transaction.create({
-                "amount": comission,
-                "date": Date.now(),
-                "remark": data.remark,
-                "type": "Credit",
-                "relatedTransaction": null,
-                "relatedAccounting": "64ae1d0012b3d31436d48027", //Sales Comission
-            })
-            const amountUpdate = await Accounting.findOneAndUpdate(
-                { _id: '64ae1d0012b3d31436d48027' },
-                { $inc: { amount: comission } }
-            )
-        })
+            percent: percent,
+            relatedBranch: req.body.relatedBranch,
+            relatedTreatmentSelection: req.body.relatedTreatmentSelection,
+            relatedNurse: nurseID,
+            relatedTherapist: therapistID
+        });
         res.status(200).send({
             message: 'Comission create success',
             success: true,
-            data: result,
-            doctorResult: doctorUpdate
+            data: result
         });
     } catch (error) {
-        console.log(error)
+        // console.log(error )
         return res.status(500).send({ "error": true, message: error.message })
     }
 };
@@ -144,59 +180,47 @@ exports.activateComission = async (req, res, next) => {
 
 exports.searchCommission = async (req, res) => {
     let total = 0
-    console.log('here')
     try {
-        const { month, doctor } = req.query;
+        const { month, doctor, nurse, therapist } = req.query;
         if (month) {
             let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-
             //Check if the provided month value is valid
             if (!months.includes(month)) {
                 return res.status(400).json({ error: 'Invalid month' });
             }
-
             // Get the start and end dates for the specified month
             var startDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(month), 1));
             var endDate = new Date(Date.UTC(new Date().getFullYear(), months.indexOf(month) + 1, 1));
         } else {
             var { startDate, endDate } = req.query;
         }
+        console.log(startDate, endDate)
         let query = { status: 'Unclaimed' }
         if (month) query.date = { $gte: startDate, $lte: endDate }
         if (doctor) query.relatedDoctor = doctor
-        const result = await Comission.find(query)
-            .populate('relatedDoctor relatedTherapist relatedNurse')
-            .populate({
-                path: 'relatedAppointment',
-                model: 'Appointments',
-                populate: {
-                    path: 'relatedTreatment',
-                    model: 'Treatments'
-                }
-            })
-            .populate({
-                path: 'relatedAppointment',
-                model: 'Appointments',
-                populate: {
-                    path: 'relatedPatient',
-                    model: 'Patients'
-                }
-            });
-
+        if (nurse) query.nurse = nurse
+        if (therapist) query.therapist = therapist
+        const result = await Comission.find(query).populate('relatedDoctor relatedTherapist relatedNurse relatedAppointment relatedBranch').populate({
+            path: 'relatedTreatmentSelection',
+            model: 'TreatmentSelections',
+            populate: {
+                path: 'relatedTreatment',
+                model: 'Treatments'
+            }
+        })
         for (let i = 0; i < result.length; i++) {
             total = result[i].commissionAmount + total
         }
 
         return res.status(200).send({ success: true, data: result, collectAmount: total, startDate: startDate, endDate: endDate })
     } catch (e) {
-        console.log(e)
         return res.status(500).send({ error: true, message: e.message });
     }
 };
 
 exports.collectComission = async (req, res) => {
     try {
-        let { update, startDate, endDate, relatedNurse, collectAmount, remark, relatedDoctor, relatedTherapist } = req.body
+        let { update, startDate, endDate, collectAmount, remark, relatedDoctor, relatedNurse, relatedTherapist, collectDate } = req.body
         // Convert string IDs to MongoDB ObjectIds
         const objectIds = update.map((id) => ObjectId(id));
 
@@ -206,17 +230,17 @@ exports.collectComission = async (req, res) => {
             { status: 'Claimed' },
             { new: true }
         );
-        let comissionPaidData = {
+        const cPayResult = await ComissionPay.create({
             startDate: startDate,
             endDate: endDate,
             collectAmount: collectAmount,
             remark: remark,
-            relatedCommissions: objectIds
-        }
-        if (relatedDoctor) comissionPaidData.relatedDoctor = relatedDoctor
-        if (relatedNurse) comissionPaidData.relatedNurse = relatedNurse
-        if (relatedTherapist) comissionPaidData.relatedTherapist = relatedTherapist
-        const cPayResult = await ComissionPay.create(comissionPaidData)
+            relatedDoctor: relatedDoctor,
+            relatedNurse: relatedNurse,
+            relatedTherapist: relatedTherapist,
+            relatedCommissions: objectIds,
+            collectDate: collectDate
+        })
         return res.status(200).send({ success: true, updateResult: updateResult, comissionPayResult: cPayResult })
     } catch (e) {
         return res.status(500).send({ error: true, message: e.message });
