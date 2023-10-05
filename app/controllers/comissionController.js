@@ -96,7 +96,7 @@ exports.createComission = async (req, res, next) => {
     const { doctorID, appointmentID, nurseID, therapistID } = req.body;
     let percent = 0.02
     let appointmentResult = await Appointment.find({ _id: appointmentID })
-    if (appointmentResult[0].isCommissioned === true) return res.status(500).send({ error: true, message: 'Alread Commissioned!' })
+    if (appointmentResult[0].isCommissioned === true) return res.status(500).send({ error: true, message: 'Already Commissioned!' })
     let comission = (req.body.totalAmount / req.body.treatmentTimes) * percent
     if (doctorID) {
         const doctorUpdate = await Doctor.findOneAndUpdate(
@@ -198,14 +198,7 @@ exports.searchCommission = async (req, res) => {
         if (doctor) query.relatedDoctor = doctor
         if (nurse) query.nurse = nurse
         if (therapist) query.therapist = therapist
-        const result = await Comission.find(query).populate('relatedDoctor relatedTherapist relatedNurse relatedAppointment').populate({
-            path: 'relatedTreatmentSelection',
-            model: 'TreatmentSelections',
-            populate: {
-                path: 'relatedTreatment',
-                model: 'Treatments'
-            }
-        })
+        const result = await Comission.find(query).populate('relatedDoctor relatedTherapist relatedNurse relatedAppointment')
         for (let i = 0; i < result.length; i++) {
             total = result[i].commissionAmount + total
         }
