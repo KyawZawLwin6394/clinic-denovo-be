@@ -526,7 +526,7 @@ exports.createSingleMedicineSale = async (req, res) => {
             try {
                 const result = await MedicineItems.findOneAndUpdate(
                     { _id: e.item_id },
-                    { totalUnit: totalUnit, currentQty: currentQty },
+                    { totalUnit: totalUnit, currentQuantity: currentQty },
                     { new: true },
                 )
             } catch (error) {
@@ -680,7 +680,7 @@ exports.combineMedicineSale = async (req, res) => {
             try {
                 const result = await MedicineItems.findOneAndUpdate(
                     { _id: e.item_id },
-                    { totalUnit: totalUnit, currentQty: currentQty },
+                    { totalUnit: totalUnit, currentQuantity: currentQty },
                     { new: true },
                 )
             } catch (error) {
