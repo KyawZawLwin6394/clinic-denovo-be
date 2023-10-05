@@ -212,8 +212,8 @@ exports.createMedicineSale = async (req, res, next) => {
         const currentQty = (from * totalUnit) / to
         try {
           const result = await MedicineItems.findOneAndUpdate(
-            { _id: e.item_id, isDeleted: false },
-            { totalUnit: totalUnit, currentQty: currentQty },
+            { _id: e.item_id },
+            { totalUnit: totalUnit, currentQuantity: currentQty },
             { new: true },
           )
         } catch (error) {
