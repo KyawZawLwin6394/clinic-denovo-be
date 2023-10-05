@@ -4,7 +4,7 @@ const Transaction = require('../models/transaction');
 const Accounting = require('../models/accountingList');
 const Patient = require('../models/patient');
 const MedicineItems = require('../models/medicineItem');
-
+const Log = require('../models/log');
 exports.getwithExactDate = async (req, res) => {
   try {
     let { exact } = req.query;
@@ -97,6 +97,7 @@ exports.createCode = async (req, res, next) => {
 
 exports.createMedicineSale = async (req, res, next) => {
   let data = req.body;
+  const { medicineItems } = req.body;
   let createdBy = req.credentials.id
   try {
     //prepare CUS-ID
@@ -200,13 +201,44 @@ exports.createMedicineSale = async (req, res, next) => {
     //   { amount: parseInt(req.body.payAmount) + parseInt(acc[0].amount) },
     //   { new: true },
     // )
+
     data = { ...data, createdBy: createdBy }
+    if (medicineItems !== undefined) {
+      for (const e of medicineItems) {
+
+        let totalUnit = e.stock - e.quantity
+        const result = await MedicineItems.find({ _id: e.item_id, isDeleted: false })
+        const from = result[0].fromUnit
+        const to = result[0].toUnit
+        const currentQty = (from * totalUnit) / to
+        try {
+          const result = await MedicineItems.findOneAndUpdate(
+            { _id: e.item_id, isDeleted: false },
+            { totalUnit: totalUnit, currentQty: currentQty },
+            { new: true },
+          )
+        } catch (error) {
+          return res.status(500).send({ error: true, message: error.message })
+        }
+        const logResult = await Log.create({
+          "relatedTreatmentSelection": null,
+          "relatedAppointment": null,
+          "relatedMedicineItems": e.item_id,
+          "currentQty": e.stock,
+          "actualQty": e.actual,
+          "finalQty": totalUnit,
+          "type": "Medicine Sale",
+          "relatedBranch": relatedBranch,
+          "createdBy": createdBy
+        })
+      }
+    }
     const newMedicineSale = new MedicineSale(data)
     const medicineSaleResult = await newMedicineSale.save()
     res.status(200).send({
       message: 'MedicineSale Transaction success',
       success: true,
-      data:newMedicineSale
+      data: newMedicineSale
       // fTrans: fTransUpdate,
       // sTrans: secTransResult,
       // accResult: accResult,

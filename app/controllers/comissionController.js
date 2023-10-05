@@ -70,7 +70,7 @@ exports.getComissionHistory = async (req, res, next) => {
         if (doctor) query.relatedDoctor = doctor
         if (nurse) query.relatedNurse = nurse
         if (therapist) query.relatedTherapist = therapist
-        const history = await Comission.find(query).populate('relatedDoctor relatedTherapist relatedNurse relatedAppointment relatedBranch').populate({
+        const history = await Comission.find(query).populate('relatedDoctor relatedTherapist relatedNurse relatedAppointment').populate({
             path: 'relatedTreatmentSelection',
             model: 'TreatmentSelections',
             populate: {
@@ -108,7 +108,6 @@ exports.createComission = async (req, res, next) => {
     } else if (therapistID) {
         const therapistUpdate = await Therapist.findOneAndUpdate({ _id: therapistID }, { commissionAmount: comission })
     }
-
     let appointmentUpdate = await Appointment.findOneAndUpdate(
         { _id: req.body.appointmentID },
         { isCommissioned: true }
@@ -122,7 +121,6 @@ exports.createComission = async (req, res, next) => {
             commissionAmount: comission,
             relatedDoctor: req.body.doctorID,
             percent: percent,
-            relatedBranch: req.body.relatedBranch,
             relatedTreatmentSelection: req.body.relatedTreatmentSelection,
             relatedNurse: nurseID,
             relatedTherapist: therapistID
@@ -200,7 +198,7 @@ exports.searchCommission = async (req, res) => {
         if (doctor) query.relatedDoctor = doctor
         if (nurse) query.nurse = nurse
         if (therapist) query.therapist = therapist
-        const result = await Comission.find(query).populate('relatedDoctor relatedTherapist relatedNurse relatedAppointment relatedBranch').populate({
+        const result = await Comission.find(query).populate('relatedDoctor relatedTherapist relatedNurse relatedAppointment').populate({
             path: 'relatedTreatmentSelection',
             model: 'TreatmentSelections',
             populate: {
