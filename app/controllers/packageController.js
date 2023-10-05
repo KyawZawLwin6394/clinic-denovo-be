@@ -8,7 +8,7 @@ exports.listAllPackages = async (req, res) => {
     try {
         limit = +limit <= 100 ? +limit : 10; //limit
         skip = +skip || 0;
-        let query = req.mongoQuery,
+        let query = { isDeleted: false },
             regexKeyword;
         role ? (query['role'] = role.toUpperCase()) : '';
         keyword && /\w/.test(keyword)
